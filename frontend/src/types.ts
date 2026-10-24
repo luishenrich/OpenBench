@@ -68,6 +68,9 @@ export interface UseCase {
   created_at: string
   /** last change to the use case or any of its cases */
   updated_at?: string | null
+  /** Not in the contract yet: the backend will add it. in_progress = the coding agent is still attaching
+   *  prompt, metrics and cases. Until then the dashboard infers it (components/usecases/group.ts, isAgentSettingUp). */
+  setup_state?: 'in_progress' | 'complete'
   /** pinning sets pinned_at; unpinning clears it. Older APIs omit it: pins then live in localStorage. */
   pinned: boolean
   pinned_at?: string | null

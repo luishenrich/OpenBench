@@ -12,6 +12,7 @@ import UseCaseHeader from '@/components/usecase/Header'
 import CasesTable, { editedAfterRun } from '@/components/usecase/CasesTable'
 import { InheritBadge, useEffective } from '@/components/settings/inherit'
 import { Toaster } from '@/components/usecases/kit'
+import { useNow } from '@/components/usecases/live'
 import { ProviderIcon } from '@/components/ModelIcon'
 import { ModelName, juryNames } from '@/components/run/ModelName'
 import SetupPanel from '@/components/usecase/SetupPanel'
@@ -96,6 +97,8 @@ export default function UseCasePage() {
   const runs = useQuery({ queryKey: ['runs', id], queryFn: () => api.runs(id) })
   const metrics = useQuery({ queryKey: ['metrics'], queryFn: api.metrics })
   const [draft, setDraft] = useState<Profile | null>(null)
+  // re-evaluates "your agent is setting this up" without new data, so the page flips once the 5-minute window passes
+  const now = useNow(15_000)
 
   const save = useMutation({
     mutationFn: (profile: Profile) => api.updateUseCase(id, { profile }),
@@ -121,7 +124,7 @@ export default function UseCasePage() {
   const u = uc.data!
   const profile = draft ?? u.profile ?? me.data?.workspace.default_profile ?? { weights: { quality: 60, speed: 20, cost: 20 }, targets: {} }
   const metricName = (mid: string) => metrics.data?.find((m: MetricInfo) => m.id === mid || m.aliases.includes(mid))?.name ?? mid
-  const ready = readiness(u, cases.data)
+  const ready = readiness(u, cases.data, now)
   const totalWeight = u.metrics.reduce((s, m) => s + m.weight, 0) || 1
   const ref = u.source_refs[0]
   const moreRefs = u.source_refs.length - 1
@@ -154,7 +157,7 @@ export default function UseCasePage() {
         </div>
         <div className="bg-panel px-4 py-3">
           <dt className="text-xs text-faint">Test cases</dt>
-          <dd className={`title mt-1 text-2xl ${(cases.data?.length ?? u.case_count) === 0 ? 'text-front' : ''}`}>{cases.data?.length ?? u.case_count}</dd>
+          <dd className={`title mt-1 text-2xl ${(cases.data?.length ?? u.case_count) === 0 && !ready.settingUp ? 'text-front' : ''}`}>{cases.data?.length ?? u.case_count}</dd>
         </div>
         <div className="bg-panel px-4 py-3">
           <dt className="text-xs text-faint">Must pass</dt>
@@ -163,7 +166,7 @@ export default function UseCasePage() {
       </dl>
 
       <div className="mt-6">
-        <SetupPanel uc={u} cases={cases.data} />
+        <SetupPanel uc={u} cases={cases.data} now={now} />
       </div>
 
       <div className="mt-10 grid gap-12 lg:grid-cols-[1fr_380px]">
@@ -197,7 +200,7 @@ export default function UseCasePage() {
             </Section>
             <Section title="Quality is measured by">
               <Panel className="divide-y divide-line">
-                {u.metrics.length === 0 && <p className="p-4 text-sm text-muted">Your agent is still choosing metrics.</p>}
+                {u.metrics.length === 0 && <p className="p-4 text-sm text-muted">{ready.settingUp ? 'Your agent is still choosing metrics.' : 'No metrics yet. Ask your agent to choose them.'}</p>}
                 {u.metrics.map((m) => (
                   <div key={m.metric_id} className="p-4">
                     <div className="flex justify-between gap-3 text-sm">

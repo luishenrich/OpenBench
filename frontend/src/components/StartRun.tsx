@@ -6,6 +6,7 @@ import { effortOf, usd } from '@/lib/format'
 import type { CatalogModel, Estimate, ModelRef, RunIn, UseCase } from '@/types'
 import { ModelIcon, ProviderIcon } from './ModelIcon'
 import { EffortChip, prettyModel } from './run/ModelName'
+import { LiveDot } from '@/components/usecases/live'
 import { Badge, Button, ErrorNote, Panel } from './ui'
 
 const EFFORTS = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh'] as const
@@ -50,6 +51,8 @@ function ModelLine({ m }: { m: ModelRef }) {
  * Candidates, repeats and references inherit the workspace unless changed here: candidates [] auto-picks
  * from the workspace pool, repeats / references null use the workspace defaults.
  */
+const AGENT_WORKING = /agent is still setting this up/i
+
 export default function StartRun({ useCase, needsVision, blocked = null }: { useCase: UseCase; needsVision: boolean; blocked?: string | null }) {
   const navigate = useNavigate()
   const models = useQuery({ queryKey: ['models'], queryFn: api.models })
@@ -124,7 +127,10 @@ export default function StartRun({ useCase, needsVision, blocked = null }: { use
       <Badge tone="signal">New run</Badge>
       <h2 className="title mt-4 text-lg">Benchmark models</h2>
       {blocked ? (
-        <p className="mt-1 flex items-start gap-2 text-sm text-front"><span className="mt-[7px] size-1.5 shrink-0 rounded-[1px] bg-front" />{blocked}</p>
+        // the agent still filling the use case in is a wait, not a problem: neutral with a live dot
+        AGENT_WORKING.test(blocked)
+          ? <p className="mt-1 flex items-center gap-2 text-sm text-muted"><LiveDot small />{blocked}</p>
+          : <p className="mt-1 flex items-start gap-2 text-sm text-front"><span className="mt-[7px] size-1.5 shrink-0 rounded-[1px] bg-front" />{blocked}</p>
       ) : (
         <p className="mt-1 text-sm text-muted">
           {useCase.case_count} {useCase.case_count === 1 ? 'case' : 'cases'} × {repeats ?? wsRepeats} repeats per model{needsVision ? '. Image input, so only models that passed our vision check.' : '.'}

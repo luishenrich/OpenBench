@@ -4,12 +4,46 @@ import { Link } from 'react-router-dom'
 import { CopyButton } from '@/components/connections/mcp'
 import { listGrants } from '@/components/connections/grants'
 import { api } from '@/lib/api'
+import type { UseCase } from '@/types'
+import { scanActivity, sinceLabel } from './group'
 
 // Small pulsing dot for "this updates live". The pulse is motion-safe only (and index.css also
 // switches animations off under prefers-reduced-motion).
-export function LiveDot({ className = '' }: { className?: string }) {
+export function LiveDot({ className = '', small = false }: { className?: string; small?: boolean }) {
   return (
-    <span className={`inline-flex size-2 shrink-0 rounded-full bg-win shadow-[0_0_0_3px_rgb(61_214_140/0.15)] motion-safe:animate-pulse ${className}`} aria-hidden />
+    <span className={`inline-flex shrink-0 rounded-full bg-win motion-safe:animate-pulse ${small ? 'size-1.5 shadow-[0_0_0_2px_rgb(61_214_140/0.15)]' : 'size-2 shadow-[0_0_0_3px_rgb(61_214_140/0.15)]'} ${className}`} aria-hidden />
+  )
+}
+
+/** Current time, re-read every `ms`, so time-based states (the agent's 5-minute window) flip on their own. */
+export function useNow(ms = 15_000): number {
+  const [now, setNow] = useState(Date.now)
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), ms)
+    return () => clearInterval(t)
+  }, [ms])
+  return now
+}
+
+// Slim banner over the list while the coding agent is creating or filling in use cases. It goes away by
+// itself once nothing has changed for 5 minutes (AGENT_WINDOW_MS).
+export function ScanBanner({ list, fallbackName }: { list: UseCase[]; fallbackName: string }) {
+  const now = useNow(1000)
+  const a = scanActivity(list, fallbackName, now)
+  if (!a) return null
+  const manyProjects = new Set(list.map((u) => u.source_refs[0]?.repo?.trim() || fallbackName)).size > 1
+  return (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-line bg-panel px-4 py-2.5 text-sm">
+      <LiveDot className="mr-1" />
+      <span role="status" className="contents">
+        <span className="font-medium text-fg">Your agent is scanning</span>
+        {manyProjects && <><span aria-hidden className="text-faint">·</span><span className="text-muted">{a.projects.join(', ')}</span></>}
+        <span aria-hidden className="text-faint">·</span>
+        <span className="tabular-nums text-muted">{a.setUp} of {a.total} set up</span>
+      </span>
+      <span aria-hidden className="text-faint">·</span>
+      <span className="tabular-nums text-faint">last change {sinceLabel(a.lastChange, now)}</span>
+    </div>
   )
 }
 

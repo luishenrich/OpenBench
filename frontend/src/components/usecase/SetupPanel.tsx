@@ -5,6 +5,8 @@ import { api } from '@/lib/api'
 import type { Case, UseCase } from '@/types'
 import { type Step, type StepStatus, readiness } from './readiness'
 import { ACCEPT, parseExamples, rejectReason, uploadCase } from './upload'
+import { sinceLabel } from '@/components/usecases/group'
+import { LiveDot, useNow } from '@/components/usecases/live'
 
 const ICON: Record<StepStatus, { cls: string; path: string }> = {
   ok: { cls: 'bg-win/15 text-win', path: 'M4 8.5l2.5 2.5L12 5.5' },
@@ -28,16 +30,19 @@ function StepItem({ step, index }: { step: Step; index: number }) {
   )
 }
 
-/** Setup checklist, with the "Action required" card on top when the user has to supply something. */
-export default function SetupPanel({ uc, cases }: { uc: UseCase; cases?: Case[] }) {
-  const r = readiness(uc, cases)
+/** Setup checklist, with the "Action required" card on top when the user has to supply something.
+ *  While the coding agent is still setting the use case up, a calm "your agent is setting this up" panel
+ *  replaces the card: missing pieces are on their way, not the user's job. */
+export default function SetupPanel({ uc, cases, now }: { uc: UseCase; cases?: Case[]; now: number }) {
+  const r = readiness(uc, cases, now)
   const missingCases = (cases?.length ?? uc.case_count) === 0
   const missingPrompt = r.steps.find((s) => s.key === 'prompt')!.status === 'block'
   const [touched, setTouched] = useState(false) // keep the card (and its upload list) after the gap is filled
-  const showCard = missingCases || missingPrompt || touched
+  const showCard = !r.settingUp && (missingCases || missingPrompt || touched)
 
   return (
     <section aria-label="Setup" className="space-y-3">
+      {r.settingUp && <AgentSettingUp lastChange={r.lastChange} />}
       {showCard && (
         <ActionRequired
           uc={uc} vision={r.vision} missingCases={missingCases} missingPrompt={missingPrompt}
@@ -48,6 +53,22 @@ export default function SetupPanel({ uc, cases }: { uc: UseCase; cases?: Case[] 
         {r.steps.map((s, i) => <StepItem key={s.key} step={s} index={i} />)}
       </ol>
     </section>
+  )
+}
+
+function AgentSettingUp({ lastChange }: { lastChange: number }) {
+  const now = useNow(1000)
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2 rounded-xl border border-line bg-panel p-5">
+      <div className="flex min-w-0 items-start gap-3">
+        <LiveDot className="mt-[7px]" />
+        <div className="min-w-0">
+          <h2 className="title text-lg" role="status">Your agent is setting this up</h2>
+          <p className="mt-1 max-w-2xl text-sm text-muted">It attaches the prompt, metrics and test cases one by one. This page updates live.</p>
+        </div>
+      </div>
+      <p className="shrink-0 pt-1 text-xs tabular-nums text-faint">last change {sinceLabel(lastChange, now)}</p>
+    </div>
   )
 }
 

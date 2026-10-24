@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ErrorNote, Loading } from '@/components/ui'
 import { ProjectList, type ListOps } from '@/components/usecases/ProjectList'
-import { LiveDot, WaitingForAgent, useFreshIds } from '@/components/usecases/live'
+import { LiveDot, ScanBanner, WaitingForAgent, useFreshIds, useNow } from '@/components/usecases/live'
 import { savingsOf } from '@/components/usecases/group'
 import { ConfirmDialog, Icon, Toaster, focusRing } from '@/components/usecases/kit'
 import { usePins, useDeleteUseCases, useRename } from '@/components/usecases/ops'
@@ -25,7 +25,9 @@ export default function UseCases() {
   const savings = savingsOf(all)
 
   const [view, update] = useListView()
-  const shown = applyView(all, view)
+  // re-evaluates "setting up" without new data, so a use case flips once the agent's 5-minute window passes
+  const now = useNow(15_000)
+  const shown = applyView(all, view, now)
   const pins = usePins(me.data?.workspace.id, q.data)
   const rename = useRename()
   const del = useDeleteUseCases()
@@ -73,7 +75,8 @@ export default function UseCases() {
         </p>
       )}
 
-      {all.length > 0 && <div className="mt-7"><Toolbar all={all} view={view} update={update} /></div>}
+      {all.length > 0 && <div className="mt-4"><ScanBanner list={all} fallbackName={fallbackName} /></div>}
+      {all.length > 0 && <div className="mt-7"><Toolbar all={all} view={view} update={update} now={now} /></div>}
 
       <div className="mt-6">
         {q.isLoading && <Loading />}

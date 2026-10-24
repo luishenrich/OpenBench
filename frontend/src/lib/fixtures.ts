@@ -55,11 +55,24 @@ const EXTRAS: Extra[] = [
   ['Score lead quality', 'classification', null, 'services/crm/leads.py', 66, 'openai/gpt-4.1-mini', 2, 45],
   // as in the StudyPDF rehearsal: vision, no page images in the repo, prompt too large to send inline
   ['Page OCR (vision transcription)', 'extraction', 'studypdf', 'lib/pdf/ocr.ts', 88, 'openai/gpt-6-luna', 2, 0],
+  // the agent's second pass is still running on these (see AGENT_RECENT): nothing attached yet, cases pending, done
+  ['Suggest a study plan', 'generation', 'studypdf', 'lib/plan.ts', 21, 'openai/gpt-4.1-mini', 0, 0],
+  ['Rate answer confidence', 'classification', 'studypdf', 'app/api/chat/confidence.ts', 44, 'openai/gpt-4.1-nano', 2, 0],
+  ['Turn notes into an outline', 'summarization', 'studypdf', 'lib/outline.ts', 16, 'openai/gpt-4.1-mini', 2, 12],
 ]
 
 // Overrides for single extras: the OCR one carries the rehearsal's long description and no prompt;
 // "Draft a reply" has cases but its prompt is assembled at runtime, so the agent could not attach it.
-const NO_PROMPT = new Set(['Page OCR (vision transcription)', 'Draft a reply to a customer'])
+const NO_PROMPT = new Set(['Page OCR (vision transcription)', 'Draft a reply to a customer', 'Suggest a study plan'])
+
+// Use cases the agent touched moments ago (seconds before page load), so the "setting up" state and the
+// scan banner can be seen. ?agent_ago=<minutes> pushes them back in time to see the state after the
+// 5-minute window (?agent_ago=6 → "Action required" again).
+const AGENT_RECENT: Record<string, number> = { 'Suggest a study plan': 40_000, 'Rate answer confidence': 12_000, 'Turn notes into an outline': 90_000 }
+const AGENT_AGO_MS = (() => {
+  try { return (Number(new URLSearchParams(window.location.search).get('agent_ago')) || 0) * 60_000 } catch { return 0 }
+})()
+const loadedAt = Date.now()
 const DESCRIPTIONS: Record<string, string> = {
   'Page OCR (vision transcription)':
     'Transcribes each page image of an uploaded PDF into plain text when the PDF has no text layer (scanned books, photographed handouts). ' +
@@ -97,8 +110,10 @@ const extras: UseCase[] = EXTRAS.map(([name, kind, repo, path, line, model, metr
   created_by: 'mcp',
   pinned: false,
   pinned_at: null,
-  updated_at: null,
-  created_at: new Date(Date.parse('2026-10-24T09:00:00Z') + i * 60_000).toISOString(),
+  updated_at: name in AGENT_RECENT ? new Date(loadedAt - AGENT_AGO_MS - AGENT_RECENT[name]).toISOString() : null,
+  created_at: name in AGENT_RECENT
+    ? new Date(loadedAt - AGENT_AGO_MS - 4 * 60_000).toISOString()
+    : new Date(Date.parse('2026-10-24T09:00:00Z') + i * 60_000).toISOString(),
 }))
 
 const useCases = [...(clone(useCasesJson) as unknown as UseCase[]), ...extras]
@@ -128,6 +143,8 @@ function visibleUseCases(): UseCase[] {
   if (!scan && scanStart == null) return useCases
   scanStart ??= Date.now()
   const n = Math.max(0, Math.floor((Date.now() - scanStart - 4000) / 1500))
+  // each use case counts as touched by the agent when it appears, so the scan banner and "Setting up" show
+  useCases.slice(0, n).forEach((u, i) => { u.updated_at ??= new Date(scanStart! + 4000 + (i + 1) * 1500).toISOString() })
   return useCases.slice(0, n)
 }
 // run_done.json carries references, effort and judge agreement. The fixture use case has no judge metric, so

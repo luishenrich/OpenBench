@@ -5,6 +5,7 @@ import {
   type KindGroup, type ProjectGroup, type SortKey, STATE_ORDER, countStates, groupUseCases, kindLabel, projectOf, savingsOf, setupState, stateDot, stateShort,
 } from './group'
 import { Checkbox, Icon } from './kit'
+import { LiveDot } from './live'
 import { MENU_W, ROW_GRID, ROW_INDENT, SELECT_W, UseCaseRow } from './UseCaseRow'
 
 const STORE = 'biy:use-case-sections'
@@ -117,6 +118,14 @@ function Project({ project, projectAll, isOpen, toggle, openAll, fresh, ops }: {
           </h2>
           <p className="mt-1 text-sm text-muted">
             {n} LLM {n === 1 ? 'call' : 'calls'} found · {setUp} of {n} set up · {c.done} benchmarked
+            {c.setup > 0 && (
+              <>
+                {' · '}
+                <span className="inline-flex items-center gap-1.5" title="Your agent is still attaching the prompt, metrics and test cases">
+                  <LiveDot small />{c.setup} being set up by your agent
+                </span>
+              </>
+            )}
             {c.data > 0 && (
               <>
                 {' · '}
@@ -222,7 +231,7 @@ function KindSection({ group, first, open, onToggle, fresh, ops }: {
           <span className="ml-auto flex min-w-0 flex-wrap justify-end gap-x-3 gap-y-0.5 text-xs text-faint">
             {STATE_ORDER.filter((s) => c[s] > 0).map((s) => (
               <span key={s} className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                <span className={`size-1.5 rounded-[1px] ${stateDot[s]}`} />{c[s]} {stateShort[s]}
+                {s === 'setup' ? <LiveDot small /> : <span className={`size-1.5 rounded-[1px] ${stateDot[s]}`} />}{c[s]} {stateShort[s]}
               </span>
             ))}
           </span>

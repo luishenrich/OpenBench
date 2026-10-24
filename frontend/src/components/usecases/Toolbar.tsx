@@ -2,10 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import type { UseCase } from '@/types'
 import { type SetupState, type SortKey, setupState, sortLabel, stateDot } from './group'
 import { Icon, focusRing } from './kit'
+import { LiveDot } from './live'
 
-export type StatusFilter = 'all' | 'data' | 'ready' | 'running' | 'done'
+export type StatusFilter = 'all' | 'setup' | 'data' | 'ready' | 'running' | 'done'
 const FILTERS: { key: StatusFilter; label: string; states: SetupState[] }[] = [
   { key: 'all', label: 'All', states: [] },
+  // only shown while the agent is setting something up (or while selected)
+  { key: 'setup', label: 'Setting up', states: ['setup'] },
   { key: 'data', label: 'Needs data', states: ['data'] },
   { key: 'ready', label: 'Ready', states: ['ready'] },
   { key: 'running', label: 'Running', states: ['running'] },
@@ -37,11 +40,11 @@ export function useListView() {
   return [view, update] as const
 }
 
-export function applyView(list: UseCase[], view: ListView): UseCase[] {
-  const f = FILTERS.find((x) => x.key === view.status)!
+export function applyView(list: UseCase[], view: ListView, now = Date.now()): UseCase[] {
+  const f = FILTERS.find((x) => x.key === view.status) ?? FILTERS[0]
   const q = view.q.trim().toLowerCase()
   return list.filter((u) => {
-    if (f.states.length && !f.states.includes(setupState(u))) return false
+    if (f.states.length && !f.states.includes(setupState(u, now))) return false
     if (!q) return true
     const hay = [u.name, u.kind, u.current_model?.model ?? '', ...u.source_refs.map((r) => `${r.path} ${r.symbol ?? ''} ${r.repo ?? ''}`)].join(' ').toLowerCase()
     return q.split(/\s+/).every((t) => hay.includes(t))
@@ -50,7 +53,7 @@ export function applyView(list: UseCase[], view: ListView): UseCase[] {
 
 export const isFiltering = (v: ListView) => v.q.trim() !== '' || v.status !== 'all'
 
-export function Toolbar({ all, view, update }: { all: UseCase[]; view: ListView; update: (p: Partial<ListView>) => void }) {
+export function Toolbar({ all, view, update, now }: { all: UseCase[]; view: ListView; update: (p: Partial<ListView>) => void; now: number }) {
   const search = useRef<HTMLInputElement>(null)
   // "/" focuses search, unless the user is typing somewhere
   useEffect(() => {
@@ -63,11 +66,11 @@ export function Toolbar({ all, view, update }: { all: UseCase[]; view: ListView;
     window.addEventListener('keydown', on)
     return () => window.removeEventListener('keydown', on)
   }, [])
-  const counts = Object.fromEntries(FILTERS.map((f) => [f.key, f.states.length ? all.filter((u) => f.states.includes(setupState(u))).length : all.length]))
+  const counts = Object.fromEntries(FILTERS.map((f) => [f.key, f.states.length ? all.filter((u) => f.states.includes(setupState(u, now))).length : all.length]))
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5">
-      <label className="relative flex min-w-[220px] flex-1 items-center sm:max-w-xs">
+      <label className="relative flex min-w-[180px] flex-1 items-center sm:max-w-xs">
         <Icon name="search" className="pointer-events-none absolute left-2.5 size-3.5 text-faint" />
         <input
           ref={search} type="search" value={view.q} onChange={(e) => update({ q: e.target.value })}
@@ -81,12 +84,13 @@ export function Toolbar({ all, view, update }: { all: UseCase[]; view: ListView;
       <div className="flex flex-wrap gap-1" role="radiogroup" aria-label="Filter by status">
         {FILTERS.map((f) => {
           const on = view.status === f.key
+          if (f.key === 'setup' && !on && counts[f.key] === 0) return null
           return (
             <button
               key={f.key} type="button" role="radio" aria-checked={on} onClick={() => update({ status: f.key })}
               className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[13px] transition-colors ${on ? 'border-line-strong bg-raised text-fg' : 'border-transparent text-muted hover:text-fg'} ${focusRing}`}
             >
-              {f.states[0] && <span className={`size-1.5 rounded-[1px] ${stateDot[f.states[0]]}`} />}
+              {f.key === 'setup' ? <LiveDot small /> : f.states[0] && <span className={`size-1.5 rounded-[1px] ${stateDot[f.states[0]]}`} />}
               {f.label}
               <span className={`tabular-nums ${on ? 'text-muted' : 'text-faint'}`}>{counts[f.key]}</span>
             </button>

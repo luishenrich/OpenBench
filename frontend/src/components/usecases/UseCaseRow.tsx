@@ -7,6 +7,7 @@ import { briefVerdict } from '@/lib/verdict'
 import type { UseCase } from '@/types'
 import { setupState, stateDot, stateLabel } from './group'
 import { Checkbox, Icon, RowMenu, copyText, focusRing, toast } from './kit'
+import { LiveDot } from './live'
 
 const verdictDot = { switch: 'bg-win', keep: 'bg-muted', use: 'bg-front' } as const
 const verdictWord = { switch: 'Switch', keep: 'Keep', use: 'Use' } as const
@@ -107,6 +108,10 @@ export function UseCaseRow({ uc, fresh, actions }: { uc: UseCase; fresh: boolean
           </>
         ) : run && (state === 'running' || state === 'failed') ? (
           <StatusPill status={run.status} />
+        ) : state === 'setup' ? (
+          <span className="inline-flex items-center gap-2 text-muted" title="Your agent is still attaching the prompt, metrics and test cases">
+            <LiveDot small />Setting up
+          </span>
         ) : (
           <>
             <span className={`size-1.5 shrink-0 rounded-[1px] ${stateDot[state]}`} />

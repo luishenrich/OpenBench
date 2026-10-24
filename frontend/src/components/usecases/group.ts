@@ -1,8 +1,10 @@
 import type { UseCase, UseCaseKind } from '@/types'
 
 // Where a use case is in its life, derived from existing fields (no contract change).
+// 'setup' = the coding agent is still attaching prompt, metrics and cases (see isAgentSettingUp);
+// 'metrics' = the agent went quiet before choosing metrics;
 // 'data' = needs input only the user can give (page images, the full prompt); 'cases' = the agent can still add them.
-export type SetupState = 'setup' | 'data' | 'cases' | 'ready' | 'running' | 'done' | 'failed'
+export type SetupState = 'setup' | 'metrics' | 'data' | 'cases' | 'ready' | 'running' | 'done' | 'failed'
 
 const VISION_WORDS = /\b(vision|ocr|images?|photos?|screenshots?|scanned|page scans?)\b/i
 
@@ -21,13 +23,48 @@ export function needsData(uc: UseCase, cases?: { input: { images?: string[] } }[
   return images || prompt ? { images, prompt } : null
 }
 
-export function setupState(uc: UseCase): SetupState {
+// --- the agent is still setting it up ------------------------------------------------------------
+// A coding agent creates use cases over MCP in two passes: light fields first (name, kind, call site, model),
+// then prompt, metrics/gates and cases one use case at a time. Until the second pass reaches a use case it
+// looks unfinished, which is not the user's fault. There is no explicit flag yet, so it is inferred:
+//   created over MCP, setup incomplete (no prompt, no metrics or no cases), last change under 5 minutes ago.
+// TODO(backend): the API will send an explicit UseCase.setup_state; when present it wins over the inference.
+export const AGENT_WINDOW_MS = 5 * 60_000
+
+/** When the use case (or one of its cases) last changed, in ms. */
+export const lastChangeAt = (uc: Pick<UseCase, 'updated_at' | 'created_at'>) => Date.parse(uc.updated_at || uc.created_at) || 0
+
+export const setupIncomplete = (uc: UseCase) => !promptAttached(uc) || uc.metrics.length === 0 || uc.case_count === 0
+
+/** The coding agent is still attaching prompt, metrics or cases to this use case. */
+export function isAgentSettingUp(uc: UseCase, now = Date.now()): boolean {
+  if (uc.setup_state === 'in_progress') return true
+  if (uc.setup_state === 'complete') return false
+  if (uc.created_by !== 'mcp' || uc.latest_run) return false
+  return setupIncomplete(uc) && now - lastChangeAt(uc) < AGENT_WINDOW_MS
+}
+
+/** The agent touched this use case within the window (complete or not): a scan is going on. */
+export const agentTouchedRecently = (uc: UseCase, now = Date.now()) =>
+  uc.setup_state === 'in_progress' || (uc.created_by === 'mcp' && now - lastChangeAt(uc) < AGENT_WINDOW_MS)
+
+/** "12s ago", "3 min ago" */
+export function sinceLabel(t: number, now = Date.now()): string {
+  const s = Math.max(0, Math.round((now - t) / 1000))
+  if (s < 5) return 'just now'
+  if (s < 60) return `${s}s ago`
+  if (s < 3600) return `${Math.round(s / 60)} min ago`
+  return `${Math.round(s / 3600)} h ago`
+}
+
+export function setupState(uc: UseCase, now = Date.now()): SetupState {
   const s = uc.latest_run?.status
   if (s === 'done') return 'done'
   if (s === 'queued' || s === 'running' || s === 'scoring') return 'running'
   if (s === 'failed' || s === 'cancelled') return 'failed'
-  // metrics come last in the agent's setup, so an empty list means it is still working on this one
-  if (uc.metrics.length === 0) return 'setup'
+  if (isAgentSettingUp(uc, now)) return 'setup'
+  // metrics come last in the agent's setup: still none after the agent went quiet
+  if (uc.metrics.length === 0) return 'metrics'
   if (needsData(uc)) return 'data'
   if (uc.case_count === 0) return 'cases'
   return 'ready'
@@ -35,6 +72,7 @@ export function setupState(uc: UseCase): SetupState {
 
 export const stateLabel: Record<SetupState, string> = {
   setup: 'Setting up',
+  metrics: 'No metrics yet',
   data: 'Needs data',
   cases: 'Collecting cases',
   ready: 'Ready to benchmark',
@@ -45,11 +83,12 @@ export const stateLabel: Record<SetupState, string> = {
 
 // Short words for the section summary
 export const stateShort: Record<SetupState, string> = {
-  done: 'benchmarked', running: 'running', failed: 'failed', ready: 'ready', data: 'need data', cases: 'collecting cases', setup: 'setting up',
+  done: 'benchmarked', running: 'running', failed: 'failed', ready: 'ready', data: 'need data', cases: 'collecting cases', setup: 'setting up', metrics: 'no metrics',
 }
 
 export const stateDot: Record<SetupState, string> = {
-  setup: 'bg-line-strong',
+  setup: 'bg-win/70',
+  metrics: 'bg-line-strong',
   data: 'bg-front',
   cases: 'bg-muted',
   ready: 'bg-fg/60',
@@ -58,7 +97,7 @@ export const stateDot: Record<SetupState, string> = {
   failed: 'bg-bad',
 }
 
-export const STATE_ORDER: SetupState[] = ['data', 'done', 'running', 'failed', 'ready', 'cases', 'setup']
+export const STATE_ORDER: SetupState[] = ['data', 'done', 'running', 'failed', 'ready', 'cases', 'metrics', 'setup']
 
 // Fixed order keeps sections from jumping around while a scan adds use cases.
 const KIND_ORDER: UseCaseKind[] = ['chat', 'agent', 'rag', 'extraction', 'classification', 'summarization', 'generation', 'batch', 'other']
@@ -73,8 +112,8 @@ export interface ProjectGroup { key: string; name: string; items: UseCase[]; pin
 
 export type SortKey = 'attention' | 'recent' | 'name' | 'savings'
 export const sortLabel: Record<SortKey, string> = { attention: 'Needs attention first', recent: 'Recently found', name: 'Name', savings: 'Savings' }
-// needs data → failed → setting up → collecting cases → ready → running → done
-const ATTENTION: Record<SetupState, number> = { data: 0, failed: 1, setup: 2, cases: 3, ready: 4, running: 5, done: 6 }
+// needs data → failed → no metrics → setting up → collecting cases → ready → running → done
+const ATTENTION: Record<SetupState, number> = { data: 0, failed: 1, metrics: 2, setup: 3, cases: 4, ready: 5, running: 6, done: 7 }
 const savingOf = (u: UseCase) => (u.latest_run?.status === 'done' ? u.latest_run.est_monthly_savings_usd ?? 0 : 0)
 const byPath = (a: UseCase, b: UseCase) => {
   const pa = a.source_refs[0]?.path ?? '', pb = b.source_refs[0]?.path ?? ''
@@ -109,10 +148,29 @@ export function groupUseCases(list: UseCase[], fallbackName: string, opts: { sor
     })
 }
 
-export function countStates(items: UseCase[]): Record<SetupState, number> {
-  const c: Record<SetupState, number> = { setup: 0, data: 0, cases: 0, ready: 0, running: 0, done: 0, failed: 0 }
-  for (const u of items) c[setupState(u)]++
+export function countStates(items: UseCase[], now = Date.now()): Record<SetupState, number> {
+  const c: Record<SetupState, number> = { setup: 0, metrics: 0, data: 0, cases: 0, ready: 0, running: 0, done: 0, failed: 0 }
+  for (const u of items) c[setupState(u, now)]++
   return c
+}
+
+/** Set up = nothing left to attach: ready, or already benchmarked. */
+export const isSetUp = (s: SetupState) => s === 'ready' || s === 'running' || s === 'done' || s === 'failed'
+
+export interface ScanActivity { projects: string[]; total: number; setUp: number; lastChange: number }
+/** A workspace scan is in progress when the agent touched any use case within the window. Counts cover the
+ *  projects it touched. null when it has been quiet for the whole window. */
+export function scanActivity(list: UseCase[], fallbackName: string, now = Date.now()): ScanActivity | null {
+  const touched = list.filter((u) => agentTouchedRecently(u, now))
+  if (!touched.length) return null
+  const projects = [...new Set(touched.map((u) => projectOf(u, fallbackName)))]
+  const inScope = list.filter((u) => projects.includes(projectOf(u, fallbackName)))
+  return {
+    projects,
+    total: inScope.length,
+    setUp: inScope.filter((u) => isSetUp(setupState(u, now))).length,
+    lastChange: Math.max(...touched.map(lastChangeAt)),
+  }
 }
 
 export const savingsOf = (items: UseCase[]) =>
