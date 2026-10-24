@@ -138,9 +138,8 @@ All set in Coolify (both services), except the MCP key.
 
 | Var | Used by | Set by |
 |---|---|---|
-| `DATABASE_URL` | api, worker | Luis: Supabase **session pooler** URL |
+| `DATABASE_URL` | api, worker | Luis: Supabase **session pooler** URL (`aws-0-eu-west-1.pooler.supabase.com:5432`); the direct host is IPv6-only |
 | `REDIS_URL` | api, worker | Luis: Upstash `rediss://default:<token>@<host>:6379` |
-| `SUPABASE_URL`, `SUPABASE_ANON_KEY` | frontend build (`VITE_` prefix, as build args) | Luis |
-| `SUPABASE_JWT_SECRET` | api | Luis: for verifying dashboard tokens |
+| `SUPABASE_URL`, `SUPABASE_ANON_KEY` | api (JWKS) + frontend build (`VITE_` prefix, as build args) | Public values, in [.env.example](../.env.example). Tokens are ES256: the API verifies them against `$SUPABASE_URL/auth/v1/.well-known/jwks.json`, no JWT secret |
 | `NEBIUS_API_KEY`, `OPENROUTER_API_KEY` | api, worker + local `.env` | Luis (already in local `.env`) |
 | `BIY_MCP_KEY` | Claude Code config | Created by the API (`/api/me`); only its hash is stored |
