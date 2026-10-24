@@ -52,6 +52,11 @@ def resolve_id(metric_id: str, bank: dict | None = None) -> str:
 
 
 def parse_gate(metric_id: str, threshold: str) -> Gate:
+    # "== 1" / "== 0" on a 0–1 rate (e.g. language_is): the same as ">= 1" / "<= 0", which Gate can express
+    eq = re.fullmatch(r"\s*==\s*([01](?:\.0+)?)\s*", threshold)
+    if eq:
+        v = float(eq.group(1))
+        return Gate(metric_id=metric_id, op=">=" if v == 1 else "<=", value=v)
     m = _GATE.match(threshold)
     if not m:
         raise ValueError(f"can't parse gate threshold {threshold!r} for {metric_id}")

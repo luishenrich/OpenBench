@@ -95,7 +95,10 @@ async def update_workspace(workspace_id: UUID, patch: WorkspacePatch) -> Workspa
 async def get_me(workspace_id: UUID, user_id: UUID | None, email: str | None) -> Me:
     ws = await get_workspace(workspace_id)
     last4 = await db.fetchval("select mcp_key_last4 from workspace where id = $1", workspace_id)
-    return Me(user_id=user_id or DEMO_USER, email=email or "", workspace=ws, mcp_key_last4=last4)
+    if not email:  # workspace key: no user in the token, so name the workspace's owner
+        email = await db.fetchval("select email from workspace_member where workspace_id = $1 and email is not null "
+                                  "order by email limit 1", workspace_id)
+    return Me(user_id=user_id or DEMO_USER, email=email or None, workspace=ws, mcp_key_last4=last4)
 
 
 async def rotate_mcp_key(workspace_id: UUID) -> str:
