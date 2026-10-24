@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { d, useInView } from './motion'
 import { Code, Container, SectionHead } from './shared'
 
 type Step = { n: string; title: string; body: ReactNode; points: string[]; pick?: boolean }
@@ -40,34 +41,48 @@ const steps: Step[] = [
   },
 ]
 
+// One step. When it scrolls in, its stretch of the rail fills, its node lights (coral for the pick)
+// and the copy and points slide in from the rail, so the three steps read as a progression.
+function StepRow({ s, last }: { s: Step; last: boolean }) {
+  const [ref, inView] = useInView<HTMLLIElement>(0.35)
+  return (
+    <li ref={ref} data-inview={inView}
+      className="relative grid gap-x-10 gap-y-5 border-t border-line py-10 pl-10 sm:pl-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+      {/* Rail: a faint track, a lit segment that fills as the step arrives, and the step's node */}
+      <span aria-hidden className={`absolute top-0 left-[5px] w-px bg-line ${last ? 'h-[57px]' : 'bottom-0'}`} />
+      <span aria-hidden style={{ '--dur': '900ms' } as CSSProperties}
+        className={`lp-t lp-grow-y absolute top-0 left-[5px] w-px ${last ? 'h-[57px] bg-gradient-to-b from-line-strong to-front' : 'bottom-0 bg-gradient-to-b from-line-strong via-muted/50 to-line-strong'}`} />
+      <span aria-hidden className={`absolute top-[52px] left-0 size-[11px] ${s.pick ? 'bg-front' : 'border border-line-strong bg-bg'}`} />
+      <span aria-hidden style={d(350)}
+        className={`lp-t lp-node-glow absolute top-[52px] left-0 size-[11px] ${s.pick
+          ? 'bg-front shadow-[0_0_0_4px_rgb(255_107_61/0.12),0_0_18px_2px_rgb(255_107_61/0.55)]'
+          : 'border border-muted bg-bg shadow-[0_0_14px_rgb(237_237_239/0.18)]'}`} />
+      <div className="lp-t lp-slide" style={d(120)}>
+        <div className="flex items-baseline gap-4">
+          <span className="font-mono text-xs text-faint">{s.n}</span>
+          <h3 className="title text-2xl sm:text-3xl">{s.title}</h3>
+        </div>
+        <p className="mt-4 max-w-xl leading-relaxed text-muted">{s.body}</p>
+      </div>
+      <ul className="space-y-2.5 self-end font-mono text-[12px] tracking-[0.02em] text-muted lg:pt-12">
+        {s.points.map((p, i) => (
+          <li key={p} className="lp-t lp-slide flex items-center gap-3" style={d(320 + i * 70)}>
+            <span aria-hidden className={`size-[7px] shrink-0 rounded-[1.5px] ${s.pick ? 'bg-front shadow-[0_0_8px_rgb(255_107_61/0.6)]' : 'bg-faint'}`} />
+            {p}
+          </li>
+        ))}
+      </ul>
+    </li>
+  )
+}
+
 export default function HowItWorks() {
   return (
     <section aria-labelledby="how-title" id="how" className="scroll-mt-16 border-b border-line/60 py-24 sm:py-32">
       <Container>
         <SectionHead id="how-title" badge="How it works" tone="signal" title="From your repo to a pick, in three steps." />
         <ol className="mt-16">
-          {steps.map((s, i) => (
-            <li key={s.n} className="relative grid gap-x-10 gap-y-5 border-t border-line py-10 pl-10 sm:pl-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-              {/* Rail: grid nodes joined by a line, the last one coral like the pick on the front */}
-              <span aria-hidden className={`absolute top-0 left-[5px] w-px bg-line-strong ${i === steps.length - 1 ? 'h-12' : 'bottom-0'}`} />
-              <span aria-hidden className={`absolute top-[46px] left-0 size-[11px] ${s.pick ? 'bg-front' : 'border border-line-strong bg-bg'}`} />
-              <div>
-                <div className="flex items-baseline gap-4">
-                  <span className="font-mono text-xs text-faint">{s.n}</span>
-                  <h3 className="title text-2xl sm:text-3xl">{s.title}</h3>
-                </div>
-                <p className="mt-4 max-w-xl leading-relaxed text-muted">{s.body}</p>
-              </div>
-              <ul className="space-y-2.5 self-end font-mono text-[12px] tracking-[0.02em] text-muted lg:pt-12">
-                {s.points.map((p) => (
-                  <li key={p} className="flex items-center gap-3">
-                    <span aria-hidden className={`size-[7px] shrink-0 rounded-[1.5px] ${s.pick ? 'bg-front' : 'bg-faint'}`} />
-                    {p}
-                  </li>
-                ))}
-              </ul>
-            </li>
-          ))}
+          {steps.map((s, i) => <StepRow key={s.n} s={s} last={i === steps.length - 1} />)}
         </ol>
       </Container>
     </section>

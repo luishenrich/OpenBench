@@ -16,7 +16,77 @@ import type {
 const clone = <T,>(x: T): T => structuredClone(x)
 const wait = <T,>(x: T, delay = 180): Promise<T> => new Promise((r) => setTimeout(() => r(clone(x)), delay))
 
-const useCases = clone(useCasesJson) as unknown as UseCase[]
+// contract/fixtures has three use cases; a real scan finds ~40. These extras (dashboard-only, not in the
+// contract) give the grouped list something realistic to show: two projects, mixed kinds, half set up.
+type Extra = [name: string, kind: UseCase['kind'], repo: string | null, path: string, line: number, model: string, metrics: number, cases: number, run?: RunBrief]
+const EXTRAS: Extra[] = [
+  ['Answer questions about a PDF', 'rag', 'studypdf', 'app/api/chat/route.ts', 31, 'openai/gpt-4.1-mini', 3, 40,
+    { id: 'fx-run-1', status: 'done', finished_at: '2026-10-24T10:20:00Z', recommendation_headline: 'Switch to DeepSeek-V4.1-Flash: same answer quality at 1/6 of the cost', est_monthly_savings_usd: 238 }],
+  ['Generate flashcards from a chapter', 'generation', 'studypdf', 'lib/flashcards.ts', 18, 'openai/gpt-4.1', 2, 24,
+    { id: 'fx-run-2', status: 'done', finished_at: '2026-10-24T10:42:00Z', recommendation_headline: 'Keep gpt-4.1: no open model passed the card-format gate', est_monthly_savings_usd: null }],
+  ['Summarize a chapter', 'summarization', 'studypdf', 'lib/summarize.ts', 12, 'openai/gpt-4.1-mini', 2, 30,
+    { id: 'fx-run-3', status: 'running', finished_at: null, recommendation_headline: null, est_monthly_savings_usd: null }],
+  ['Extract the table of contents', 'extraction', 'studypdf', 'lib/pdf/toc.ts', 54, 'openai/gpt-4.1-mini', 2, 18],
+  ['Grade a quiz answer', 'classification', 'studypdf', 'app/api/quiz/grade/route.ts', 22, 'openai/gpt-4.1-mini', 1, 0],
+  ['Write quiz questions', 'generation', 'studypdf', 'lib/quiz.ts', 40, 'openai/gpt-4.1', 0, 0],
+  ['Tutor chat', 'chat', 'studypdf', 'app/api/tutor/route.ts', 15, 'openai/gpt-4.1', 2, 12],
+  ['Detect the document language', 'classification', 'studypdf', 'lib/pdf/lang.ts', 9, 'openai/gpt-4.1-nano', 1, 20,
+    { id: 'fx-run-4', status: 'done', finished_at: '2026-10-24T09:05:00Z', recommendation_headline: 'Switch to GLM-5.3-Flash: 99% of the accuracy at 1/3 of the cost', est_monthly_savings_usd: 41 }],
+  ['Explain a highlighted passage', 'chat', 'studypdf', 'app/api/explain/route.ts', 27, 'openai/gpt-4.1-mini', 0, 0],
+  ['Extract key terms', 'extraction', 'studypdf', 'lib/glossary.ts', 33, 'openai/gpt-4.1-mini', 2, 0],
+  ['Classify incoming email', 'classification', null, 'services/inbox/classify.py', 48, 'openai/gpt-4.1-mini', 2, 60,
+    { id: 'fx-run-5', status: 'done', finished_at: '2026-10-23T16:30:00Z', recommendation_headline: 'Switch to gpt-oss-120b: higher accuracy and 40% cheaper', est_monthly_savings_usd: 156 }],
+  ['Draft a reply to a customer', 'generation', null, 'services/inbox/reply.py', 77, 'openai/gpt-4.1', 3, 25],
+  ['Pull order numbers from email', 'extraction', null, 'services/inbox/extract.py', 21, 'openai/gpt-4.1-mini', 2, 35],
+  ['Support agent with tools', 'agent', null, 'services/agent/loop.py', 112, 'openai/gpt-4.1', 3, 15],
+  ['Search help-center articles', 'rag', null, 'services/help/search.py', 64, 'openai/gpt-4.1-mini', 0, 0],
+  ['Summarize a support thread', 'summarization', null, 'services/support/summary.py', 19, 'openai/gpt-4.1-mini', 2, 0],
+  ['Detect angry customers', 'classification', null, 'services/support/sentiment.py', 11, 'openai/gpt-4.1-nano', 1, 40],
+  ['Translate replies', 'generation', null, 'services/i18n/translate.py', 30, 'google/gemini-2.5-flash', 0, 0],
+  ['Nightly product tagging', 'batch', null, 'jobs/tag_products.py', 58, 'openai/gpt-4.1-mini', 2, 50,
+    { id: 'fx-run-6', status: 'done', finished_at: '2026-10-23T22:10:00Z', recommendation_headline: 'Switch to Qwen3.6-35B-A3B: same tags at 1/8 of the cost', est_monthly_savings_usd: 520 }],
+  ['Write product descriptions', 'batch', null, 'jobs/describe_products.py', 36, 'openai/gpt-4.1', 2, 0],
+  ['Parse shipping addresses', 'extraction', null, 'services/orders/address.py', 25, 'openai/gpt-4.1-mini', 0, 0],
+  ['Onboarding chat', 'chat', null, 'web/app/api/onboarding/route.ts', 14, 'openai/gpt-4.1-mini', 2, 20],
+  ['Rewrite search queries', 'rag', null, 'services/help/rewrite.py', 8, 'openai/gpt-4.1-nano', 1, 30],
+  ['Moderate user reviews', 'classification', null, 'services/reviews/moderate.py', 42, 'openai/gpt-4.1-mini', 2, 0],
+  ['Fix up OCR text', 'other', null, 'services/docs/ocr_cleanup.py', 17, 'openai/gpt-4.1-mini', 0, 0],
+  ['Score lead quality', 'classification', null, 'services/crm/leads.py', 66, 'openai/gpt-4.1-mini', 2, 45],
+]
+
+const METRIC_IDS = ['json_schema_valid', 'field_accuracy', 'llm_judge']
+const extras: UseCase[] = EXTRAS.map(([name, kind, repo, path, line, model, metrics, cases, run], i) => ({
+  id: `00000000-0000-0000-0000-0000000001${String(i).padStart(2, '0')}`,
+  workspace_id: '00000000-0000-0000-0000-0000000000a1',
+  name,
+  kind,
+  description: '',
+  source_refs: [{ repo, path, line, symbol: null }],
+  current_model: { provider: model.startsWith('google/') ? 'openrouter' : 'openai', model, params: {} },
+  profile: null,
+  gates: [],
+  metrics: METRIC_IDS.slice(0, metrics).map((metric_id) => ({ metric_id, weight: 1, config: {} })),
+  judge: null,
+  io_spec: { system_prompt: null, user_template: null, response_schema: null, tools: null, params: {} },
+  case_count: cases,
+  latest_run: run ?? null,
+  created_by: 'mcp',
+  created_at: new Date(Date.parse('2026-10-24T09:00:00Z') + i * 60_000).toISOString(),
+}))
+
+const useCases = [...(clone(useCasesJson) as unknown as UseCase[]), ...extras]
+
+// ?scan=1 plays a live scan: the list starts empty and gains one use case every 1.5 s, as if a coding
+// agent were calling biy_use_cases_create. Only the list endpoint is affected.
+let scanStart: number | null = null
+function visibleUseCases(): UseCase[] {
+  let scan = false
+  try { scan = new URLSearchParams(window.location.search).get('scan') === '1' } catch { /* no window */ }
+  if (!scan && scanStart == null) return useCases
+  scanStart ??= Date.now()
+  const n = Math.max(0, Math.floor((Date.now() - scanStart - 4000) / 1500))
+  return useCases.slice(0, n)
+}
 const runDone = runDoneJson as unknown as Run
 const runRunning = runRunningJson as unknown as Run
 const PLAYBACK_MS = 20_000
@@ -60,7 +130,7 @@ export const fixtureApi = {
   rotateMcpKey: () => wait({ key: 'biy_fixture_' + Math.random().toString(36).slice(2, 14) }),
   models: () => wait(modelsJson as unknown as CatalogModel[]),
   metrics: () => wait(metricsJson as unknown as MetricInfo[]),
-  useCases: () => wait(useCases),
+  useCases: () => wait(visibleUseCases()),
   useCase: async (id: string) => wait(findUseCase(id)),
   updateUseCase: async (id: string, patch: UseCasePatch) => {
     const uc = findUseCase(id)

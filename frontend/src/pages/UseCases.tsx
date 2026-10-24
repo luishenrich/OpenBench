@@ -1,90 +1,42 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
 import ConnectAgent from '@/components/ConnectAgent'
-import { ErrorNote, Loading, StatusPill, Tag } from '@/components/ui'
+import { ErrorNote, Loading } from '@/components/ui'
+import { ProjectList } from '@/components/usecases/ProjectList'
+import { LiveDot, WaitingForAgent, useFreshIds } from '@/components/usecases/live'
+import { savingsOf } from '@/components/usecases/group'
 import { api } from '@/lib/api'
-import { ago, shortModel, usd } from '@/lib/format'
-import { briefVerdict } from '@/lib/verdict'
-import { ModelIcon } from '@/components/ModelIcon'
+import { usd } from '@/lib/format'
 
-const verdictDot = { switch: 'bg-win', keep: 'bg-muted', use: 'bg-front' } as const
+// Polls so the list fills up while the coding agent's scan creates use cases.
+const LIVE_MS = 3000
 
 export default function UseCases() {
-  const q = useQuery({ queryKey: ['use-cases'], queryFn: api.useCases })
+  const q = useQuery({ queryKey: ['use-cases'], queryFn: api.useCases, refetchInterval: LIVE_MS })
+  const me = useQuery({ queryKey: ['me'], queryFn: api.me })
+  const fresh = useFreshIds(q.data?.map((u) => u.id))
+  const fallbackName = me.data?.workspace.name || 'Your project'
   const done = q.data?.filter((u) => u.latest_run?.status === 'done').length ?? 0
-  const savings = q.data?.reduce((s, u) => s + (u.latest_run?.est_monthly_savings_usd ?? 0), 0) ?? 0
+  const savings = q.data ? savingsOf(q.data) : 0
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
-      <div>
+      <div className="min-w-0">
         <h1 className="display text-4xl text-balance sm:text-5xl">Use cases</h1>
         <p className="mt-3 max-w-lg text-muted">Every place your product calls an LLM, the model it uses today, and what the benchmark says.</p>
         {!!q.data?.length && (
-          <p className="mt-5 text-sm text-faint">
-            {q.data.length} found, {done} benchmarked{savings > 0 && <>, <span className="text-win">~{usd(savings)}/month</span> to save</>}
+          <p className="mt-5 flex flex-wrap items-center gap-x-2 text-sm text-faint" role="status">
+            <LiveDot className="mr-0.5" />
+            <span>{q.data.length} found, {done} benchmarked{savings > 0 && <>, <span className="text-win">~{usd(savings)}/month</span> to save</>}</span>
+            <span aria-hidden>·</span>
+            <span>updates live while your agent works</span>
           </p>
         )}
 
         <div className="mt-8">
           {q.isLoading && <Loading />}
-          {q.error && <ErrorNote error={q.error} />}
-          {q.data?.length === 0 && (
-            <div className="rounded-xl border border-dashed border-line-strong px-6 py-14 text-center">
-              <p className="title">No use cases yet</p>
-              <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted">Connect your coding agent and run the scan. It creates the use cases for you.</p>
-            </div>
-          )}
-
-          {!!q.data?.length && (
-            <ul className="overflow-hidden rounded-xl border border-line">
-              {q.data.map((uc, i) => {
-                const ref = uc.source_refs[0]
-                const run = uc.latest_run
-                const v = run && briefVerdict(run)
-                return (
-                  <li key={uc.id} className={i ? 'border-t border-line' : ''}>
-                    <Link to={`/use-cases/${uc.id}`} className="group grid gap-3 bg-panel px-5 py-5 transition-colors hover:bg-raised sm:grid-cols-[1fr_auto]">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="title text-[17px]">{uc.name}</span>
-                          <Tag>{uc.kind}</Tag>
-                          {uc.created_by === 'mcp' && <Tag tone="front">found by agent</Tag>}
-                        </div>
-                        <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
-                          {ref && <span className="truncate font-mono text-[12px] text-faint">{ref.path}{ref.line ? `:${ref.line}` : ''}</span>}
-                          {uc.current_model
-                            ? <span className="inline-flex items-center gap-1.5">today <ModelIcon model={uc.current_model.model} size={14} />{shortModel(uc.current_model.model)}</span>
-                            : <span>no current model</span>}
-                          <span>{uc.case_count} cases</span>
-                        </div>
-                        {run && (run.status === 'done' && v ? (
-                          // dot and headline stay together when the headline wraps
-                          <div className="mt-3 flex items-start gap-2.5 text-sm">
-                            <span className={`mt-[6px] size-2 shrink-0 rounded-[2px] ${verdictDot[v]}`} />
-                            <p className="min-w-0">
-                              <span className={v === 'keep' ? 'text-muted' : 'text-fg'}>{run.recommendation_headline}</span>
-                              {run.est_monthly_savings_usd != null && run.est_monthly_savings_usd > 0 && (
-                                <span className="ml-3 inline-block text-win">~{usd(run.est_monthly_savings_usd)}/month</span>
-                              )}
-                              {run.finished_at && <span className="ml-3 inline-block text-faint">{ago(run.finished_at)}</span>}
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-                            <StatusPill status={run.status} />
-                            {run.finished_at && <span className="text-faint">{ago(run.finished_at)}</span>}
-                          </div>
-                        ))}
-                      </div>
-                      <span className="hidden self-center text-faint transition-colors group-hover:text-fg sm:block" aria-hidden>
-                        <svg viewBox="0 0 16 16" className="size-4"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
-                      </span>
-                    </Link>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
+          {q.error && !q.data && <ErrorNote error={q.error} />}
+          {q.data?.length === 0 && <WaitingForAgent />}
+          {!!q.data?.length && <ProjectList useCases={q.data} fallbackName={fallbackName} fresh={fresh} />}
         </div>
       </div>
 
