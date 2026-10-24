@@ -43,7 +43,7 @@ Three people, each with their own Claude Code. **Each person owns folders, not f
 
 | Piece | Choice | Notes |
 |---|---|---|
-| Hosting | **Coolify on Luis's VPS** (`ssh studypdf`) | Docker Compose app built from the GitHub repo; Traefik (already running) handles TLS on a subdomain. The VPS has 12 vCPUs and ~13 GB of free RAM, and it also runs other production apps, so **set memory limits** (api 1 GB, worker 1 GB) |
+| Hosting | **Coolify on Luis's VPS** (`ssh studypdf`), live at **https://biy.studypdf.net** | Coolify project "BIY", compose app `biy` built from `main` of the public GitHub repo; `api` has the domain, `worker` none. Traefik + Cloudflare handle TLS. Deploys are triggered by Luis (no push webhook yet). The VPS has 12 vCPUs and ~13 GB of free RAM, and it also runs other production apps, so **set memory limits** (api 1 GB, worker 1 GB) |
 | Containers | **One image, two services** | `api`: uvicorn running FastAPI. It serves REST at `/api/*`, MCP at `/mcp` and the **built Vite frontend** as static files (one domain, no CORS). `worker`: the same image running the arq worker. Multi-stage `Dockerfile` (node builds the frontend, python runs both) |
 | DB | **Supabase Postgres** | Plain SQL migration (`contract/schema.sql`) run in the Supabase SQL editor; no Alembic. Use the **session pooler** URL: the direct connection is IPv6-only, and long-running containers don't need the transaction pooler |
 | Auth | **Supabase Auth** | The dashboard logs in with Supabase, and the API verifies the Supabase JWT. **MCP uses a workspace API key** (bearer), stored hashed |

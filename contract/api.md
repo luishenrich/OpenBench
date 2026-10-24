@@ -5,7 +5,7 @@ Base path `/api`. All bodies are JSON. Shapes are the Pydantic models in [schema
 ## Auth
 
 Every request carries `Authorization: Bearer <token>`. The token is one of:
-- **Dashboard:** the Supabase access token (`supabase.auth.getSession()`). The API verifies it against the project's JWKS (or `SUPABASE_JWT_SECRET`).
+- **Dashboard:** the Supabase access token (`supabase.auth.getSession()`). The API verifies it against the project's JWKS (`$SUPABASE_URL/auth/v1/.well-known/jwks.json`, ES256, audience `authenticated`). The first request from a new user (normally `GET /api/me`) creates their workspace.
 - **MCP / scripts:** the workspace key `biy_…`. Only its hash is stored.
 
 `401` means no or bad token. Every resource belongs to the caller's workspace; another workspace's ids return `404`.

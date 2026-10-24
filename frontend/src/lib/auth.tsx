@@ -19,7 +19,7 @@ const DEMO_KEY = 'biy:demo-session'
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [demo, setDemo] = useState(() => {
-    try { return FIXTURES && sessionStorage.getItem(DEMO_KEY) === '1' } catch { return false }
+    try { return (FIXTURES || import.meta.env.DEV) && sessionStorage.getItem(DEMO_KEY) === '1' } catch { return false }
   })
   const [ready, setReady] = useState(!supabase)
 

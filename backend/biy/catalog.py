@@ -1,16 +1,14 @@
-"""Catalogue from catalog/models.json (built by scripts/build_catalog.py). No DB."""
+"""Catalogue for the API (CatalogModel rows). The file itself is read once, in biy.providers.catalog."""
 
-import json
 from functools import lru_cache
 
 from contract.schemas import CatalogModel
 
-from .config import settings
+from .providers.catalog import all_models
 
 
 @lru_cache
 def _all() -> list[CatalogModel]:
-    rows = json.loads(settings.catalog_path.read_text())["models"]
     return [
         CatalogModel(
             id=m["id"], provider=m["provider"], name=m.get("name") or m["id"], type=m["type"],
@@ -18,7 +16,7 @@ def _all() -> list[CatalogModel]:
             pricing_usd_per_1m=m["pricing"]["usd_per_1m"], shortlist=m.get("shortlist", False), role=m.get("role"),
             aa_index=m.get("aa_index"), license=m.get("license"), legacy=m.get("legacy", False),
         )
-        for m in rows if m.get("available")
+        for m in all_models() if m.get("available")
     ]
 
 
