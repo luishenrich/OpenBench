@@ -36,7 +36,7 @@ To share the server with the team, add `--scope project`. That writes `.mcp.json
   "headers": { "Authorization": "Bearer ${input:biy_key}" } } } }
 ```
 
-**Auth.** For the hackathon, a static bearer key. OAuth 2.1 (via WorkOS or Clerk) comes later.
+**Auth.** Two ways in, one code path: a workspace key (`biy_…`, from the dashboard) or OAuth 2.1 through Supabase's OAuth server (`/mcp` answers 401 with RFC 9728 metadata; the token's `aud` is `authenticated`). **Scopes:** none yet. An OAuth client gets the same full access to the workspace as the key: it can read, edit and start paid runs (runs still need `confirm_cost_usd`). Read-only vs run scopes come after the demo. Access tokens last 1 h; Claude Code refreshes them with the refresh token. Revoke a client in the dashboard under Connections.
 
 ## Design rules
 
