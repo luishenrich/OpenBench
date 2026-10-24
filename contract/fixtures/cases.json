@@ -1,0 +1,79 @@
+[
+  {
+    "input": {
+      "vars": {
+        "text": "ACME GmbH — Invoice INV-2041 — 2026-09-30 — Total: 1,204.50 EUR"
+      }
+    },
+    "reference": {
+      "vendor": "ACME GmbH",
+      "invoice_number": "INV-2041",
+      "date": "2026-09-30",
+      "total": 1204.5,
+      "currency": "EUR"
+    },
+    "tags": [
+      "easy"
+    ],
+    "source": "repo",
+    "id": "00000000-0000-0000-0000-000000000100",
+    "use_case_id": "00000000-0000-0000-0000-0000000000b1"
+  },
+  {
+    "input": {
+      "vars": {
+        "text": "Rechnung Nr. 88-17 von Müller & Söhne, 03.10.2026, Gesamtbetrag 89,00 €"
+      }
+    },
+    "reference": {
+      "vendor": "Müller & Söhne",
+      "invoice_number": "88-17",
+      "date": "2026-10-03",
+      "total": 89.0,
+      "currency": "EUR"
+    },
+    "tags": [
+      "german",
+      "date-format"
+    ],
+    "source": "repo",
+    "id": "00000000-0000-0000-0000-000000000101",
+    "use_case_id": "00000000-0000-0000-0000-0000000000b1"
+  },
+  {
+    "input": {
+      "vars": {
+        "text": "Northwind Ltd | #NW-5 | Oct 1 2026 | Amount due $12,000.00 (incl. VAT)"
+      }
+    },
+    "reference": {
+      "vendor": "Northwind Ltd",
+      "invoice_number": "NW-5",
+      "date": "2026-10-01",
+      "total": 12000.0,
+      "currency": "USD"
+    },
+    "tags": [
+      "synthetic"
+    ],
+    "source": "synthetic",
+    "id": "00000000-0000-0000-0000-000000000102",
+    "use_case_id": "00000000-0000-0000-0000-0000000000b1"
+  },
+  {
+    "input": {
+      "vars": {},
+      "images": [
+        "https://example.supabase.co/storage/v1/object/public/cases/receipt-001.png"
+      ]
+    },
+    "reference": {
+      "merchant": "Corner Café",
+      "total": 7.4
+    },
+    "tags": [],
+    "source": "upload",
+    "id": "00000000-0000-0000-0000-000000000200",
+    "use_case_id": "00000000-0000-0000-0000-0000000000b3"
+  }
+]

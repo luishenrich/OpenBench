@@ -1,0 +1,23 @@
+{
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "email": "demo@biy.dev",
+  "workspace": {
+    "id": "00000000-0000-0000-0000-0000000000a1",
+    "name": "Demo workspace",
+    "default_profile": {
+      "weights": {
+        "quality": 60,
+        "speed": 20,
+        "cost": 20
+      },
+      "targets": {}
+    },
+    "default_judge": {
+      "provider": "nebius",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "mode": "rubric",
+      "rubric": null
+    }
+  },
+  "mcp_key_last4": "9f3a"
+}

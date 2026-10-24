@@ -1,0 +1,46 @@
+{
+  "calls": 900,
+  "est_input_tokens": 540000,
+  "est_output_tokens": 180000,
+  "est_cost_usd": 0.41,
+  "judge_cost_usd": 0.0,
+  "total_usd": 0.41,
+  "per_candidate": [
+    {
+      "provider": "nebius",
+      "model": "zai-org/GLM-5.3-Flash",
+      "calls": 150,
+      "est_cost_usd": 0.0135
+    },
+    {
+      "provider": "nebius",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "calls": 150,
+      "est_cost_usd": 0.0315
+    },
+    {
+      "provider": "openrouter",
+      "model": "xiaomi/mimo-v2.6-pro",
+      "calls": 150,
+      "est_cost_usd": 0.0465
+    },
+    {
+      "provider": "nebius",
+      "model": "openai/gpt-oss-120b",
+      "calls": 150,
+      "est_cost_usd": 0.015
+    },
+    {
+      "provider": "nebius",
+      "model": "MiniMaxAI/MiniMax-M3.1-Flash",
+      "calls": 150,
+      "est_cost_usd": 0.0165
+    },
+    {
+      "provider": "openrouter",
+      "model": "openai/gpt-4.1-mini",
+      "calls": 150,
+      "est_cost_usd": 0.069
+    }
+  ]
+}
