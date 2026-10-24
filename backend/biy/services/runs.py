@@ -127,6 +127,10 @@ async def estimate_run(workspace_id: UUID, req: RunIn) -> Estimate:
     cases = await list_cases(workspace_id, req.use_case_id)
     if not cases:
         raise Invalid("this use case has no cases yet; add some before running")
+    if not (uc.io_spec.system_prompt or uc.io_spec.user_template) and not all(c.input.get("messages") for c in cases):
+        # never benchmark a placeholder: with no prompt, models would answer a different task
+        raise Invalid("this use case has no prompt attached (io_spec.system_prompt and user_template are both "
+                      "empty); attach it, for large prompts with biy_upload_url, before running")
     _validate(uc, req.candidates, any(c.input.get("images") for c in cases))
     io = uc.io_spec.model_dump()
     in_tokens = sum(len(json.dumps(build_messages(io, c.input))) // 4 + 20 for c in cases)

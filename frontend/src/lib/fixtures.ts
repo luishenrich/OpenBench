@@ -10,8 +10,9 @@ import runDoneJson from '@fixtures/run_done.json'
 import runRunningJson from '@fixtures/run_running.json'
 import useCasesJson from '@fixtures/use_cases.json'
 import type {
-  Case, CatalogModel, Estimate, Me, MetricInfo, ResultsPage, Run, RunBrief, RunIn, UseCase, UseCasePatch,
+  Case, CaseIn, CatalogModel, GenerateCasesIn, Estimate, Me, MetricInfo, ResultsPage, Run, RunBrief, RunIn, UseCase, UseCasePatch,
 } from '@/types'
+import type { Workspace, WorkspacePatch } from '@/types'
 
 const clone = <T,>(x: T): T => structuredClone(x)
 const wait = <T,>(x: T, delay = 180): Promise<T> => new Promise((r) => setTimeout(() => r(clone(x)), delay))
@@ -52,7 +53,22 @@ const EXTRAS: Extra[] = [
   ['Moderate user reviews', 'classification', null, 'services/reviews/moderate.py', 42, 'openai/gpt-4.1-mini', 2, 0],
   ['Fix up OCR text', 'other', null, 'services/docs/ocr_cleanup.py', 17, 'openai/gpt-4.1-mini', 0, 0],
   ['Score lead quality', 'classification', null, 'services/crm/leads.py', 66, 'openai/gpt-4.1-mini', 2, 45],
+  // as in the StudyPDF rehearsal: vision, no page images in the repo, prompt too large to send inline
+  ['Page OCR (vision transcription)', 'extraction', 'studypdf', 'lib/pdf/ocr.ts', 88, 'openai/gpt-6-luna', 2, 0],
 ]
+
+// Overrides for single extras: the OCR one carries the rehearsal's long description and no prompt;
+// "Draft a reply" has cases but its prompt is assembled at runtime, so the agent could not attach it.
+const NO_PROMPT = new Set(['Page OCR (vision transcription)', 'Draft a reply to a customer'])
+const DESCRIPTIONS: Record<string, string> = {
+  'Page OCR (vision transcription)':
+    'Transcribes each page image of an uploaded PDF into plain text when the PDF has no text layer (scanned books, photographed handouts). ' +
+    'Called once per page from the upload pipeline with gpt-6-luna at reasoning medium; the output feeds chunking and every downstream feature, ' +
+    'so transcription errors show up later as wrong answers in chat and wrong flashcards. The system prompt is about 9,000 tokens of formatting rules ' +
+    '(tables, footnotes, math as LaTeX, two-column layouts, handwriting) and was too large to attach inline. The repo has no sample page images; ' +
+    'tests mock the model call. Quality matters more than speed here: a missed line silently breaks a student\'s notes.',
+}
+const EFFORT: Record<string, string> = { 'openai/gpt-6-luna': 'medium' }
 
 const METRIC_IDS = ['json_schema_valid', 'field_accuracy', 'llm_judge']
 const extras: UseCase[] = EXTRAS.map(([name, kind, repo, path, line, model, metrics, cases, run], i) => ({
@@ -60,14 +76,18 @@ const extras: UseCase[] = EXTRAS.map(([name, kind, repo, path, line, model, metr
   workspace_id: '00000000-0000-0000-0000-0000000000a1',
   name,
   kind,
-  description: '',
+  description: DESCRIPTIONS[name] ?? '',
   source_refs: [{ repo, path, line, symbol: null }],
-  current_model: { provider: model.startsWith('google/') ? 'openrouter' : 'openai', model, params: {} },
+  current_model: {
+    provider: model.startsWith('google/') || model.includes('gpt-6') ? 'openrouter' : 'openai',
+    model,
+    params: EFFORT[model] ? { reasoning_effort: EFFORT[model] } : {},
+  },
   profile: null,
   gates: [],
   metrics: METRIC_IDS.slice(0, metrics).map((metric_id) => ({ metric_id, weight: 1, config: {} })),
   judge: null,
-  io_spec: { system_prompt: null, user_template: null, response_schema: null, tools: null, params: {} },
+  io_spec: { system_prompt: null, user_template: NO_PROMPT.has(name) ? null : '{{input}}', response_schema: null, tools: null, params: {} },
   case_count: cases,
   latest_run: run ?? null,
   created_by: 'mcp',
@@ -75,6 +95,22 @@ const extras: UseCase[] = EXTRAS.map(([name, kind, repo, path, line, model, metr
 }))
 
 const useCases = [...(clone(useCasesJson) as unknown as UseCase[]), ...extras]
+const cases = clone(casesJson) as unknown as Case[]
+
+// A judge metric on "Extract invoice fields" so its run shows the jury (judge null = workspace default jury).
+// Case counts follow the cases that actually exist in the fixtures (the contract said 50 for invoices but ships 3).
+for (const uc of useCases) {
+  const n = cases.filter((c) => c.use_case_id === uc.id).length
+  if (n) uc.case_count = n
+}
+// the extras get placeholder cases, so the page and the list agree on the count
+for (const uc of extras) {
+  for (let i = 0; i < uc.case_count; i++) {
+    cases.push({ id: `${uc.id.slice(0, -3)}${String(i).padStart(3, '0')}-c`, use_case_id: uc.id, input: { vars: { input: `${uc.name}: example ${i + 1}` } }, reference: null, tags: [], source: i % 3 ? 'repo' : 'synthetic' })
+  }
+}
+const invoices = useCases[0]
+invoices.metrics = [...invoices.metrics, { metric_id: 'rubric_score', weight: 1, config: {} }]
 
 // ?scan=1 plays a live scan: the list starts empty and gains one use case every 1.5 s, as if a coding
 // agent were calling biy_use_cases_create. Only the list endpoint is affected.
@@ -87,8 +123,15 @@ function visibleUseCases(): UseCase[] {
   const n = Math.max(0, Math.floor((Date.now() - scanStart - 4000) / 1500))
   return useCases.slice(0, n)
 }
-const runDone = runDoneJson as unknown as Run
+// run_done.json carries references, effort and judge agreement. The fixture use case has no judge metric, so
+// "Extract invoice fields" gets rubric_score above and the run shows its jury as judged.
+const runDone: Run = (() => {
+  const run = clone(runDoneJson) as unknown as Run
+  run.progress = { ...run.progress, judged: run.progress.total, judge_total: run.progress.total }
+  return run
+})()
 const runRunning = runRunningJson as unknown as Run
+const results = clone(resultsJson) as unknown as ResultsPage
 const PLAYBACK_MS = 20_000
 const started = new Map<string, number>() // run id → playback start
 
@@ -111,7 +154,9 @@ function playback(id: string, useCaseId: string): Run {
     id,
     use_case_id: useCaseId,
     status: 'running',
-    progress: { ...runRunning.progress, done, total, errors: f > 0.5 ? 1 : 0 },
+    candidates: clone(runDone.candidates),
+    references: clone(runDone.references),
+    progress: { ...runRunning.progress, done, total, errors: f > 0.5 ? 1 : 0, judged: Math.round(done * 0.9), judge_total: total },
     leaderboard,
     pareto_points: f < 0.15 ? [] : clone(runDone.pareto_points),
     recommendation: null,
@@ -125,8 +170,15 @@ function findUseCase(id: string): UseCase {
   return uc
 }
 
-export const fixtureApi = {
-  me: () => wait(meJson as unknown as Me),
+// The signed-in user; updateWorkspace edits its workspace in memory.
+const me = clone(meJson) as unknown as Me
+
+export const fixtureApi: typeof import('./api').api = {
+  me: () => wait(me),
+  updateWorkspace: async (patch: WorkspacePatch): Promise<Workspace> => {
+    Object.assign(me.workspace, patch)
+    return wait(me.workspace, 300)
+  },
   rotateMcpKey: () => wait({ key: 'biy_fixture_' + Math.random().toString(36).slice(2, 14) }),
   models: () => wait(modelsJson as unknown as CatalogModel[]),
   metrics: () => wait(metricsJson as unknown as MetricInfo[]),
@@ -137,7 +189,20 @@ export const fixtureApi = {
     Object.assign(uc, patch)
     return wait(uc, 250)
   },
-  cases: (id: string) => wait((casesJson as unknown as Case[]).filter((c) => c.use_case_id === id)),
+  cases: (id: string) => wait(cases.filter((c) => c.use_case_id === id)),
+  addCases: async (id: string, input: CaseIn[]): Promise<Case[]> => {
+    const uc = findUseCase(id)
+    const added: Case[] = input.map((c) => ({
+      id: crypto.randomUUID(), use_case_id: id, input: c.input, reference: c.reference ?? null, tags: c.tags ?? [], source: c.source ?? 'upload',
+    }))
+    cases.push(...added)
+    uc.case_count = cases.filter((c) => c.use_case_id === id).length
+    return wait(added, 400)
+  },
+  generateCases: async (id: string, body: GenerateCasesIn = {}): Promise<Case[]> => {
+    const n = body.n ?? 20
+    return fixtureApi.addCases(id, Array.from({ length: n }, (_, i) => ({ input: { vars: { input: `Synthetic example ${i + 1}` } }, source: 'synthetic' as const, tags: ['synthetic'] })))
+  },
   runs: async (id: string): Promise<RunBrief[]> => {
     const uc = findUseCase(id)
     return wait(uc.latest_run ? [uc.latest_run] : [])
@@ -153,6 +218,8 @@ export const fixtureApi = {
   run: async (id: string): Promise<Run> => {
     if (id === runDone.id) return wait(runDone)
     const uc = useCases.find((u) => u.latest_run?.id === id)
+    // finished runs of the extra use cases replay the finished fixture instead of starting a playback
+    if (uc && !started.has(id) && uc.latest_run?.status === 'done') return wait({ ...clone(runDone), id, use_case_id: uc.id })
     const run = playback(id, uc?.id ?? runDone.use_case_id)
     if (uc && run.status === 'done') {
       uc.latest_run = {
@@ -165,5 +232,5 @@ export const fixtureApi = {
   },
   cancelRun: async (id: string) => wait({ ...playback(id, runDone.use_case_id), status: 'cancelled' as const }),
   results: (_id: string, _params: { candidate_key?: string; case_id?: string; cursor?: string } = {}) =>
-    wait(resultsJson as unknown as ResultsPage),
+    wait(results),
 }

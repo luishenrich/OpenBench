@@ -1,20 +1,41 @@
 import type { UseCase, UseCaseKind } from '@/types'
 
 // Where a use case is in its life, derived from existing fields (no contract change).
-export type SetupState = 'setup' | 'cases' | 'ready' | 'running' | 'done' | 'failed'
+// 'data' = needs input only the user can give (page images, the full prompt); 'cases' = the agent can still add them.
+export type SetupState = 'setup' | 'data' | 'cases' | 'ready' | 'running' | 'done' | 'failed'
+
+const VISION_WORDS = /\b(vision|ocr|images?|photos?|screenshots?|scanned|page scans?)\b/i
+
+/** Image input: cases carry images, or the use case says it reads images. */
+export function isVision(uc: Pick<UseCase, 'kind' | 'name' | 'description'>, cases?: { input: { images?: string[] } }[]): boolean {
+  if (cases?.some((c) => (c.input.images?.length ?? 0) > 0)) return true
+  return VISION_WORDS.test(`${uc.name} ${uc.description}`)
+}
+
+export const promptAttached = (uc: UseCase) => !!(uc.io_spec?.system_prompt || uc.io_spec?.user_template)
+
+/** What only the user can supply right now, or null. */
+export function needsData(uc: UseCase, cases?: { input: { images?: string[] } }[]): { images: boolean; prompt: boolean } | null {
+  const images = uc.case_count === 0 && isVision(uc, cases)
+  const prompt = !promptAttached(uc)
+  return images || prompt ? { images, prompt } : null
+}
 
 export function setupState(uc: UseCase): SetupState {
   const s = uc.latest_run?.status
   if (s === 'done') return 'done'
   if (s === 'queued' || s === 'running' || s === 'scoring') return 'running'
   if (s === 'failed' || s === 'cancelled') return 'failed'
+  // metrics come last in the agent's setup, so an empty list means it is still working on this one
   if (uc.metrics.length === 0) return 'setup'
+  if (needsData(uc)) return 'data'
   if (uc.case_count === 0) return 'cases'
   return 'ready'
 }
 
 export const stateLabel: Record<SetupState, string> = {
   setup: 'Setting up',
+  data: 'Needs data',
   cases: 'Collecting cases',
   ready: 'Ready to benchmark',
   running: 'Running',
@@ -24,19 +45,20 @@ export const stateLabel: Record<SetupState, string> = {
 
 // Short words for the section summary
 export const stateShort: Record<SetupState, string> = {
-  done: 'benchmarked', running: 'running', failed: 'failed', ready: 'ready', cases: 'collecting cases', setup: 'setting up',
+  done: 'benchmarked', running: 'running', failed: 'failed', ready: 'ready', data: 'need data', cases: 'collecting cases', setup: 'setting up',
 }
 
 export const stateDot: Record<SetupState, string> = {
   setup: 'bg-line-strong',
+  data: 'bg-front',
   cases: 'bg-muted',
-  ready: 'bg-front',
+  ready: 'bg-fg/60',
   running: 'bg-signal',
   done: 'bg-win',
   failed: 'bg-bad',
 }
 
-export const STATE_ORDER: SetupState[] = ['done', 'running', 'failed', 'ready', 'cases', 'setup']
+export const STATE_ORDER: SetupState[] = ['data', 'done', 'running', 'failed', 'ready', 'cases', 'setup']
 
 // Fixed order keeps sections from jumping around while a scan adds use cases.
 const KIND_ORDER: UseCaseKind[] = ['chat', 'agent', 'rag', 'extraction', 'classification', 'summarization', 'generation', 'batch', 'other']
@@ -75,7 +97,7 @@ export function groupUseCases(list: UseCase[], fallbackName: string): ProjectGro
 }
 
 export function countStates(items: UseCase[]): Record<SetupState, number> {
-  const c: Record<SetupState, number> = { setup: 0, cases: 0, ready: 0, running: 0, done: 0, failed: 0 }
+  const c: Record<SetupState, number> = { setup: 0, data: 0, cases: 0, ready: 0, running: 0, done: 0, failed: 0 }
   for (const u of items) c[setupState(u)]++
   return c
 }

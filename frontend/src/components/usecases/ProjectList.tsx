@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { usd } from '@/lib/format'
 import type { UseCase } from '@/types'
 import {
-  type KindGroup, type ProjectGroup, STATE_ORDER, countStates, groupUseCases, kindLabel, savingsOf, stateDot, stateShort,
+  type KindGroup, type ProjectGroup, STATE_ORDER, countStates, groupUseCases, kindLabel, savingsOf, setupState, stateDot, stateShort,
 } from './group'
 import { ROW_GRID, UseCaseRow } from './UseCaseRow'
 
@@ -45,15 +45,22 @@ export function ProjectList({ useCases, fallbackName, fresh }: { useCases: UseCa
     setPrefs(next)
     savePrefs(next)
   }
+  const openAll = (keys: string[]) => {
+    const next = { ...prefs, ...Object.fromEntries(keys.map((k) => [k, true])) }
+    setPrefs(next)
+    savePrefs(next)
+  }
 
   return (
     <div className="space-y-10">
-      {projects.map((p) => <Project key={p.key} project={p} isOpen={isOpen} toggle={toggle} fresh={fresh} />)}
+      {projects.map((p) => <Project key={p.key} project={p} isOpen={isOpen} toggle={toggle} openAll={openAll} fresh={fresh} />)}
     </div>
   )
 }
 
-function Project({ project, isOpen, toggle, fresh }: { project: ProjectGroup; isOpen: (k: string) => boolean; toggle: (k: string) => void; fresh: Set<string> }) {
+function Project({ project, isOpen, toggle, openAll, fresh }: {
+  project: ProjectGroup; isOpen: (k: string) => boolean; toggle: (k: string) => void; openAll: (keys: string[]) => void; fresh: Set<string>
+}) {
   const n = project.items.length
   const c = countStates(project.items)
   const setUp = c.ready + c.running + c.done + c.failed
@@ -69,6 +76,23 @@ function Project({ project, isOpen, toggle, fresh }: { project: ProjectGroup; is
           </h2>
           <p className="mt-1 text-sm text-muted">
             {n} LLM {n === 1 ? 'call' : 'calls'} found · {setUp} of {n} set up · {c.done} benchmarked
+            {c.data > 0 && (
+              <>
+                {' · '}
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 font-medium text-front underline-offset-4 hover:underline"
+                  title="Open the sections that need your input"
+                  onClick={() => {
+                    const keys = project.kinds.filter((k) => k.items.some((u) => setupState(u) === 'data')).map((k) => k.key)
+                    openAll(keys)
+                    requestAnimationFrame(() => document.getElementById(`uc-section-${keys[0]?.replace(/[^a-z0-9]+/gi, '-')}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+                  }}
+                >
+                  <span className="size-1.5 rounded-[1px] bg-front" />{c.data} need your input
+                </button>
+              </>
+            )}
           </p>
         </div>
         {savings > 0 && <p className="text-sm text-win">~{usd(savings)}/month to save</p>}
