@@ -1,5 +1,6 @@
 """Human-agreement kit on fake results. No network."""
 
+import csv
 import json
 import sys
 from pathlib import Path
@@ -213,9 +214,16 @@ def test_cli_writes_sheet_and_summary(tmp_path):
     csv_path = tmp_path / "review.csv"
     lines = csv_path.read_text(encoding="utf-8").splitlines()
     assert lines[0].startswith("use_case")
+    assert lines[0].endswith("human_agree,human_score,human_winner,human_note")
     assert lines[1].endswith(",,,,")
-    lines[1] = lines[1][:-4] + ",no,0.9,,"
-    csv_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    with csv_path.open(encoding="utf-8", newline="") as handle:
+        filled = list(csv.DictReader(handle))
+    filled[0]["human_agree"] = "no"
+    filled[0]["human_score"] = "0.9"
+    with csv_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(filled[0]))
+        writer.writeheader()
+        writer.writerows(filled)
     summary_path = tmp_path / "summary.md"
     assert main(["score", "--sheet", str(csv_path), "--out", str(summary_path)]) == 0
     summary = summary_path.read_text(encoding="utf-8")
@@ -256,8 +264,9 @@ def test_inter_judge_columns_and_low_agreement_flag():
         seed=0,
     )
     by_case = {row["case_id"]: row for row in rows}
-    assert by_case["c1"]["judge_a_id"] == "luna"
-    assert by_case["c1"]["judge_b_score"] == "0.9"
+    assert by_case["c1"]["juror_1_key"] == "luna"
+    assert by_case["c1"]["juror_2_score"] == "0.9"
+    assert by_case["c1"]["juror_3_key"] == ""
     assert by_case["c1"]["inter_judge_agree"] == "no"
     assert by_case["c1"]["reasoning_effort"] == '{"deepseek": "low", "luna": "low"}'
     assert by_case["c2"]["inter_judge_agree"] == "yes"
@@ -268,16 +277,29 @@ def test_inter_judge_columns_and_low_agreement_flag():
     assert stats["inter_judge_n"] == 2
     assert stats["inter_judge_agreement"] == pytest.approx(0.5)
     assert stats["low_inter_judge_agreement"] is True
+    assert stats["per_juror"]["luna"]["agreement"] == pytest.approx(0.5)
+    assert stats["per_juror"]["deepseek"]["n"] == 2
     from biy.metrics.agreement import render_summary
 
     text = render_summary({**stats, "reviewed": 0, "agreements": 0, "agreement": None, "kappa": None, "spearman": None, "pairwise_n": 0, "rubric_n": 0})
     assert "Inter-judge agreement: 1/2 (50%)" in text
     assert "flag this use case" in text
+    assert "luna: 1/2 (50%)" in text
 
 
-def test_contract_fixture_has_a_single_example_judge_not_a_demo_run():
+def test_contract_fixture_examples_are_not_a_demo_run():
     records, _warnings = prepare_records(json.loads(FIXTURE.read_text(encoding="utf-8")))
     rows = sheet_rows(records, n=10, seed=0)
-    assert len(rows) == 1
-    assert rows[0]["judge_winner"] == "candidate"
-    assert rows[0]["input"] == ""
+    assert len(rows) == 2
+    by_mode = {row["judge_mode"]: row for row in rows}
+    pairwise = by_mode["pairwise_vs_baseline"]
+    rubric = by_mode["rubric_score"]
+    assert pairwise["judge_winner"] == "candidate"
+    assert pairwise["inter_judge_agree"] == ""
+    assert pairwise["juror_1_key"] == "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low"
+    assert "gpt-6-luna@low" in pairwise["judge_abstained"]
+    assert pairwise["input"] == ""
+    assert rubric["inter_judge_agree"] == "yes"
+    assert rubric["juror_1_key"] == "openrouter:openai/gpt-6-luna@low"
+    assert rubric["juror_2_score"] == "0.9"
+    assert rubric["juror_3_key"] == ""

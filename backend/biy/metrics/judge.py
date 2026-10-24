@@ -2,14 +2,19 @@
 
 One configured judge keeps the old path: call_llm(messages) -> str, rubric once,
 pairwise in both orders. A jury (config['judges'], or config['jury'] is True) calls
-call_llm(messages, judge=spec) once per judge. Rubric score is the mean of the
-non-abstaining judges. A pairwise win counts only when every non-abstaining judge
-agrees in both orders; otherwise the result is a tie at 0.5. A judge abstains when
-the output is from its own family.
+call_llm(messages, judge=spec) once per juror. The worker on main also calls judge()
+once per juror and aggregates itself; this function does the same aggregation when
+the jury is passed in, and the stored names match ResultOut.judge.
 
-Pinned reasoning_effort defaults to "low" and is stored on the result. Luna's cost
-is usage.cost_details.upstream_inference_cost when call_llm returns usage and
-is_byok is true.
+Rubric score is the mean of the non-abstaining jurors. A pairwise win counts only
+when every non-abstaining juror agrees in both orders; otherwise the result is a
+tie at 0.5. A juror abstains when the output is from its own family (pairwise: also
+when the reference is). Agreement is true when at least two voted and rubric scores
+are within 0.25, or pairwise winners match. That is the worker's AGREE_WITHIN.
+
+The jury is Luna, DeepSeek-V4.1-Flash, and GLM-5.3. GLM keeps the provider's
+reasoning default (pinning an effort nearly stops it). Luna and DeepSeek pin "low".
+Luna's cost is usage.cost_details.upstream_inference_cost when is_byok is true.
 """
 
 from __future__ import annotations
@@ -23,13 +28,18 @@ from .judge_rubrics import RUBRICS
 from .types import CaseView, JudgeResult, OutputView
 
 _FENCE = re.compile(r"\{.*\}", re.DOTALL)
-RUBRIC_AGREEMENT_TOLERANCE = 0.10
+# Same cutoff as backend/biy/worker.py AGREE_WITHIN. Rubric jurors agree inside this band.
+RUBRIC_AGREEMENT_TOLERANCE = 0.25
 PAIRWISE_METRICS = {"pairwise_vs_baseline", "length_controlled_win_rate"}
 
-# The demo jury. Used only when config['jury'] is true or the runner passes this list.
+# Three families, so every output still has two votes after one abstains.
+# Fallback if GLM misbehaves as a juror: nebius:moonshotai/Kimi-K3 (do not add it here).
+# Used when config['jury'] is true. The contract default on main is still Luna + DeepSeek;
+# Raphaël adds GLM to JudgeConfig._default_jury.
 DEFAULT_JURY = (
     {
         "id": "luna",
+        "key": "openrouter:openai/gpt-6-luna@low",
         "provider": "openrouter",
         "model": "openai/gpt-6-luna",
         "family": "openai",
@@ -37,10 +47,19 @@ DEFAULT_JURY = (
     },
     {
         "id": "deepseek",
+        "key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
         "provider": "nebius",
         "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
         "family": "deepseek",
         "reasoning_effort": "low",
+    },
+    {
+        "id": "glm",
+        "key": "nebius:zai-org/GLM-5.3",
+        "provider": "nebius",
+        "model": "zai-org/GLM-5.3",
+        "family": "glm",
+        "reasoning_effort": None,
     },
 )
 
@@ -82,22 +101,55 @@ def _parse_object(text: str) -> dict:
     return parsed
 
 
-def _output_family(key: str) -> str | None:
-    text = (key or "").lower()
-    if not text:
-        return None
-    if "gpt-oss" in text or "openai/gpt" in text or re.search(r"(^|[/:])gpt-", text):
-        return "openai"
-    if "deepseek" in text:
-        return "deepseek"
-    return None
+def _reference_family():
+    """Raphaël's family() without importing biy.providers (that package imports httpx)."""
+    import importlib.util
+
+    path = Path(__file__).resolve().parents[1] / "providers" / "references.py"
+    spec = importlib.util.spec_from_file_location("_biy_reference_families", path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.family
+
+
+_FAMILY = _reference_family()
+
+
+def _family_of(text: str) -> str:
+    """Same families as biy.providers.references.family. Empty text has no family."""
+    if not (text or "").strip():
+        return ""
+    return _FAMILY(text)
 
 
 def _family_of_judge(spec: dict) -> str:
     family = str(spec.get("family") or "").strip().lower()
     if family:
         return family
-    return _output_family(str(spec.get("model") or "")) or ""
+    return _family_of(str(spec.get("model") or ""))
+
+
+def _juror_key(spec: dict) -> str:
+    """Contract key: provider:model, plus @effort when a reasoning effort is pinned."""
+    if spec.get("key"):
+        return str(spec["key"])
+    provider = str(spec.get("provider") or "")
+    model = str(spec.get("model") or spec.get("id") or "judge")
+    effort = spec.get("reasoning_effort")
+    base = f"{provider}:{model}" if provider else model
+    if effort and effort != "default":
+        return f"{base}@{effort}"
+    return base
+
+
+def _system_prompt(case: CaseView) -> str:
+    spec = case.io_spec
+    text = spec.get("system_prompt") if isinstance(spec, dict) else getattr(spec, "system_prompt", None)
+    if isinstance(text, str) and text.strip():
+        return text
+    return "(none)"
 
 
 def _abstains(spec: dict | None, config: dict, *, pairwise: bool) -> bool:
@@ -109,7 +161,7 @@ def _abstains(spec: dict | None, config: dict, *, pairwise: bool) -> bool:
     keys = [str(config.get("candidate_key") or "")]
     if pairwise:
         keys.append(str(config.get("baseline_key") or ""))
-    return any(_output_family(key) == family for key in keys)
+    return any(_family_of(key) == family for key in keys)
 
 
 def _panel(config: dict) -> list[dict | None]:
@@ -123,8 +175,16 @@ def _panel(config: dict) -> list[dict | None]:
         if not isinstance(item, dict):
             raise ValueError("config['judges'] entries must be objects")
         spec = dict(item)
-        spec.setdefault("reasoning_effort", "low")
+        params = spec.get("params") if isinstance(spec.get("params"), dict) else {}
+        if "reasoning_effort" not in spec:
+            if "reasoning_effort" in params:
+                spec["reasoning_effort"] = params["reasoning_effort"]
+            elif _family_of(str(spec.get("model") or "")) == "glm":
+                spec["reasoning_effort"] = None
+            else:
+                spec["reasoning_effort"] = "low"
         spec.setdefault("id", spec.get("model") or "judge")
+        spec["key"] = _juror_key(spec)
         panel.append(spec)
     if not panel:
         return [None]
@@ -196,6 +256,7 @@ def _rubric_messages(case: CaseView, output: OutputView, config: dict, metric_id
             load_prompt("rubric.md"),
             {
                 "rubric": str(config.get("rubric") or "Follow the task. Be correct, complete, and on topic."),
+                "system_prompt": _system_prompt(case),
                 "case_input": _dump(case.input),
                 "output": _dump(output.json if output.json is not None else output.text),
             },
@@ -207,6 +268,7 @@ def _rubric_messages(case: CaseView, output: OutputView, config: dict, metric_id
         {
             "metric_id": metric_id,
             "rubric": str(config.get("rubric") or rubric),
+            "system_prompt": _system_prompt(case),
             "case_input": _dump(case.input),
             "reference": _dump(case.reference),
             "output": _dump(output.json if output.json is not None else output.text),
@@ -224,6 +286,7 @@ def _pairwise_messages(case: CaseView, first: OutputView, second: OutputView, co
         load_prompt("pairwise.md"),
         {
             "rubric": rubric,
+            "system_prompt": _system_prompt(case),
             "case_input": _dump(case.input),
             "output_a": _dump(first.json if first.json is not None else first.text),
             "output_b": _dump(second.json if second.json is not None else second.text),
@@ -236,6 +299,7 @@ def _blank_row(spec: dict | None, *, abstained: bool) -> dict:
     if spec is None:
         return {
             "id": "judge",
+            "key": "judge",
             "provider": None,
             "model": None,
             "score": None,
@@ -247,6 +311,7 @@ def _blank_row(spec: dict | None, *, abstained: bool) -> dict:
         }
     return {
         "id": spec.get("id"),
+        "key": spec.get("key") or _juror_key(spec),
         "provider": spec.get("provider"),
         "model": spec.get("model"),
         "score": None,
@@ -258,34 +323,66 @@ def _blank_row(spec: dict | None, *, abstained: bool) -> dict:
     }
 
 
+def _public_jurors(rows: list[dict]) -> list[dict]:
+    """Shape stored on result.judge.jurors. cost_usd and orders are extra and optional."""
+    published = []
+    for row in rows:
+        if row["abstained"]:
+            continue
+        item = {
+            "key": row.get("key"),
+            "reasoning_effort": row.get("reasoning_effort"),
+            "score": row.get("score"),
+            "reasoning": row.get("reasoning") or "",
+            "winner": row.get("winner"),
+        }
+        if row.get("cost_usd") is not None:
+            item["cost_usd"] = row["cost_usd"]
+        if row.get("orders") is not None:
+            item["orders"] = row["orders"]
+        published.append(item)
+    return published
+
+
+def _joined_reasoning(rows: list[dict]) -> str:
+    parts = []
+    for row in rows:
+        if row["abstained"]:
+            continue
+        label = str(row.get("key") or row.get("id") or "judge").split(":", 1)[-1]
+        parts.append(f"{label}: {row.get('reasoning') or ''}")
+    return "  |  ".join(parts)
+
+
+def _agreement(voted: list[dict], *, pairwise: bool) -> bool | None:
+    if len(voted) < 2:
+        return None
+    if pairwise:
+        return len({row["winner"] for row in voted}) == 1
+    spread = max(float(row["score"]) for row in voted) - min(float(row["score"]) for row in voted)
+    return spread <= RUBRIC_AGREEMENT_TOLERANCE
+
+
 def _finish_rubric(rows: list[dict], *, single: bool) -> JudgeResult:
     voted = [row for row in rows if not row["abstained"]]
     if not voted:
         raise ValueError("every judge abstained")
     score = sum(float(row["score"]) for row in voted) / len(voted)
-    abstained = [str(row["id"]) for row in rows if row["abstained"]]
-    agreement = None
-    low = None
-    if len(voted) >= 2:
-        spread = max(float(row["score"]) for row in voted) - min(float(row["score"]) for row in voted)
-        agreement = 1.0 if spread <= RUBRIC_AGREEMENT_TOLERANCE else 0.0
-        low = agreement == 0.0
+    abstained = [str(row["key"]) for row in rows if row["abstained"]]
+    agreement = _agreement(voted, pairwise=False)
     if single:
         reasoning = str(voted[0]["reasoning"] or "")
     else:
-        reasoning = " ".join(
-            f"{row['id']}: abstained" if row["abstained"] else f"{row['id']}: {row['reasoning']}"
-            for row in rows
-        )
+        reasoning = _joined_reasoning(rows)
     return JudgeResult(
         score=score,
         reasoning=reasoning,
         winner=None,
-        judges=rows,
+        jurors=_public_jurors(rows),
         abstained=abstained,
         agreement=agreement,
-        low_agreement=low,
-        reasoning_effort={str(row["id"]): row.get("reasoning_effort") for row in rows},
+        low_agreement=None if agreement is None else not agreement,
+        reasoning_effort={str(row["key"]): row.get("reasoning_effort") for row in rows},
     )
 
 
@@ -300,28 +397,21 @@ def _finish_pairwise(rows: list[dict], *, single: bool) -> JudgeResult:
     else:
         winner = "tie"
         score = 0.5
-    abstained = [str(row["id"]) for row in rows if row["abstained"]]
-    agreement = None
-    low = None
-    if len(voted) >= 2:
-        agreement = 1.0 if all(label == winners[0] for label in winners) else 0.0
-        low = agreement == 0.0
+    abstained = [str(row["key"]) for row in rows if row["abstained"]]
+    agreement = _agreement(voted, pairwise=True)
     if single:
         reasoning = str(voted[0]["reasoning"] or "")
     else:
-        reasoning = " ".join(
-            f"{row['id']}: abstained" if row["abstained"] else f"{row['id']}: {row['reasoning']}"
-            for row in rows
-        )
+        reasoning = _joined_reasoning(rows)
     return JudgeResult(
         score=score,
         reasoning=reasoning,
         winner=winner,  # type: ignore[arg-type]
-        judges=rows,
+        jurors=_public_jurors(rows),
         abstained=abstained,
         agreement=agreement,
-        low_agreement=low,
-        reasoning_effort={str(row["id"]): row.get("reasoning_effort") for row in rows},
+        low_agreement=None if agreement is None else not agreement,
+        reasoning_effort={str(row["key"]): row.get("reasoning_effort") for row in rows},
     )
 
 
@@ -386,8 +476,9 @@ async def judge(metric_id: str, case: CaseView, output: OutputView, baseline: Ou
             # so the old tests and the current runner keep working.
             call_spec = None if spec is None or (not jury and not _accepts_judge(call_llm)) else spec
             rows.append(await _one_rubric(call_llm, messages, call_spec if spec is not None else None))
-            if spec is not None and rows[-1]["id"] == "judge":
+            if spec is not None and rows[-1]["key"] == "judge":
                 rows[-1]["id"] = spec.get("id")
+                rows[-1]["key"] = spec.get("key") or _juror_key(spec)
                 rows[-1]["reasoning_effort"] = spec.get("reasoning_effort")
                 rows[-1]["provider"] = spec.get("provider")
                 rows[-1]["model"] = spec.get("model")

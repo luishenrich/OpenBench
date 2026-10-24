@@ -137,6 +137,8 @@ def test_prompts_match_and_judges_parse():
 
     async def rubric_llm(messages):
         assert "be brief" in messages[0]["content"]
+        assert "Instructions the model was given" in messages[0]["content"]
+        assert "(none)" in messages[0]["content"]
         return '{"score": 0.25, "reasoning": "too long"}'
 
     rubric = asyncio.run(

@@ -25,11 +25,12 @@ Fill ``human_agree`` (yes/no), ``human_score`` (rubric, 0–1),
 ``human_winner`` (candidate, baseline, or tie), and ``human_note`` in the CSV.
 The HTML file is a reading copy with those columns left blank.
 
-Jury columns sit in front of the human columns. They copy each judge's score,
-reasoning, and winner, plus who abstained, whether the two judges agreed, and
-the pinned reasoning effort. Inter-judge agreement is the share of sheet rows
-where both judges voted and agreed. Under 70% is flagged. One abstention is
-not a disagreement: the other judge decided alone.
+Juror columns sit in front of the human columns. Up to three jurors: key, score,
+reasoning, winner, plus who abstained, whether the non-abstaining jurors agreed,
+and the pinned reasoning effort. Inter-judge agreement is the share of sheet rows
+where at least two jurors voted and agreed (rubric scores within 0.25, or the
+same pairwise winner). Under 70% is flagged. One abstention is not a disagreement.
+The summary also reports that rate per juror.
 
 Agreement with the human counts a reviewed row when ``human_agree`` is yes, or
 when that cell is blank and the pairwise labels match, or when that cell is
@@ -62,14 +63,18 @@ SHEET_COLUMNS = (
     "judge_score",
     "judge_winner",
     "judge_reasoning",
-    "judge_a_id",
-    "judge_a_score",
-    "judge_a_reasoning",
-    "judge_a_winner",
-    "judge_b_id",
-    "judge_b_score",
-    "judge_b_reasoning",
-    "judge_b_winner",
+    "juror_1_key",
+    "juror_1_score",
+    "juror_1_reasoning",
+    "juror_1_winner",
+    "juror_2_key",
+    "juror_2_score",
+    "juror_2_reasoning",
+    "juror_2_winner",
+    "juror_3_key",
+    "juror_3_score",
+    "juror_3_reasoning",
+    "juror_3_winner",
     "judge_abstained",
     "inter_judge_agree",
     "reasoning_effort",
@@ -86,9 +91,9 @@ _WIN = {"candidate", "win", "a"}
 _LOSS = {"baseline", "loss", "b"}
 _TIE = {"tie", "draw"}
 RUBRIC_TOLERANCE = 0.10
-# Luis's note flags low inter-judge agreement and does not set a cutoff.
-# 70% is the line used by this kit: below it, the summary says to flag the use case.
+# The worker flags judge_agreement below 0.7. Rubric jurors agree within 0.25.
 LOW_INTER_JUDGE_AGREEMENT = 0.70
+JUROR_AGREEMENT_TOLERANCE = 0.25
 
 
 def pairwise_label(value: object) -> str | None:
@@ -261,14 +266,18 @@ def _baseline_key_for(records: list[dict], baseline_key: str | None) -> str | No
     tagged = {r.get("_baseline_key") for r in records if r.get("_baseline_key")}
     if len(tagged) == 1:
         return next(iter(tagged))
-    flagged = {r.get("candidate_key") for r in records if r.get("is_baseline") is True and r.get("candidate_key")}
+    flagged = {
+        r.get("candidate_key")
+        for r in records
+        if (r.get("is_baseline") is True or r.get("is_reference") is True) and r.get("candidate_key")
+    }
     if len(flagged) == 1:
         return next(iter(flagged))
     return None
 
 
 def _is_baseline_row(row: dict, baseline_key: str | None) -> bool:
-    if row.get("is_baseline") is True:
+    if row.get("is_baseline") is True or row.get("is_reference") is True:
         return True
     key = baseline_key or row.get("_baseline_key")
     return bool(key) and row.get("candidate_key") == key
@@ -320,35 +329,51 @@ def _panel_cell(row: object, key: str) -> str:
     return str(value)
 
 
+def _juror_key_of(row: dict) -> str:
+    return str(row.get("key") or row.get("id") or "")
+
+
 def jury_fields(judge: dict) -> dict:
-    """Per-judge columns. Missing panel fields stay blank so old exports still score."""
-    panel = judge.get("judges") if isinstance(judge.get("judges"), list) else []
-    first = panel[0] if panel else {}
-    second = panel[1] if len(panel) > 1 else {}
+    """Per-juror columns. Missing panel fields stay blank so old exports still score."""
+    panel = judge.get("jurors") if isinstance(judge.get("jurors"), list) else None
+    if panel is None:
+        panel = judge.get("judges") if isinstance(judge.get("judges"), list) else []
+    fields: dict[str, str] = {}
+    for index in range(3):
+        row = panel[index] if index < len(panel) and isinstance(panel[index], dict) else {}
+        number = index + 1
+        fields[f"juror_{number}_key"] = _juror_key_of(row) if row else ""
+        fields[f"juror_{number}_score"] = _panel_cell(row, "score")
+        fields[f"juror_{number}_reasoning"] = _panel_cell(row, "reasoning")
+        fields[f"juror_{number}_winner"] = _panel_cell(row, "winner")
     abstained = judge.get("abstained")
     if isinstance(abstained, list):
         abstained_text = ",".join(str(item) for item in abstained)
     else:
         abstained_text = ""
     agreement = judge.get("agreement")
-    if agreement is None:
+    if agreement is None or agreement == "":
         agree = ""
+    elif agreement is True or agreement == 1 or str(agreement).strip().lower() in _YES:
+        agree = "yes"
+    elif agreement is False or agreement == 0 or str(agreement).strip().lower() in _NO:
+        agree = "no"
     else:
-        agree = "yes" if float(agreement) >= 1 else "no"
+        try:
+            agree = "yes" if float(agreement) >= 1 else "no"
+        except (TypeError, ValueError):
+            agree = ""
     effort = judge.get("reasoning_effort")
-    return {
-        "judge_a_id": _panel_cell(first, "id"),
-        "judge_a_score": _panel_cell(first, "score"),
-        "judge_a_reasoning": _panel_cell(first, "reasoning"),
-        "judge_a_winner": _panel_cell(first, "winner"),
-        "judge_b_id": _panel_cell(second, "id"),
-        "judge_b_score": _panel_cell(second, "score"),
-        "judge_b_reasoning": _panel_cell(second, "reasoning"),
-        "judge_b_winner": _panel_cell(second, "winner"),
-        "judge_abstained": abstained_text,
-        "inter_judge_agree": agree,
-        "reasoning_effort": "" if not effort else render_value(effort),
-    }
+    if not effort and panel:
+        effort = {
+            _juror_key_of(row): row.get("reasoning_effort")
+            for row in panel
+            if isinstance(row, dict) and _juror_key_of(row)
+        }
+    fields["judge_abstained"] = abstained_text
+    fields["inter_judge_agree"] = agree
+    fields["reasoning_effort"] = "" if not effort else render_value(effort)
+    return fields
 
 
 def sheet_rows(
@@ -568,22 +593,70 @@ def spearman(xs: list[float], ys: list[float]) -> float | None:
     return _pearson(_average_ranks(xs), _average_ranks(ys))
 
 
+def _voter_slots(row: dict) -> list[dict]:
+    """Jurors that cast a score or a pairwise winner. Abstentions are blank cells."""
+    slots = []
+    for index in range(1, 4):
+        key = str(row.get(f"juror_{index}_key") or "").strip()
+        score = _float_or_none(row.get(f"juror_{index}_score"))
+        winner = pairwise_label(row.get(f"juror_{index}_winner"))
+        if score is None and winner is None:
+            continue
+        slots.append({"key": key or f"juror_{index}", "score": score, "winner": winner})
+    return slots
+
+
+def _slot_matches_panel(voter: dict, others: list[dict]) -> bool:
+    """True when this juror agrees with every other voter (0.25 on rubric, same winner pairwise)."""
+    if voter["winner"] and all(other["winner"] for other in others):
+        return all(other["winner"] == voter["winner"] for other in others)
+    if voter["score"] is None:
+        return False
+    scores = [other["score"] for other in others if other["score"] is not None]
+    if not scores:
+        return False
+    return all(abs(voter["score"] - other) <= JUROR_AGREEMENT_TOLERANCE for other in scores)
+
+
 def _judges_agree(row: dict) -> bool | None:
-    """True/False when both judges voted, else None (one abstained, or no jury)."""
+    """True/False when at least two jurors voted, else None (one abstained, or no jury).
+
+    A stored inter_judge_agree yes/no wins. Otherwise rubric voters agree when the
+    spread is at most 0.25, and pairwise voters agree when every winner matches.
+    """
     mark = str(row.get("inter_judge_agree") or "").strip().lower()
     if mark in _YES:
         return True
     if mark in _NO:
         return False
-    left = _float_or_none(row.get("judge_a_score"))
-    right = _float_or_none(row.get("judge_b_score"))
-    left_winner = pairwise_label(row.get("judge_a_winner"))
-    right_winner = pairwise_label(row.get("judge_b_winner"))
-    if left_winner and right_winner:
-        return left_winner == right_winner
-    if left is not None and right is not None:
-        return abs(left - right) <= RUBRIC_TOLERANCE
-    return None
+    voters = _voter_slots(row)
+    if len(voters) < 2:
+        return None
+    if all(slot["winner"] for slot in voters):
+        return len({slot["winner"] for slot in voters}) == 1
+    scores = [slot["score"] for slot in voters if slot["score"] is not None]
+    if len(scores) < 2:
+        return None
+    return max(scores) - min(scores) <= JUROR_AGREEMENT_TOLERANCE
+
+
+def _per_juror_agreement(rows: list[dict]) -> dict:
+    """Share of multi-voter rows where this juror matches every other voter."""
+    totals: dict[str, list[int]] = {}
+    for row in rows:
+        voters = _voter_slots(row)
+        if len(voters) < 2:
+            continue
+        for voter in voters:
+            others = [other for other in voters if other is not voter]
+            bucket = totals.setdefault(voter["key"], [0, 0])
+            bucket[1] += 1
+            if _slot_matches_panel(voter, others):
+                bucket[0] += 1
+    return {
+        key: {"agreements": hits, "n": count, "agreement": hits / count}
+        for key, (hits, count) in sorted(totals.items())
+    }
 
 
 def score_rows(rows: list[dict]) -> dict:
@@ -620,6 +693,7 @@ def score_rows(rows: list[dict]) -> dict:
         "inter_judge_agreements": jury_hits,
         "inter_judge_agreement": jury_rate,
         "low_inter_judge_agreement": low_jury,
+        "per_juror": _per_juror_agreement(rows),
     }
 
 
@@ -658,7 +732,16 @@ def render_summary(stats: dict) -> str:
         if stats.get("low_inter_judge_agreement"):
             jury_rate += ". Low agreement: flag this use case."
     else:
-        jury_rate = "n/a (no row where both judges voted)"
+        jury_rate = "n/a (no row where at least two jurors voted)"
+    per_juror = stats.get("per_juror") or {}
+    if per_juror:
+        per_lines = [
+            f"  - {key}: {item['agreements']}/{item['n']} ({100 * item['agreement']:.0f}%)"
+            for key, item in per_juror.items()
+        ]
+        per_text = "\n".join(per_lines)
+    else:
+        per_text = "  - n/a (no juror voted beside another juror)"
     small = ""
     if 0 < stats["reviewed"] < 10:
         small = "\n\nThis is a small sanity check, not a confidence interval."
@@ -667,15 +750,16 @@ def render_summary(stats: dict) -> str:
         f"{headline}\n\n"
         f"- Agreement: {rate}\n"
         f"- Inter-judge agreement: {jury_rate}\n"
+        f"- Per-juror agreement (rows where this juror and another both voted):\n{per_text}\n"
         f"- Pairwise Cohen's kappa: {kappa}\n"
         f"- Rubric Spearman: {rho}"
         f"{small}\n\n"
         "Agreement is human_agree=yes, or a blank agree cell whose pairwise label matches "
         "or whose rubric score is within 0.10 of the judge. "
         "Kappa uses candidate/baseline/tie. Spearman uses rubric scores. "
-        "Inter-judge agreement counts rows where both judges voted and agreed "
-        "(rubric scores within 0.10, or the same pairwise winner). "
-        "Below 70% the summary flags the use case. An abstention is left out.\n"
+        "Inter-judge agreement counts rows where at least two jurors voted and agreed "
+        "(rubric scores within 0.25, or the same pairwise winner). "
+        "Below 70% the summary flags the use case. One abstention is left out.\n"
     )
 
 

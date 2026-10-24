@@ -59,7 +59,7 @@ EXAMPLES: list[dict] = [
         "regulated_advice": True,
         "waiting": True,
         "teaching_points": [
-            "Faithfulness, brand fit, and answer relevancy are judge metrics. They are the default quality terms. The jury is two judges when the run configures both.",
+            "Faithfulness, brand fit, and answer relevancy are judge metrics. They are the default quality terms. The jury is Luna, DeepSeek-V4.1-Flash, and GLM-5.3. Each abstains on its own family, so an output still has two votes.",
             "Harmful compliance, over-refusal, and the advice boundary are judge risk gates on the default card.",
             "Time to first token ranks speed. Time to first answer token stays planned and is not on the default card.",
         ],

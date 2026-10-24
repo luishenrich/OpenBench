@@ -1,4 +1,4 @@
-"""Made-up cases for the new deterministic scorers and the two-judge jury."""
+"""Made-up cases for the new deterministic scorers and the three-juror jury."""
 
 import asyncio
 import sys
@@ -187,20 +187,29 @@ def test_jury_means_rubric_scores_and_stores_effort_and_byok_cost():
         usage = {"cost": 0, "is_byok": True, "cost_details": {"upstream_inference_cost": 0.02}}
         if judge["id"] == "deepseek":
             usage = {"cost": 0.01, "is_byok": False}
-        value = 0.2 if judge["id"] == "luna" else 0.4
+        value = 0.2 if judge["id"] == "luna" else 0.9
         return {"text": _rubric_reply(value), "usage": usage}
 
     result = asyncio.run(
         judge("faithfulness", _case("src"), _out(text="claim"), None, {"jury": True}, call_llm)
     )
-    assert seen == ["luna", "deepseek"]
-    assert result.score == pytest.approx(0.3)
-    assert result.agreement == 0.0
+    assert seen == ["luna", "deepseek", "glm"]
+    assert result.score == pytest.approx((0.2 + 0.9 + 0.9) / 3)
+    assert result.agreement is False
     assert result.low_agreement is True
-    assert result.reasoning_effort == {"luna": "low", "deepseek": "low"}
-    assert result.judges[0]["cost_usd"] == pytest.approx(0.02)
-    assert result.judges[1]["cost_usd"] == pytest.approx(0.01)
-    assert "luna:" in result.reasoning and "deepseek:" in result.reasoning
+    assert result.reasoning_effort == {
+        "openrouter:openai/gpt-6-luna@low": "low",
+        "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low": "low",
+        "nebius:zai-org/GLM-5.3": None,
+    }
+    assert [row["key"] for row in result.jurors] == list(result.reasoning_effort)
+    assert result.jurors[0]["cost_usd"] == pytest.approx(0.02)
+    assert result.jurors[1]["cost_usd"] == pytest.approx(0.01)
+    assert result.jurors[2]["cost_usd"] == pytest.approx(0.02)
+    assert "gpt-6-luna@low:" in result.reasoning
+    assert "DeepSeek-V4.1-Flash-1017@low:" in result.reasoning
+    assert "  |  " in result.reasoning
+    assert result.abstained == []
 
 
 def test_jury_pairwise_wins_only_when_every_judge_agrees_in_both_orders():
@@ -224,18 +233,23 @@ def test_jury_pairwise_wins_only_when_every_judge_agrees_in_both_orders():
         )
     )
     assert result.winner == "candidate" and result.score == 1.0
-    assert result.agreement == 1.0
+    assert result.agreement is True
     assert result.low_agreement is False
+    assert result.abstained == ["nebius:zai-org/GLM-5.3"]
+    assert {row["key"] for row in result.jurors} == {
+        "openrouter:openai/gpt-6-luna@low",
+        "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+    }
 
-    counts = {"luna": 0, "deepseek": 0}
+    counts = {"luna": 0, "deepseek": 0, "glm": 0}
 
     def split(messages, judge=None):
         counts[judge["id"]] += 1
-        # Luna picks the candidate in both orders. DeepSeek picks the baseline in both.
+        # Luna picks the candidate in both orders. DeepSeek and GLM pick the baseline.
         if judge["id"] == "luna":
             winner = "A" if counts["luna"] == 1 else "B"
         else:
-            winner = "B" if counts["deepseek"] == 1 else "A"
+            winner = "B" if counts[judge["id"]] == 1 else "A"
         return '{"winner": "%s", "reasoning": "split"}' % winner
 
     tie = asyncio.run(
@@ -249,12 +263,12 @@ def test_jury_pairwise_wins_only_when_every_judge_agrees_in_both_orders():
         )
     )
     assert tie.winner == "tie" and tie.score == 0.5
-    assert tie.agreement == 0.0 and tie.low_agreement is True
+    assert tie.agreement is False and tie.low_agreement is True
 
 
-def test_judges_abstain_on_their_own_family_and_the_other_decides():
-    async def call_llm(messages, judge=None):
-        assert judge["id"] == "deepseek"
+def test_judges_abstain_on_their_own_family_and_the_other_two_decide():
+    async def deepseek_and_glm(messages, judge=None):
+        assert judge["id"] in {"deepseek", "glm"}
         return _rubric_reply(0.7)
 
     luna_out = asyncio.run(
@@ -264,16 +278,19 @@ def test_judges_abstain_on_their_own_family_and_the_other_decides():
             _out(text="ok"),
             None,
             {"jury": True, "candidate_key": "openrouter:openai/gpt-oss-120b"},
-            call_llm,
+            deepseek_and_glm,
         )
     )
     assert luna_out.score == 0.7
-    assert luna_out.abstained == ["luna"]
-    assert luna_out.agreement is None
-    assert luna_out.judges[0]["abstained"] is True
+    assert luna_out.abstained == ["openrouter:openai/gpt-6-luna@low"]
+    assert luna_out.agreement is True
+    assert {row["key"] for row in luna_out.jurors} == {
+        "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+        "nebius:zai-org/GLM-5.3",
+    }
 
-    async def only_luna(messages, judge=None):
-        assert judge["id"] == "luna"
+    async def luna_and_glm(messages, judge=None):
+        assert judge["id"] in {"luna", "glm"}
         return _rubric_reply(0.1)
 
     deepseek_out = asyncio.run(
@@ -283,12 +300,59 @@ def test_judges_abstain_on_their_own_family_and_the_other_decides():
             _out(text="ok"),
             None,
             {"judges": JURY, "candidate_key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017"},
-            only_luna,
+            luna_and_glm,
         )
     )
-    assert deepseek_out.abstained == ["deepseek"]
+    assert deepseek_out.abstained == ["nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low"]
     assert deepseek_out.score == 0.1
+    assert deepseek_out.agreement is True
 
+    async def not_glm(messages, judge=None):
+        assert judge["id"] in {"luna", "deepseek"}
+        return _rubric_reply(0.4)
+
+    glm_out = asyncio.run(
+        judge(
+            "g_eval",
+            _case("x"),
+            _out(text="ok"),
+            None,
+            {"jury": True, "candidate_key": "nebius:zai-org/GLM-5.3"},
+            not_glm,
+        )
+    )
+    assert glm_out.abstained == ["nebius:zai-org/GLM-5.3"]
+    assert glm_out.agreement is True
+
+    async def glm_alone(messages, judge=None):
+        assert judge["id"] == "glm"
+        body = messages[0]["content"]
+        # Candidate text is "better". Pick whichever side presents it.
+        winner = "A" if body.index("better") < body.index("base") else "B"
+        return '{"winner": "%s", "reasoning": "clear"}' % winner
+
+    glm_decides = asyncio.run(
+        judge(
+            "pairwise_vs_baseline",
+            _case("x"),
+            _out(text="better"),
+            _out(text="base"),
+            {
+                "judges": JURY,
+                "candidate_key": "openai/gpt-6-luna",
+                "baseline_key": "deepseek-ai/DeepSeek-V4",
+            },
+            glm_alone,
+        )
+    )
+    assert glm_decides.abstained == [
+        "openrouter:openai/gpt-6-luna@low",
+        "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+    ]
+    assert glm_decides.agreement is None
+    assert glm_decides.winner == "candidate"
+
+    two = [item for item in JURY if item["id"] != "glm"]
     with pytest.raises(ValueError, match="abstained"):
         asyncio.run(
             judge(
@@ -297,10 +361,36 @@ def test_judges_abstain_on_their_own_family_and_the_other_decides():
                 _out(text="ok"),
                 _out(text="base"),
                 {
-                    "judges": JURY,
+                    "judges": two,
                     "candidate_key": "openai/gpt-6-luna",
                     "baseline_key": "deepseek-ai/DeepSeek-V4",
                 },
-                call_llm,
+                glm_alone,
             )
         )
+
+
+def test_rubric_and_pairwise_prompts_include_the_system_prompt():
+    seen = []
+
+    async def call_llm(messages):
+        seen.append(messages[0]["content"])
+        if "winner" in messages[0]["content"]:
+            return '{"winner": "A", "reasoning": "ok"}'
+        return _rubric_reply(1)
+
+    case = CaseView(
+        input={"q": "hi"},
+        reference=None,
+        io_spec={"system_prompt": "Shipping takes two business days."},
+    )
+    asyncio.run(judge("rubric_score", case, _out(text="two business days"), None, {}, call_llm))
+    assert "Shipping takes two business days." in seen[-1]
+    assert "Instructions the model was given" in seen[-1]
+
+    blank = CaseView(input={"q": "hi"}, reference=None, io_spec={})
+    asyncio.run(
+        judge("pairwise_vs_baseline", blank, _out(text="a"), _out(text="b"), {}, call_llm)
+    )
+    assert seen[-1].count("(none)") >= 1
+    assert "Instructions the model was given" in seen[-1]

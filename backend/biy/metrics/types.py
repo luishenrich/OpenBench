@@ -25,10 +25,11 @@ class JudgeResult:
     score: float
     reasoning: str
     winner: Literal["candidate", "baseline", "tie"] | None = None
-    # Jury fields. Empty when a single unpinned judge ran. The runner stores these
-    # on result.judge once the contract grows; the names match the note to Raphaël.
-    judges: list[dict] | None = None
+    # Jury fields. Names match ResultOut.judge on main: jurors, abstained, agreement.
+    # agreement is true/false when at least two jurors voted, else None.
+    # A single unpinned judge leaves jurors as one row and agreement as None.
+    jurors: list[dict] | None = None
     abstained: list[str] | None = None
-    agreement: float | None = None
+    agreement: bool | None = None
     low_agreement: bool | None = None
     reasoning_effort: dict | None = None
