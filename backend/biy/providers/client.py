@@ -16,6 +16,7 @@ from typing import Any
 
 import httpx
 
+from ..config import settings
 from . import catalog
 
 PROVIDERS = {
@@ -137,7 +138,8 @@ class ProviderClient:
         if provider not in PROVIDERS:
             raise ValueError(f"unknown provider {provider!r}; expected one of {sorted(PROVIDERS)}")
         cfg = PROVIDERS[provider]
-        key = api_key or os.environ.get(cfg["key_env"])
+        key = (api_key or os.environ.get(cfg["key_env"])
+               or getattr(settings, cfg["key_env"].lower(), None))  # settings also reads .env
         if not key:
             raise MissingKey(f"{cfg['key_env']} is not set")
         self.provider = provider

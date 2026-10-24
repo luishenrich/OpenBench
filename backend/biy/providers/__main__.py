@@ -3,18 +3,16 @@
     cd backend && python -m biy.providers nebius deepseek-ai/DeepSeek-V4-Flash-0731
     cd backend && python -m biy.providers openrouter inclusionai/ling-3.1-flash --checks text json
 
-Costs a fraction of a cent per model. Keys come from the repo's .env.
+Costs a fraction of a cent per model. Keys come from the repo's .env (via biy.config).
 """
 
 from __future__ import annotations
 
 import argparse
 import asyncio
-import os
 import sys
 
 from . import ProviderClient, build_messages, response_format
-from .catalog import REPO_ROOT
 
 WEATHER_TOOL = {
     "type": "function",
@@ -30,16 +28,6 @@ INVOICE_SCHEMA = {
     "required": ["vendor", "total"],
     "additionalProperties": False,
 }
-
-
-def load_dotenv() -> None:
-    env = REPO_ROOT / ".env"
-    if env.exists():
-        for line in env.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                k, v = line.split("=", 1)
-                os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
 
 
 async def run(provider: str, model: str, checks: list[str]) -> int:
@@ -73,7 +61,6 @@ def main() -> None:
     ap.add_argument("model")
     ap.add_argument("--checks", nargs="*", default=["text", "json", "tools"])
     args = ap.parse_args()
-    load_dotenv()
     sys.exit(1 if asyncio.run(run(args.provider, args.model, args.checks)) else 0)
 
 

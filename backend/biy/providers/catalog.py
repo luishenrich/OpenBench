@@ -3,17 +3,15 @@
 from __future__ import annotations
 
 import json
-import os
 from functools import lru_cache
-from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-CATALOG_PATH = Path(os.environ.get("BIY_CATALOG", REPO_ROOT / "catalog" / "models.json"))
+from ..config import settings
 
 
 @lru_cache(maxsize=1)
 def _index() -> dict[tuple[str, str], dict]:
-    data = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
+    # Full rows (endpoints, served_by), which biy.catalog trims away for the API.
+    data = json.loads(settings.catalog_path.read_text(encoding="utf-8"))
     return {(m["provider"], m["id"]): m for m in data["models"]}
 
 
