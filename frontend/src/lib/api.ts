@@ -1,5 +1,5 @@
 import type {
-  Case, CaseIn, CatalogModel, GenerateCasesIn, Estimate, Me, MetricInfo, ResultsPage, Run, RunBrief, RunIn, UseCase, UseCasePatch,
+  Case, CaseIn, CasePatch, CatalogModel, GenerateCasesIn, Estimate, Me, MetricInfo, ResultsPage, Run, RunBrief, RunIn, UseCase, UseCasePatch,
 } from '@/types'
 import type { Workspace, WorkspacePatch } from '@/types'
 import { FIXTURES } from './mode'
@@ -46,7 +46,11 @@ const live = {
   useCases: () => request<UseCase[]>('GET', '/use-cases'),
   useCase: (id: string) => request<UseCase>('GET', `/use-cases/${id}`),
   updateUseCase: (id: string, patch: UseCasePatch) => request<UseCase>('PATCH', `/use-cases/${id}`, patch),
+  deleteUseCase: (id: string) => request<void>('DELETE', `/use-cases/${id}`),
   cases: (id: string) => request<Case[]>('GET', `/use-cases/${id}/cases`),
+  /** planned route: 404/405 until the backend ships it; callers fall back to delete + re-add */
+  updateCase: (useCaseId: string, caseId: string, patch: CasePatch) => request<Case>('PATCH', `/use-cases/${useCaseId}/cases/${caseId}`, patch),
+  deleteCase: (useCaseId: string, caseId: string) => request<void>('DELETE', `/use-cases/${useCaseId}/cases/${caseId}`),
   addCases: (id: string, cases: CaseIn[]) => request<Case[]>('POST', `/use-cases/${id}/cases`, cases),
   generateCases: (id: string, body: GenerateCasesIn = { n: 20, strategy: 'auto' }) =>
     request<Case[]>('POST', `/use-cases/${id}/cases/generate`, body),

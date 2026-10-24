@@ -10,7 +10,7 @@ import runDoneJson from '@fixtures/run_done.json'
 import runRunningJson from '@fixtures/run_running.json'
 import useCasesJson from '@fixtures/use_cases.json'
 import type {
-  Case, CaseIn, CatalogModel, GenerateCasesIn, Estimate, Me, MetricInfo, ResultsPage, Run, RunBrief, RunIn, UseCase, UseCasePatch,
+  Case, CaseIn, CasePatch, CatalogModel, GenerateCasesIn, Estimate, Me, MetricInfo, ResultsPage, Run, RunBrief, RunIn, UseCase, UseCasePatch,
 } from '@/types'
 import type { Workspace, WorkspacePatch } from '@/types'
 
@@ -189,7 +189,27 @@ export const fixtureApi: typeof import('./api').api = {
     Object.assign(uc, patch)
     return wait(uc, 250)
   },
+  deleteUseCase: async (id: string): Promise<void> => {
+    const i = useCases.findIndex((u) => u.id === id)
+    if (i < 0) throw new Error('Use case not found')
+    useCases.splice(i, 1)
+    for (let j = cases.length - 1; j >= 0; j--) if (cases[j].use_case_id === id) cases.splice(j, 1)
+    return wait(undefined, 250)
+  },
   cases: (id: string) => wait(cases.filter((c) => c.use_case_id === id)),
+  updateCase: async (useCaseId: string, caseId: string, patch: CasePatch): Promise<Case> => {
+    const c = cases.find((x) => x.id === caseId && x.use_case_id === useCaseId)
+    if (!c) throw new Error('Case not found')
+    Object.assign(c, patch)
+    return wait(c, 250)
+  },
+  deleteCase: async (useCaseId: string, caseId: string): Promise<void> => {
+    const i = cases.findIndex((x) => x.id === caseId && x.use_case_id === useCaseId)
+    if (i < 0) throw new Error('Case not found')
+    cases.splice(i, 1)
+    findUseCase(useCaseId).case_count = cases.filter((c) => c.use_case_id === useCaseId).length
+    return wait(undefined, 200)
+  },
   addCases: async (id: string, input: CaseIn[]): Promise<Case[]> => {
     const uc = findUseCase(id)
     const added: Case[] = input.map((c) => ({
