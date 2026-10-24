@@ -79,9 +79,9 @@ function GateRow({ gate, name }: { gate: Gate; name: string }) {
 export default function UseCasePage() {
   const { id = '' } = useParams()
   const qc = useQueryClient()
-  const uc = useQuery({ queryKey: ['use-case', id], queryFn: () => api.useCase(id) })
+  const uc = useQuery({ queryKey: ['use-case', id], queryFn: () => api.useCase(id), refetchInterval: 4000 })
   const me = useQuery({ queryKey: ['me'], queryFn: api.me })
-  const cases = useQuery({ queryKey: ['cases', id], queryFn: () => api.cases(id) })
+  const cases = useQuery({ queryKey: ['cases', id], queryFn: () => api.cases(id), refetchInterval: 4000 })
   const runs = useQuery({ queryKey: ['runs', id], queryFn: () => api.runs(id) })
   const metrics = useQuery({ queryKey: ['metrics'], queryFn: api.metrics })
   const [draft, setDraft] = useState<Profile | null>(null)

@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
-import Backdrop from '@/components/Backdrop'
 import { Logo } from '@/components/Logo'
 import { ProviderIcon } from '@/components/ModelIcon'
 import { Badge } from '@/components/ui'
+import HeroBackdrop from './HeroBackdrop'
+import { d } from './motion'
 import { Container, linkPrimary, linkSecondary, pill } from './shared'
 
 const anchors = [
@@ -34,26 +35,28 @@ export function Nav() {
 export function Hero() {
   return (
     <section aria-labelledby="hero-title" className="relative overflow-hidden border-b border-line/60">
+      {/* Light first, then the front draws itself, then the pick lands (sequence in landing.css). */}
+      <div aria-hidden className="lp-light lp-hero-light pointer-events-none absolute inset-0" />
       {/* At phone width the frame is kept wide and pinned right, so the coral front stays in view instead of being cropped away. */}
       <div className="pointer-events-none absolute inset-y-0 right-0 w-full min-w-[980px] opacity-55 sm:opacity-100">
-        <Backdrop />
+        <HeroBackdrop />
       </div>
       {/* On laptops the hero fills the first screen (minus the nav), so the CTAs are always above the fold. */}
       <Container className="relative flex flex-col justify-center pt-20 pb-24 sm:pt-28 sm:pb-32 lg:min-h-[calc(100svh-4rem)] lg:py-16">
-        <div className="lp-rise">
+        <div className="lp-in" style={d(150)}>
           <Badge tone="front">Benchmark it yourself</Badge>
         </div>
-        <h1 id="hero-title" className="lp-rise display mt-7 max-w-[13ch] text-[44px] text-balance sm:text-7xl lg:text-[104px]" style={{ animationDelay: '60ms' }}>
+        <h1 id="hero-title" className="lp-in display mt-7 max-w-[13ch] text-[44px] text-balance sm:text-7xl lg:text-[104px]" style={d(260)}>
           Find the open model that does your job.
         </h1>
-        <p className="lp-rise mt-7 max-w-[34rem] text-lg leading-relaxed text-pretty text-muted sm:text-xl" style={{ animationDelay: '120ms' }}>
+        <p className="lp-in mt-7 max-w-[34rem] text-lg leading-relaxed text-pretty text-muted sm:text-xl" style={d(420)}>
           BIY runs open-weight models on your own cases and measures quality, speed and cost. You get a recommendation you can defend.
         </p>
-        <div className="lp-rise mt-10 flex flex-wrap items-center gap-3" style={{ animationDelay: '180ms' }}>
-          <Link to="/login" className={linkPrimary}>Sign in</Link>
+        <div className="lp-in mt-10 flex flex-wrap items-center gap-3" style={d(540)}>
+          <Link to="/login" className={`${linkPrimary} lp-cta`}>Sign in</Link>
           <a href="#connect" className={linkSecondary}>Connect your agent</a>
         </div>
-        <p className="lp-rise mt-14 flex flex-wrap items-center gap-x-2 gap-y-2 font-mono text-[11px] tracking-[0.08em] text-muted uppercase" style={{ animationDelay: '240ms' }}>
+        <p className="lp-in mt-14 flex flex-wrap items-center gap-x-2 gap-y-2 font-mono text-[11px] tracking-[0.08em] text-muted uppercase" style={d(660)}>
           <span>Runs on</span>
           <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><ProviderIcon provider="nebius" size={12} />Nebius Token Factory</span>
           <span>and</span>
