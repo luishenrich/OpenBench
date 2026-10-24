@@ -14,7 +14,7 @@ from .errors import Invalid, NotFound
 
 _JSON_FIELDS = ("source_refs", "current_model", "profile", "gates", "metrics", "judge", "io_spec")
 _COLS = ("id, workspace_id, name, kind, description, " + ", ".join(_JSON_FIELDS)
-         + ", created_by, created_at, updated_at, pinned, pinned_at")
+         + ", created_by, created_at, updated_at, pinned, pinned_at, setup_state")
 _CASE_COLS = "id, use_case_id, input, reference, tags, source, updated_at"
 
 
@@ -73,10 +73,11 @@ async def create_use_cases(workspace_id: UUID, items: list[UseCaseIn], created_b
         for it in items:
             ids.append(await c.fetchval(
                 """insert into use_case (workspace_id, name, kind, description, source_refs, current_model,
-                                         profile, gates, metrics, judge, io_spec, created_by)
-                   values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) returning id""",
+                                         profile, gates, metrics, judge, io_spec, created_by, setup_state)
+                   values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) returning id""",
                 workspace_id, it.name, it.kind, it.description,
-                *(_dump(getattr(it, f)) for f in _JSON_FIELDS), created_by))
+                *(_dump(getattr(it, f)) for f in _JSON_FIELDS), created_by,
+                "in_progress" if created_by == "mcp" else "complete"))
     return [await get_use_case(workspace_id, i) for i in ids]
 
 

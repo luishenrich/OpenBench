@@ -62,7 +62,8 @@ Call `biy_workspace_get` once for the company's default trade-off profile. Then,
 **b. Metrics:** call **`biy_metrics_select`** with `kind` plus every flag you can tell (`user_facing`, `waiting`, `has_schema`,
 `has_reference`, `numeric_fields`, `tools`, `multi_step_agent`, `ocr`, `layout_boxes`, `knowledge_base`, `citations_required`,
 `baseline_present` (true when there is a current model), `phi_or_customer_data`, `length_bounded`, `brand_voice`,
-`feedback_text` (the output is a grade or label **and** a written comment a person reads), …) and a one-paragraph
+`feedback_text` (the output is a grade or label **and** a written comment a person reads), `citations_required`
+(the prompt asks for citations or sources), …) and a one-paragraph
 `narrative`. Use the returned `metrics` and `gates` **as they are**; don't invent metric ids.
 
 **c. Trade-off weights** `{quality, speed, cost}` (sum 100): keep the company default unless the use case clearly differs.
@@ -101,7 +102,9 @@ documents with an exact reference**: write the expected output first (text, Mark
 local script (HTML → screenshot, or LaTeX → PDF → PNG), upload the image with `biy_upload_url` field `image` + curl (it
 returns the image URL), then `biy_cases_add` with `input.images = [url]`, `reference` = what you wrote, `source: "synthetic"`.
 
-Then move on to the next use case.
+When it is filled in (or you gave up on part of it and said so in its description), call
+`biy_use_cases_update` with `{"setup_state": "complete"}`. Then move on to the next use case. Before step 4, make sure
+no use case you created is left `in_progress`.
 
 **Data rules, no exceptions:**
 - Only templates, schemas and test data from the repo, or synthetic data, go to BIY. **Never real user content or uploads**,

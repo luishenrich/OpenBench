@@ -196,7 +196,9 @@ async def biy_use_cases_create(use_cases: list[UseCaseIn]) -> ToolResult:
 @mcp.tool
 async def biy_use_cases_update(use_case_id: UUID, patch: UseCasePatch) -> ToolResult:
     """Change part of a use case, e.g. the trade-off: {"profile": {"weights": {"quality": 50, "speed": 10, "cost": 40}}}.
-    Weights sum to 100. Re-run with biy_runs_estimate / biy_runs_start to see the new ranking."""
+    Weights sum to 100. Re-run with biy_runs_estimate / biy_runs_start to see the new ranking.
+    When you have finished filling a use case in (or gave up on part of it, said in its description),
+    set {"setup_state": "complete"}: until then the dashboard shows it as being set up by the agent."""
     u = await _call(uc_service.update_use_case(await _ws(), use_case_id, patch))
     w = (u.profile.weights if u.profile else None)
     return _result(f"Updated: {_brief_line(_brief(u))}" + (f"; weights q{w['quality']}/s{w['speed']}/c{w['cost']}" if w else ""),
@@ -293,7 +295,7 @@ def _estimate_text(est) -> str:
 @mcp.tool(annotations=READ)
 async def biy_runs_estimate(use_case_id: UUID, candidates: list[ModelRef] | None = None, auto: int = 6,
                             repeats: int | None = None, include_references: bool = True) -> ToolResult:
-    """Cost and call count before a run. Leave candidates empty to let BIY pick `auto` shortlisted open-weight
+    """Free: computes the cost and call count of a run, calls no model and spends nothing. Leave candidates empty to let BIY pick `auto` shortlisted open-weight
     models with verified capabilities for this use case. References (GPT-6.1 Sol, GPT-6 Luna, and today's
     model when it is closed) run on the same cases for comparison and are never recommended.
     repeats left out → the workspace default. Show the total to the user before starting."""
