@@ -31,8 +31,11 @@ Every request carries `Authorization: Bearer <token>`. The token is one of:
 | DELETE | `/api/use-cases/{id}` | — | `204` | — |
 | GET | `/api/use-cases/{id}/cases` | — | `Case[]` | `cases.json` |
 | POST | `/api/use-cases/{id}/cases` | `CaseIn[]` | `Case[]` | `cases.json` |
+| PATCH | `/api/use-cases/{id}/cases/{case_id}` | `CasePatch` (`input`, `reference` (null clears), `tags`) | `Case`. Past runs keep their results; `Case.updated_at` > a run's `finished_at` means "edited after that run" | — |
 | DELETE | `/api/use-cases/{id}/cases/{case_id}` | — | `204` | — |
 | POST | `/api/use-cases/{id}/cases/generate` | `GenerateCasesIn` | `Case[]` (source `synthetic`) | `cases.json` |
+| POST | `/api/use-cases/{id}/upload-url?field=` | — | `{url, field, expires_in_s, curl}`: single-use, 15 min. `field`: `system_prompt`, `user_template`, `response_schema`, `tools`, `cases_jsonl`, `image` | — |
+| POST | `/api/uploads/{token}` | raw bytes (`curl --data-binary @file`) | `{ok, field, …}`. **No bearer token**: the URL is the credential. Text → `io_spec.<field>`, JSON fields parsed, `cases_jsonl` → bulk add, `image` → bucket `cases`, returns its public URL | — |
 | GET | `/api/use-cases/{id}/runs` | — | `RunBrief[]`, newest first | — |
 | POST | `/api/runs/estimate` | `RunIn` (`confirm_cost_usd` ignored) | `Estimate` | `estimate.json` |
 | POST | `/api/runs` | `RunIn` with `confirm_cost_usd ≥ estimate.total_usd` | `Run` (status `queued`), `202` | `run_running.json` |
@@ -47,7 +50,9 @@ Every request carries `Authorization: Bearer <token>`. The token is one of:
 - **Candidates are open-weight only** (rows of `GET /api/models`); anything else is `422`.
 - **References:** closed frontier models, by default `openrouter:openai/gpt-6.1-sol@medium` and `openrouter:openai/gpt-6-luna@medium` (`RunIn.references`, `include_references`). The use case's `current_model` is added as one more reference labelled `"today"` when it is a closed model. References run on the same cases × repeats and show in the leaderboard and Pareto points with `is_reference: true` and a `reference_label`. They are **never ranked, never on the Pareto front, never recommended**; their `failed_gates` is informative only. The recommendation is measured against the best reference by quality (`reference_key`, `quality_vs_reference_pct`, `cost_multiple_vs_reference`). `pairwise_vs_baseline` compares candidates with the first reference.
 - **Reasoning effort** is part of a model's identity: `params.reasoning_effort` (`none` … `xhigh`), and the candidate key becomes `"<provider>:<model>@<effort>"`. Automatic candidates get `medium` on OpenRouter where the endpoint supports it. Nebius models keep the provider default and show `reasoning_effort: "default"`, because the parameter is accepted but models react inconsistently (GLM-5.3-Flash nearly stops reasoning at any value). `CandidateResult.avg_reasoning_tokens` is the mean per call.
-- **Judges = a jury** (`JudgeConfig.judges`, default GPT-6 Luna + DeepSeek-V4.1-Flash, both `reasoning_effort: "low"`). Rubric: mean of the jurors. Pairwise: both orders × every juror; a win only if all non-abstaining jurors agree, else a tie. A juror abstains on its own model family (and, pairwise, on the reference's). Each judged result stores `judge.jurors`, `judge.abstained` and `judge.agreement`; `Run.judge_agreement` is the share of results where the jurors agreed.
+- **Judges = a jury** (`JudgeConfig.judges`, default GPT-6 Luna (`low`) + DeepSeek-V4.1-Flash (`low`) + GLM-5.3 (provider default), three families so every output keeps ≥ 2 votes). Rubric: mean of the jurors. Pairwise: both orders × every juror; a win only if all non-abstaining jurors agree, else a tie. A juror abstains on its own model family (and, pairwise, on the reference's). Each judged result stores `judge.jurors`, `judge.abstained` and `judge.agreement`; `Run.judge_agreement` is the share of results where the jurors agreed. **Fairness:** the recommendation's "X% of <reference>'s quality" uses only the jurors that judged both the candidate and the reference when there are ≥ 2 (stated in `reasons`).
+- **Use case list fields:** `pinned`, `pinned_at` (set by `PATCH {"pinned": true}`, cleared on unpin; pinning doesn't change `updated_at`) and `updated_at` (any edit to the use case or its cases).
+- **Runs refuse a use case with no prompt** (`io_spec.system_prompt` and `user_template` both empty, unless the cases carry `messages`): `422`.
 - **Leaderboard while running:** `Run.leaderboard` fills in as results arrive (partial `n`). `recommendation` is `null` until `status == "done"`.
 - **Metric ids are metric-bank ids** (`metric-bank/data/metric-bank.json`). Aliases are accepted on input and stored as the canonical id (`label_accuracy` → `classification_accuracy`). Unknown ids return `422`.
 - **What enters the quality score:** only metrics whose bank `utility_axis` is `quality`. `cer` / `wer` are reported values (lower is better, can exceed 1); `character_accuracy` / `word_accuracy` are what gets scored. Gate-only metrics (e.g. `error_rate`) are gates, never averaged.
@@ -63,7 +68,9 @@ Streamable HTTP, same auth (workspace key). The tools wrap the same service func
 | `biy_models_list` | `GET /api/models` |
 | `biy_metrics_list` | `GET /api/metrics` |
 | `biy_metrics_select` | `POST /api/metrics/select`. Discovery calls this per use case and puts `metrics` + `gates` into `biy_use_cases_create` |
-| `biy_use_cases_list` / `_create` / `_update` | use-case routes (`_create` takes a list) |
-| `biy_cases_add` / `biy_cases_generate` | case routes |
+| `biy_use_cases_list` / `_create` / `_update` | use-case routes, **compact replies** (`id, name, kind, url, metrics, case_count, prompt_attached, needs, latest_run`); `_create` takes a list |
+| `biy_use_cases_get` | `GET /api/use-cases/{id}` (the full object) |
+| `biy_cases_list` / `_add` / `_update` / `_delete` / `_generate` | case routes; `_list` is paginated and compact (previews), `_delete` takes a list of ids |
+| `biy_upload_url` | `POST /api/use-cases/{id}/upload-url` |
 | `biy_runs_estimate` / `biy_runs_start` / `biy_runs_status` | run routes (`_start` needs `confirm_cost_usd`) |
 | prompt `scan_repo` | discovery prompt; shows up as `/mcp__biy__scan_repo` |

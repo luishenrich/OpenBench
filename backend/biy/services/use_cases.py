@@ -5,14 +5,17 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from contract.schemas import Case, CaseIn, GenerateCasesIn, RunBrief, UseCase, UseCaseIn, UseCasePatch
+from contract.schemas import (Case, CaseIn, CasePatch, GenerateCasesIn, RunBrief, UseCase, UseCaseIn,
+                              UseCasePatch)
 
 from .. import db
 from . import metrics
 from .errors import Invalid, NotFound
 
 _JSON_FIELDS = ("source_refs", "current_model", "profile", "gates", "metrics", "judge", "io_spec")
-_COLS = "id, workspace_id, name, kind, description, " + ", ".join(_JSON_FIELDS) + ", created_by, created_at"
+_COLS = ("id, workspace_id, name, kind, description, " + ", ".join(_JSON_FIELDS)
+         + ", created_by, created_at, updated_at, pinned, pinned_at")
+_CASE_COLS = "id, use_case_id, input, reference, tags, source, updated_at"
 
 
 def _dump(v: Any) -> Any:
@@ -83,10 +86,19 @@ async def update_use_case(workspace_id: UUID, use_case_id: UUID, patch: UseCaseP
         patch.metrics = metrics.normalize_metrics(patch.metrics)
     if "gates" in fields:
         patch.gates = metrics.normalize_gates(patch.gates)
+    pinned = fields.pop("pinned", None)
+    sets = [f"{k} = ${i}" for i, k in enumerate(fields, start=3)]
+    values = [_dump(getattr(patch, k)) for k in fields]
+    if pinned is not None:  # pinning is a list preference, not a change: it doesn't bump updated_at
+        sets.append(f"pinned = ${len(values) + 3}")
+        n = len(values) + 3  # unpin clears pinned_at; pinning again keeps the first pin time
+        sets.append(f"pinned_at = case when not ${n} then null when pinned and pinned_at is not null "
+                    "then pinned_at else now() end")
+        values.append(pinned)
     if fields:
-        sets = ", ".join(f"{k} = ${i}" for i, k in enumerate(fields, start=3))
-        values = [_dump(getattr(patch, k)) for k in fields]
-        status = await db.execute(f"update use_case set {sets} where id = $1 and workspace_id = $2",
+        sets.append("updated_at = now()")
+    if sets:
+        status = await db.execute(f"update use_case set {', '.join(sets)} where id = $1 and workspace_id = $2",
                                   use_case_id, workspace_id, *values)
         if status.endswith(" 0"):
             raise NotFound(f"use case {use_case_id} not found")
@@ -106,11 +118,44 @@ async def _check_owner(workspace_id: UUID, use_case_id: UUID) -> None:
         raise NotFound(f"use case {use_case_id} not found")
 
 
-async def list_cases(workspace_id: UUID, use_case_id: UUID) -> list[Case]:
+async def _touch(use_case_id: UUID) -> None:
+    """A case changed: the use case counts as recently changed too."""
+    await db.execute("update use_case set updated_at = now() where id = $1", use_case_id)
+
+
+async def list_cases(workspace_id: UUID, use_case_id: UUID, limit: int | None = None, offset: int = 0) -> list[Case]:
     await _check_owner(workspace_id, use_case_id)
-    rows = await db.fetch("""select id, use_case_id, input, reference, tags, source from test_case
-                             where use_case_id = $1 order by created_at, id""", use_case_id)
+    page = f" limit {int(limit)} offset {int(offset)}" if limit is not None else ""
+    rows = await db.fetch(f"""select {_CASE_COLS} from test_case
+                              where use_case_id = $1 order by created_at, id{page}""", use_case_id)
     return [Case(**r) for r in rows]
+
+
+async def update_case(workspace_id: UUID, use_case_id: UUID, case_id: UUID, patch: CasePatch) -> Case:
+    """Edit a case. Past runs keep their results (what was actually run); updated_at says it changed."""
+    await _check_owner(workspace_id, use_case_id)
+    fields = patch.model_dump(exclude_unset=True)
+    if fields:
+        sets = ", ".join(f"{k} = ${i}" for i, k in enumerate(fields, start=3))
+        status = await db.execute(f"update test_case set {sets}, updated_at = now() where id = $1 and use_case_id = $2",
+                                  case_id, use_case_id, *fields.values())
+        if status.endswith(" 0"):
+            raise NotFound(f"case {case_id} not found in use case {use_case_id}")
+        await _touch(use_case_id)
+    r = await db.fetchrow(f"select {_CASE_COLS} from test_case where id = $1 and use_case_id = $2", case_id, use_case_id)
+    if not r:
+        raise NotFound(f"case {case_id} not found in use case {use_case_id}")
+    return Case(**r)
+
+
+async def delete_cases(workspace_id: UUID, use_case_id: UUID, case_ids: list[UUID]) -> int:
+    await _check_owner(workspace_id, use_case_id)
+    status = await db.execute("delete from test_case where use_case_id = $1 and id = any($2::uuid[])",
+                              use_case_id, case_ids)
+    n = int(status.split()[-1])
+    if n:
+        await _touch(use_case_id)
+    return n
 
 
 async def add_cases(workspace_id: UUID, use_case_id: UUID, items: list[CaseIn]) -> list[Case]:
@@ -119,10 +164,12 @@ async def add_cases(workspace_id: UUID, use_case_id: UUID, items: list[CaseIn]) 
     async with (await db.pool()).acquire() as c, c.transaction():
         for it in items:
             r = await c.fetchrow(
-                """insert into test_case (use_case_id, input, reference, tags, source)
-                   values ($1, $2, $3, $4, $5) returning id, use_case_id, input, reference, tags, source""",
+                f"""insert into test_case (use_case_id, input, reference, tags, source)
+                    values ($1, $2, $3, $4, $5) returning {_CASE_COLS}""",
                 use_case_id, it.input, it.reference, it.tags, it.source)
             out.append(Case(**db.row(r)))
+    if out:
+        await _touch(use_case_id)
     return out
 
 
@@ -159,7 +206,5 @@ async def generate_cases(workspace_id: UUID, use_case_id: UUID, req: GenerateCas
 
 
 async def delete_case(workspace_id: UUID, use_case_id: UUID, case_id: UUID) -> None:
-    await _check_owner(workspace_id, use_case_id)
-    status = await db.execute("delete from test_case where id = $1 and use_case_id = $2", case_id, use_case_id)
-    if status.endswith(" 0"):
+    if not await delete_cases(workspace_id, use_case_id, [case_id]):
         raise NotFound(f"case {case_id} not found")

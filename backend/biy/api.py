@@ -7,7 +7,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 
-from contract.schemas import (Case, CaseIn, Estimate, GenerateCasesIn, Me, MetricInfo, ResultsPage, Run, RunBrief, RunIn,
+from contract.schemas import (Case, CaseIn, CasePatch, Estimate, GenerateCasesIn, Me, MetricInfo, ResultsPage, Run, RunBrief, RunIn,
                               Scorecard, ScorecardBrief, UseCase, UseCaseIn, UseCasePatch)
 
 from .auth import Caller, current_caller
@@ -92,6 +92,11 @@ async def list_cases(use_case_id: UUID, c: Caller = Depends(current_caller)):
 @router.post("/use-cases/{use_case_id}/cases", response_model=list[Case], status_code=201)
 async def add_cases(use_case_id: UUID, body: list[CaseIn], c: Caller = Depends(current_caller)):
     return await use_cases.add_cases(c.workspace_id, use_case_id, body)
+
+
+@router.patch("/use-cases/{use_case_id}/cases/{case_id}", response_model=Case)
+async def update_case(use_case_id: UUID, case_id: UUID, patch: CasePatch, c: Caller = Depends(current_caller)):
+    return await use_cases.update_case(c.workspace_id, use_case_id, case_id, patch)
 
 
 @router.delete("/use-cases/{use_case_id}/cases/{case_id}", status_code=204)
