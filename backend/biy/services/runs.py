@@ -175,7 +175,7 @@ async def estimate_run(workspace_id: UUID, req: RunIn, auto: int = 6) -> Estimat
         per_call_in = in_tokens / len(cases) + out_default * 2 + JUDGE_PROMPT_TOKENS
         for j in jury:  # every juror judges every output (abstentions are not subtracted: an upper bound)
             jp = await _price(ModelRef(provider=j.provider, model=j.model))
-            calls = sum(outputs * (2 * len(req.candidates) if m.metric_id == "pairwise_vs_baseline"
+            calls = sum(outputs * (2 * len(req.candidates) if scoring.is_pairwise(m.metric_id)
                                    else len(req.candidates) + len(references)) for m in judge_metrics)
             judge_cost += calls * (per_call_in * (jp.get("input") or 0)
                                    + JUDGE_OUTPUT_TOKENS * (jp.get("output") or 0)) / 1e6
