@@ -224,6 +224,57 @@ def test_cli_writes_sheet_and_summary(tmp_path):
     assert "Cohen's kappa" in summary
 
 
+def test_inter_judge_columns_and_low_agreement_flag():
+    judge = _judge("faithfulness", 0.55, None, "luna: short deepseek: long")
+    judge["judges"] = [
+        {"id": "luna", "score": 0.2, "reasoning": "thin", "winner": None, "reasoning_effort": "low"},
+        {"id": "deepseek", "score": 0.9, "reasoning": "complete", "winner": None, "reasoning_effort": "low"},
+    ]
+    judge["abstained"] = []
+    judge["agreement"] = 0.0
+    judge["reasoning_effort"] = {"luna": "low", "deepseek": "low"}
+    agreed = _judge("faithfulness", 0.8, None)
+    agreed["judges"] = [
+        {"id": "luna", "score": 0.8, "reasoning": "same", "winner": None},
+        {"id": "deepseek", "score": 0.82, "reasoning": "same", "winner": None},
+    ]
+    agreed["agreement"] = 1.0
+    abstained = _judge("faithfulness", 0.4, None)
+    abstained["judges"] = [
+        {"id": "luna", "score": None, "reasoning": "", "winner": None, "abstained": True},
+        {"id": "deepseek", "score": 0.4, "reasoning": "alone", "winner": None},
+    ]
+    abstained["abstained"] = ["luna"]
+    abstained["agreement"] = None
+    rows = sheet_rows(
+        [
+            _row("c1", "nebius:glm", judge, "one"),
+            _row("c2", "nebius:glm", agreed, "two"),
+            _row("c3", "nebius:glm", abstained, "three"),
+        ],
+        n=10,
+        seed=0,
+    )
+    by_case = {row["case_id"]: row for row in rows}
+    assert by_case["c1"]["judge_a_id"] == "luna"
+    assert by_case["c1"]["judge_b_score"] == "0.9"
+    assert by_case["c1"]["inter_judge_agree"] == "no"
+    assert by_case["c1"]["reasoning_effort"] == '{"deepseek": "low", "luna": "low"}'
+    assert by_case["c2"]["inter_judge_agree"] == "yes"
+    assert by_case["c3"]["judge_abstained"] == "luna"
+    assert by_case["c3"]["inter_judge_agree"] == ""
+    assert by_case["c1"]["human_agree"] == ""
+    stats = score_rows(rows)
+    assert stats["inter_judge_n"] == 2
+    assert stats["inter_judge_agreement"] == pytest.approx(0.5)
+    assert stats["low_inter_judge_agreement"] is True
+    from biy.metrics.agreement import render_summary
+
+    text = render_summary({**stats, "reviewed": 0, "agreements": 0, "agreement": None, "kappa": None, "spearman": None, "pairwise_n": 0, "rubric_n": 0})
+    assert "Inter-judge agreement: 1/2 (50%)" in text
+    assert "flag this use case" in text
+
+
 def test_contract_fixture_has_a_single_example_judge_not_a_demo_run():
     records, _warnings = prepare_records(json.loads(FIXTURE.read_text(encoding="utf-8")))
     rows = sheet_rows(records, n=10, seed=0)

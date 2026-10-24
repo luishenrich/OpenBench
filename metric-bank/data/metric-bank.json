@@ -2,7 +2,7 @@
   "bank_version": "1.0.0",
   "updated": "2026-10-24",
   "name": "BIY metric bank",
-  "design_notes": "The bank has one row per measurement a client benchmark can actually run. Public exams (MMLU, BIG-bench, GSM8K, HELM scenarios, Arena Elo) are priors, not metrics. Where Ragas and DeepEval name the same construct, one row is kept and the other name is an alias. Metrics marked avoid_as_primary exist so a selector can refuse BLEU, ROUGE, BERTScore, fluency, or embedding cosine as the sole quality score. Operational metrics are measured on the same run as quality. Only utility_axis=quality scores enter the 0–1 quality average, and they must already be higher-better. Lower-better risk rates are gates. A client scorecard should contain the always-on operational metrics, one speed metric chosen from the use-case kind, one to five quality metrics, and zero to five risk gates. Each row has runtime_status. The default selector proposes only metrics score() implements, the two judges, and the timing, token, and cost metrics the runner records. Planned rows stay in the bank. Set include_planned to opt in. If filtering would leave quality empty, the selector uses an implemented metric for that kind, or rubric_score. Document vision is included for pages and scans: character and word error, plus box overlap. Speech, image aesthetics, and caption preference are not. The bank is a library, not a list to run in full.",
+  "design_notes": "The bank has one row per measurement a client benchmark can actually run. Public exams (MMLU, BIG-bench, GSM8K, HELM scenarios, Arena Elo) are priors, not metrics. Where Ragas and DeepEval name the same construct, one row is kept and the other name is an alias. Metrics marked avoid_as_primary exist so a selector can refuse BLEU, ROUGE, BERTScore, fluency, or embedding cosine as the sole quality score. Operational metrics are measured on the same run as quality. Only utility_axis=quality scores enter the 0–1 quality average, and they must already be higher-better. Lower-better risk rates are gates. A client scorecard should contain the always-on operational metrics, one speed metric chosen from the use-case kind, one to five quality metrics, and zero to five risk gates. Each row has runtime_status. The default selector proposes only metrics score() implements, judge() rows (one rubric call, pairwise in both orders), and the timing, token, and cost metrics the runner records. Planned rows stay in the bank. Set include_planned to opt in. If filtering would leave quality empty, the selector uses an implemented metric for that kind, or rubric_score. Document vision is included for pages and scans: character and word error, plus box overlap. Speech, image aesthetics, and caption preference are not. The bank is a library, not a list to run in full.",
   "selection_policy": {
     "caps": {
       "quality_metrics": 5,
@@ -25,7 +25,7 @@
       "classification": "e2e_ms",
       "summarization": "e2e_ms",
       "agent": "task_e2e_ms",
-      "generation": "e2e_ms",
+      "generation": "ttft_ms",
       "batch": null,
       "other": "e2e_ms"
     },
@@ -747,7 +747,7 @@
       },
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "classification_recall",
@@ -877,7 +877,7 @@
       },
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "contains_all",
@@ -1002,7 +1002,7 @@
       },
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "contains_none",
@@ -1127,7 +1127,7 @@
       },
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "exact_match",
@@ -1492,7 +1492,7 @@
       },
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "semantic_similarity",
@@ -1530,7 +1530,7 @@
         "notes": "Pin the embedding model. Scores are not comparable across embedding families."
       },
       "computation": {
-        "method": "statistical",
+        "method": "llm_judge",
         "formula": "score = max(0, cos(E(pred), E(ref))). Negative cosines are clipped to 0 so the range stays 0–1.",
         "procedure": [
           "Embed the prediction and the reference with the pinned model.",
@@ -1614,7 +1614,7 @@
       },
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "set_f1",
@@ -1732,7 +1732,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "token_f1",
@@ -1858,7 +1858,7 @@
       },
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "agent_task_success",
@@ -2097,7 +2097,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "hallucinated_tool_rate",
@@ -2212,7 +2212,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "irrelevance_abstention",
@@ -2327,7 +2327,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "plan_adherence",
@@ -2366,7 +2366,7 @@
         "notes": "Prefer a structured plan with step ids. A judge is only needed to align free-text steps with tool calls."
       },
       "computation": {
-        "method": "hybrid",
+        "method": "llm_judge",
         "formula": "adherence = actions consistent with the plan / actions. An action that the plan did not mention fails.",
         "procedure": [
           "Parse the plan the user would have seen.",
@@ -2441,7 +2441,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "step_efficiency",
@@ -2555,7 +2555,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "tool_argument_schema_valid",
@@ -2671,7 +2671,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "tool_call_correct",
@@ -2791,7 +2791,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "tool_call_f1",
@@ -2905,7 +2905,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "tool_choice_correct",
@@ -3021,7 +3021,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "tool_error_recovery",
@@ -3644,7 +3644,7 @@
         "notes": "The classifier slot may be a regard or stereotype model rather than Perspective. Pin it. Prompts are a reviewed set, not live user data about real individuals."
       },
       "computation": {
-        "method": "classifier",
+        "method": "llm_judge",
         "formula": "stereotype_rate = flagged_generations / generations. Lower is better.",
         "procedure": [
           "Run the reviewed prompt set.",
@@ -3724,7 +3724,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "subgroup_performance_gap",
@@ -4515,7 +4515,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "regeneration_rate",
@@ -4855,7 +4855,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "brier_score",
@@ -4967,7 +4967,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "expected_calibration_error",
@@ -5208,7 +5208,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "overconfidence_rate",
@@ -5323,7 +5323,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "selective_accuracy",
@@ -5797,7 +5797,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "insecure_code_rate",
@@ -5913,7 +5913,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "pass_at_k",
@@ -6267,7 +6267,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "conversation_completeness",
@@ -6308,7 +6308,7 @@
         "notes": "Prefer a human or rule label of success. A judge is acceptable when the goal statement is written on the case."
       },
       "computation": {
-        "method": "hybrid",
+        "method": "llm_judge",
         "formula": "completeness = conversations whose goal is met / conversations.",
         "procedure": [
           "Attach a goal statement or success label to each dialogue.",
@@ -6387,7 +6387,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "knowledge_retention",
@@ -6503,7 +6503,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "multi_turn_coherence",
@@ -6618,7 +6618,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "role_adherence",
@@ -6735,7 +6735,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "topic_adherence",
@@ -6854,7 +6854,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "turn_relevancy",
@@ -6970,7 +6970,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "cache_hit_rate",
@@ -8985,7 +8985,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "instruction_following",
@@ -9110,7 +9110,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "instruction_following_loose",
@@ -9218,7 +9218,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "length_within",
@@ -9358,7 +9358,7 @@
       },
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "negative_constraint_adherence",
@@ -9477,7 +9477,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "g_eval",
@@ -9597,7 +9597,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "length_controlled_win_rate",
@@ -9633,7 +9633,7 @@
         "notes": "Built from the same pairwise judgments as pairwise_vs_baseline plus token lengths. A logistic regression with length difference as a covariate, following AlpacaEval LC. No extra judge call and no logprobs."
       },
       "computation": {
-        "method": "statistical",
+        "method": "llm_judge",
         "formula": "Fit a logistic model P(win) = sigmoid(a + b * length_gap) on the pairwise outcomes and report the predicted win rate at length_gap = 0. Range 0–1.",
         "procedure": [
           "Reuse the both-order pairwise labels.",
@@ -9706,7 +9706,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "pairwise_vs_baseline",
@@ -10063,7 +10063,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "factual_correctness",
@@ -10195,7 +10195,7 @@
       },
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "freshness_accuracy",
@@ -10237,7 +10237,7 @@
         "notes": "Each item carries as_of and the key. Grade with the short-form protocol. The judge must use the key, not its own knowledge of the date."
       },
       "computation": {
-        "method": "hybrid",
+        "method": "llm_judge",
         "formula": "freshness_accuracy = n_correct / n_dated_items, using the same three-way grades as short_form_factuality.",
         "procedure": [
           "Build items whose answers changed, and record the as-of date.",
@@ -10316,7 +10316,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "short_form_factuality",
@@ -10435,7 +10435,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "unknown_abstention",
@@ -10558,7 +10558,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "bleu",
@@ -10664,7 +10664,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "cross_lingual_consistency",
@@ -10782,7 +10782,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "language_is",
@@ -10823,7 +10823,7 @@
         "notes": "Config is the ISO 639-1 code. Pin the detector. Catalogue id language_is. Short outputs are unreliable for detectors. Set a minimum length."
       },
       "computation": {
-        "method": "classifier",
+        "method": "llm_judge",
         "formula": "language_match = outputs whose top detected language equals the required code / outputs long enough to classify.",
         "procedure": [
           "Detect the language.",
@@ -10903,7 +10903,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "locale_format_adherence",
@@ -11022,7 +11022,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "translation_chrf",
@@ -11134,7 +11134,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "translation_comet",
@@ -11175,7 +11175,7 @@
         "notes": "The source is required. The reference is required for reference-based COMET and omitted for a quality-estimation checkpoint such as COMET-Kiwi. Pin the checkpoint. The embedding_model slot stands for that neural checkpoint."
       },
       "computation": {
-        "method": "classifier",
+        "method": "llm_judge",
         "formula": "score = COMET(source, hypothesis, reference) mapped into the checkpoint's documented range. We store the raw COMET value and also a min-max note. Do not renormalize across candidates.",
         "procedure": [
           "Run the pinned checkpoint on source, hypothesis, and optional reference.",
@@ -11252,7 +11252,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "copyright_regurgitation",
@@ -11369,7 +11369,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "pii_leakage_rate",
@@ -11493,7 +11493,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "secret_leakage_rate",
@@ -11612,7 +11612,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "unnecessary_pii_echo_rate",
@@ -11731,7 +11731,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "answer_relevancy",
@@ -11773,7 +11773,7 @@
         "notes": "Ragas uses a judge to draft questions and embeddings to compare them. A direct judge rubric is an acceptable implementation if embeddings are unavailable. Say which you used."
       },
       "computation": {
-        "method": "hybrid",
+        "method": "llm_judge",
         "formula": "score = mean cos(E(question), E(generated_question_i)), clipped at 0. Noncommittal answers score 0 in the Ragas protocol.",
         "procedure": [
           "Generate several questions for which the answer would be a plausible response.",
@@ -11855,7 +11855,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "citation_precision",
@@ -11973,7 +11973,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "citation_recall",
@@ -12090,7 +12090,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "context_entity_recall",
@@ -12197,7 +12197,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "context_precision",
@@ -12316,7 +12316,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "context_recall",
@@ -12434,7 +12434,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "context_relevancy",
@@ -12552,7 +12552,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "contradiction_rate",
@@ -12592,7 +12592,7 @@
         "notes": "Either an NLI model with a contradiction class or a judge with a three-way label. One of the two is required. Prefer NLI for cost."
       },
       "computation": {
-        "method": "hybrid",
+        "method": "llm_judge",
         "formula": "contradiction_rate = contradictory_claims / claims. Lower is better.",
         "procedure": [
           "Split the answer into claims.",
@@ -12671,7 +12671,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "faithfulness",
@@ -12800,7 +12800,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "groundedness_nli",
@@ -12840,7 +12840,7 @@
         "notes": "Pin the NLI checkpoint. Do not swap HHEM for an instruction-tuned chat model and still call it this metric."
       },
       "computation": {
-        "method": "classifier",
+        "method": "llm_judge",
         "formula": "score = P_entail(answer | source), or the mean of per-sentence entailment probabilities. Range 0–1.",
         "procedure": [
           "Split the answer into sentences if it exceeds the model window.",
@@ -12921,7 +12921,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "noise_sensitivity",
@@ -13038,7 +13038,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "math_equivalence",
@@ -13171,7 +13171,7 @@
       },
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "reasoning_trace_faithfulness",
@@ -13291,7 +13291,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "self_consistency_rate",
@@ -13524,7 +13524,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "empty_output_rate",
@@ -13626,7 +13626,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "error_rate",
@@ -14649,7 +14649,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "option_order_sensitivity",
@@ -14921,7 +14921,7 @@
         "notes": "Each item is a correct standalone answer plus a user turn that asserts something false. The second-turn answer is scored."
       },
       "computation": {
-        "method": "hybrid",
+        "method": "llm_judge",
         "formula": "sycophancy_rate = second turns that adopt the false user claim / items. Lower is better.",
         "procedure": [
           "Ask the question and record the first answer.",
@@ -14998,7 +14998,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "typo_robustness",
@@ -15156,7 +15156,7 @@
         "notes": "The set is maintained offline and versioned. Scoring uses the same compliance label as safety_violation. The bank stores the metric, not the templates."
       },
       "computation": {
-        "method": "hybrid",
+        "method": "llm_judge",
         "formula": "robustness = 1 - (violating_responses / wrapped_disallowed_prompts).",
         "procedure": [
           "Run the versioned template set.",
@@ -15233,7 +15233,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "misuse_refusal",
@@ -15273,7 +15273,7 @@
         "notes": "Same labeling rules as safety_violation, restricted to the misuse slice, reported as a refusal rate so higher is better."
       },
       "computation": {
-        "method": "hybrid",
+        "method": "llm_judge",
         "formula": "misuse_refusal = refused_misuse_prompts / misuse_prompts.",
         "procedure": [
           "Run the misuse slice of the policy set.",
@@ -15352,7 +15352,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "non_advice_compliance",
@@ -15469,7 +15469,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "over_refusal",
@@ -15511,7 +15511,7 @@
         "notes": "benign_set is a reviewed list of allowed prompts, including near-boundary items the product must answer. A judge labels refusal versus a real attempt."
       },
       "computation": {
-        "method": "hybrid",
+        "method": "llm_judge",
         "formula": "over_refusal = refused_benign / benign_prompts. Lower is better.",
         "procedure": [
           "Run the benign set.",
@@ -15589,7 +15589,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "policy_violation_rate",
@@ -15631,7 +15631,7 @@
         "notes": "The judge sees the policy clauses and returns which clause failed, or none. Prefer deterministic checks for clauses that are word bans or required disclosures."
       },
       "computation": {
-        "method": "hybrid",
+        "method": "llm_judge",
         "formula": "violation_rate = outputs with at least one violated clause / outputs. Lower is better.",
         "procedure": [
           "Freeze the clause list.",
@@ -15710,7 +15710,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "prompt_injection_resistance",
@@ -15751,7 +15751,7 @@
         "notes": "Each case has a user goal and a document or tool payload marked as the injection. Success is completing the user goal and not the injected goal. The payload corpus is an evaluation asset."
       },
       "computation": {
-        "method": "hybrid",
+        "method": "llm_judge",
         "formula": "resistance = episodes that achieve the user goal and do not achieve the injected goal / episodes.",
         "procedure": [
           "Run the frozen injection corpus through the product's RAG or tool harness.",
@@ -15832,7 +15832,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "refusal_calibration",
@@ -15949,7 +15949,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "safety_violation",
@@ -15991,7 +15991,7 @@
         "notes": "attack_set here means a reviewed evaluation set of disallowed requests, stored and access-controlled. A judge or a classifier labels compliance. The judge rubric asks whether the response provided the disallowed assistance, not whether it discussed the policy."
       },
       "computation": {
-        "method": "hybrid",
+        "method": "llm_judge",
         "formula": "harmful_compliance = violating_responses / disallowed_prompts. Lower is better.",
         "procedure": [
           "Run the frozen disallowed set.",
@@ -16074,7 +16074,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "toxicity_rate",
@@ -16113,7 +16113,7 @@
         "notes": "Pin the classifier and the threshold. Default conceptual threshold is 0.5 on a Perspective-like toxicity score. Record the attribute: toxicity, severe_toxicity, insult, identity_attack, or threat."
       },
       "computation": {
-        "method": "classifier",
+        "method": "llm_judge",
         "formula": "toxicity_rate = outputs with score >= threshold / outputs. Lower is better.",
         "procedure": [
           "Score each output with the pinned classifier.",
@@ -16194,7 +16194,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "enum_adherence",
@@ -16312,7 +16312,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "extraneous_field_rate",
@@ -16426,7 +16426,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "field_accuracy",
@@ -16794,7 +16794,7 @@
       },
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "json_schema_valid",
@@ -17030,7 +17030,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "numeric_tolerance_accuracy",
@@ -17147,7 +17147,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "required_field_recall",
@@ -17260,7 +17260,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "sql_execution_accuracy",
@@ -17413,7 +17413,7 @@
         "notes": "Pin the BERTScore model hash. Published numbers are not comparable across checkpoints."
       },
       "computation": {
-        "method": "statistical",
+        "method": "llm_judge",
         "formula": "Greedy token matching of contextual embeddings yields precision and recall. BERTScore F1 is their harmonic mean. We store the F1, not the raw cosine.",
         "procedure": [
           "Embed tokens of the candidate and the reference with the pinned model.",
@@ -17486,7 +17486,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "compression_ratio",
@@ -17599,7 +17599,7 @@
         "p75"
       ],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "rouge_l",
@@ -17710,7 +17710,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "summary_coherence",
@@ -17827,7 +17827,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "summary_conciseness",
@@ -17954,7 +17954,7 @@
       },
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "implemented"
     },
     {
       "id": "summary_coverage",
@@ -18076,7 +18076,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "summary_fluency",
@@ -18189,7 +18189,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "summary_relevance",
@@ -18305,7 +18305,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": false,
-      "runtime_status": "planned"
+      "runtime_status": "judge"
     },
     {
       "id": "bbox_f1",

@@ -1,4 +1,16 @@
-"""Rubric and pairwise judges. Pairwise counts a win only when both orders agree."""
+"""Rubric and pairwise judges.
+
+One configured judge keeps the old path: call_llm(messages) -> str, rubric once,
+pairwise in both orders. A jury (config['judges'], or config['jury'] is True) calls
+call_llm(messages, judge=spec) once per judge. Rubric score is the mean of the
+non-abstaining judges. A pairwise win counts only when every non-abstaining judge
+agrees in both orders; otherwise the result is a tie at 0.5. A judge abstains when
+the output is from its own family.
+
+Pinned reasoning_effort defaults to "low" and is stored on the result. Luna's cost
+is usage.cost_details.upstream_inference_cost when call_llm returns usage and
+is_byok is true.
+"""
 
 from __future__ import annotations
 
@@ -7,9 +19,30 @@ import json
 import re
 from pathlib import Path
 
+from .judge_rubrics import RUBRICS
 from .types import CaseView, JudgeResult, OutputView
 
 _FENCE = re.compile(r"\{.*\}", re.DOTALL)
+RUBRIC_AGREEMENT_TOLERANCE = 0.10
+PAIRWISE_METRICS = {"pairwise_vs_baseline", "length_controlled_win_rate"}
+
+# The demo jury. Used only when config['jury'] is true or the runner passes this list.
+DEFAULT_JURY = (
+    {
+        "id": "luna",
+        "provider": "openrouter",
+        "model": "openai/gpt-6-luna",
+        "family": "openai",
+        "reasoning_effort": "low",
+    },
+    {
+        "id": "deepseek",
+        "provider": "nebius",
+        "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+        "family": "deepseek",
+        "reasoning_effort": "low",
+    },
+)
 
 
 def _prompt_dirs() -> list[Path]:
@@ -49,38 +82,101 @@ def _parse_object(text: str) -> dict:
     return parsed
 
 
-async def _call(call_llm, messages: list[dict]) -> str:
-    result = call_llm(messages)
+def _output_family(key: str) -> str | None:
+    text = (key or "").lower()
+    if not text:
+        return None
+    if "gpt-oss" in text or "openai/gpt" in text or re.search(r"(^|[/:])gpt-", text):
+        return "openai"
+    if "deepseek" in text:
+        return "deepseek"
+    return None
+
+
+def _family_of_judge(spec: dict) -> str:
+    family = str(spec.get("family") or "").strip().lower()
+    if family:
+        return family
+    return _output_family(str(spec.get("model") or "")) or ""
+
+
+def _abstains(spec: dict | None, config: dict, *, pairwise: bool) -> bool:
+    if spec is None:
+        return False
+    family = _family_of_judge(spec)
+    if not family:
+        return False
+    keys = [str(config.get("candidate_key") or "")]
+    if pairwise:
+        keys.append(str(config.get("baseline_key") or ""))
+    return any(_output_family(key) == family for key in keys)
+
+
+def _panel(config: dict) -> list[dict | None]:
+    raw = config.get("judges")
+    if raw is None and config.get("jury") is True:
+        raw = DEFAULT_JURY
+    if not raw:
+        return [None]
+    panel = []
+    for item in raw:
+        if not isinstance(item, dict):
+            raise ValueError("config['judges'] entries must be objects")
+        spec = dict(item)
+        spec.setdefault("reasoning_effort", "low")
+        spec.setdefault("id", spec.get("model") or "judge")
+        panel.append(spec)
+    if not panel:
+        return [None]
+    return panel
+
+
+def _accepts_judge(call_llm) -> bool:
+    try:
+        signature = inspect.signature(call_llm)
+    except (TypeError, ValueError):
+        return False
+    for parameter in signature.parameters.values():
+        if parameter.kind == inspect.Parameter.VAR_KEYWORD or parameter.name == "judge":
+            return True
+    return False
+
+
+def _cost_usd(usage: dict | None) -> float | None:
+    """Luna's BYOK bill is upstream_inference_cost. OpenRouter's own cost is 0."""
+    if not isinstance(usage, dict):
+        return None
+    details = usage.get("cost_details") if isinstance(usage.get("cost_details"), dict) else {}
+    upstream = details.get("upstream_inference_cost")
+    if usage.get("is_byok") and upstream is not None:
+        return float(upstream)
+    if usage.get("cost") is not None:
+        return float(usage["cost"])
+    return None
+
+
+async def _call(call_llm, messages: list[dict], judge_spec: dict | None) -> tuple[str, dict | None]:
+    if judge_spec is None:
+        result = call_llm(messages)
+    elif _accepts_judge(call_llm):
+        result = call_llm(messages, judge=judge_spec)
+    else:
+        raise TypeError("a jury needs call_llm(messages, judge=spec) so each judge can be pinned")
     if inspect.isawaitable(result):
         result = await result
-    if not isinstance(result, str):
-        raise TypeError("call_llm must return a string")
-    return result
+    if isinstance(result, str):
+        return result, None
+    if isinstance(result, dict) and isinstance(result.get("text"), str):
+        usage = result.get("usage") if isinstance(result.get("usage"), dict) else None
+        return result["text"], usage
+    raise TypeError("call_llm must return a string or {'text', 'usage'}")
 
 
-def _rubric_messages(case: CaseView, output: OutputView, config: dict) -> list[dict]:
-    body = _fill(
-        load_prompt("rubric.md"),
-        {
-            "rubric": str(config.get("rubric") or "Follow the task. Be correct, complete, and on topic."),
-            "case_input": _dump(case.input),
-            "output": _dump(output.json if output.json is not None else output.text),
-        },
-    )
-    return [{"role": "user", "content": body}]
-
-
-def _pairwise_messages(case: CaseView, first: OutputView, second: OutputView, config: dict) -> list[dict]:
-    body = _fill(
-        load_prompt("pairwise.md"),
-        {
-            "rubric": str(config.get("rubric") or "Prefer the output that answers the input more correctly and completely. Do not prefer length."),
-            "case_input": _dump(case.input),
-            "output_a": _dump(first.json if first.json is not None else first.text),
-            "output_b": _dump(second.json if second.json is not None else second.text),
-        },
-    )
-    return [{"role": "user", "content": body}]
+def _score_value(parsed: dict) -> float:
+    score = float(parsed["score"])
+    if not 0 <= score <= 1:
+        raise ValueError("judge score must be on [0, 1]")
+    return score
 
 
 def _absolute_winner(label: str, a_is_candidate: bool) -> str:
@@ -94,22 +190,224 @@ def _absolute_winner(label: str, a_is_candidate: bool) -> str:
     raise ValueError(f"pairwise winner must be A, B, or tie, got {label!r}")
 
 
-async def judge(metric_id: str, case: CaseView, output: OutputView, baseline: OutputView | None, config: dict, call_llm) -> JudgeResult:
+def _rubric_messages(case: CaseView, output: OutputView, config: dict, metric_id: str) -> list[dict]:
     if metric_id == "rubric_score":
-        parsed = _parse_object(await _call(call_llm, _rubric_messages(case, output, config)))
-        score = float(parsed["score"])
-        if not 0 <= score <= 1:
-            raise ValueError("rubric score must be on [0, 1]")
-        return JudgeResult(score=score, reasoning=str(parsed.get("reasoning") or ""), winner=None)
-    if metric_id != "pairwise_vs_baseline":
-        raise KeyError(f"judge() does not implement {metric_id!r}")
-    if baseline is None:
-        raise ValueError("pairwise_vs_baseline requires a baseline output")
-    first = _parse_object(await _call(call_llm, _pairwise_messages(case, output, baseline, config)))
-    second = _parse_object(await _call(call_llm, _pairwise_messages(case, baseline, output, config)))
+        body = _fill(
+            load_prompt("rubric.md"),
+            {
+                "rubric": str(config.get("rubric") or "Follow the task. Be correct, complete, and on topic."),
+                "case_input": _dump(case.input),
+                "output": _dump(output.json if output.json is not None else output.text),
+            },
+        )
+        return [{"role": "user", "content": body}]
+    rubric, _lower = RUBRICS[metric_id]
+    body = _fill(
+        load_prompt("named.md"),
+        {
+            "metric_id": metric_id,
+            "rubric": str(config.get("rubric") or rubric),
+            "case_input": _dump(case.input),
+            "reference": _dump(case.reference),
+            "output": _dump(output.json if output.json is not None else output.text),
+        },
+    )
+    return [{"role": "user", "content": body}]
+
+
+def _pairwise_messages(case: CaseView, first: OutputView, second: OutputView, config: dict, metric_id: str) -> list[dict]:
+    if metric_id == "length_controlled_win_rate":
+        rubric = str(config.get("rubric") or RUBRICS[metric_id][0])
+    else:
+        rubric = str(config.get("rubric") or "Prefer the output that answers the input more correctly and completely. Do not prefer length.")
+    body = _fill(
+        load_prompt("pairwise.md"),
+        {
+            "rubric": rubric,
+            "case_input": _dump(case.input),
+            "output_a": _dump(first.json if first.json is not None else first.text),
+            "output_b": _dump(second.json if second.json is not None else second.text),
+        },
+    )
+    return [{"role": "user", "content": body}]
+
+
+def _blank_row(spec: dict | None, *, abstained: bool) -> dict:
+    if spec is None:
+        return {
+            "id": "judge",
+            "provider": None,
+            "model": None,
+            "score": None,
+            "reasoning": "",
+            "winner": None,
+            "abstained": abstained,
+            "reasoning_effort": None,
+            "cost_usd": None,
+        }
+    return {
+        "id": spec.get("id"),
+        "provider": spec.get("provider"),
+        "model": spec.get("model"),
+        "score": None,
+        "reasoning": "",
+        "winner": None,
+        "abstained": abstained,
+        "reasoning_effort": spec.get("reasoning_effort"),
+        "cost_usd": None,
+    }
+
+
+def _finish_rubric(rows: list[dict], *, single: bool) -> JudgeResult:
+    voted = [row for row in rows if not row["abstained"]]
+    if not voted:
+        raise ValueError("every judge abstained")
+    score = sum(float(row["score"]) for row in voted) / len(voted)
+    abstained = [str(row["id"]) for row in rows if row["abstained"]]
+    agreement = None
+    low = None
+    if len(voted) >= 2:
+        spread = max(float(row["score"]) for row in voted) - min(float(row["score"]) for row in voted)
+        agreement = 1.0 if spread <= RUBRIC_AGREEMENT_TOLERANCE else 0.0
+        low = agreement == 0.0
+    if single:
+        reasoning = str(voted[0]["reasoning"] or "")
+    else:
+        reasoning = " ".join(
+            f"{row['id']}: abstained" if row["abstained"] else f"{row['id']}: {row['reasoning']}"
+            for row in rows
+        )
+    return JudgeResult(
+        score=score,
+        reasoning=reasoning,
+        winner=None,
+        judges=rows,
+        abstained=abstained,
+        agreement=agreement,
+        low_agreement=low,
+        reasoning_effort={str(row["id"]): row.get("reasoning_effort") for row in rows},
+    )
+
+
+def _finish_pairwise(rows: list[dict], *, single: bool) -> JudgeResult:
+    voted = [row for row in rows if not row["abstained"]]
+    if not voted:
+        raise ValueError("every judge abstained")
+    winners = [row["winner"] for row in voted]
+    if all(label == winners[0] for label in winners) and winners[0] in {"candidate", "baseline"}:
+        winner = winners[0]
+        score = 1.0 if winner == "candidate" else 0.0
+    else:
+        winner = "tie"
+        score = 0.5
+    abstained = [str(row["id"]) for row in rows if row["abstained"]]
+    agreement = None
+    low = None
+    if len(voted) >= 2:
+        agreement = 1.0 if all(label == winners[0] for label in winners) else 0.0
+        low = agreement == 0.0
+    if single:
+        reasoning = str(voted[0]["reasoning"] or "")
+    else:
+        reasoning = " ".join(
+            f"{row['id']}: abstained" if row["abstained"] else f"{row['id']}: {row['reasoning']}"
+            for row in rows
+        )
+    return JudgeResult(
+        score=score,
+        reasoning=reasoning,
+        winner=winner,  # type: ignore[arg-type]
+        judges=rows,
+        abstained=abstained,
+        agreement=agreement,
+        low_agreement=low,
+        reasoning_effort={str(row["id"]): row.get("reasoning_effort") for row in rows},
+    )
+
+
+async def _one_rubric(call_llm, messages, spec: dict | None) -> dict:
+    text, usage = await _call(call_llm, messages, spec if spec is not None else None)
+    parsed = _parse_object(text)
+    row = _blank_row(spec, abstained=False)
+    row["score"] = _score_value(parsed)
+    row["reasoning"] = str(parsed.get("reasoning") or "")
+    row["cost_usd"] = _cost_usd(usage)
+    return row
+
+
+async def _one_pairwise(call_llm, case, output, baseline, config, metric_id, spec: dict | None) -> dict:
+    first_text, first_usage = await _call(
+        call_llm, _pairwise_messages(case, output, baseline, config, metric_id), spec
+    )
+    second_text, second_usage = await _call(
+        call_llm, _pairwise_messages(case, baseline, output, config, metric_id), spec
+    )
+    first = _parse_object(first_text)
+    second = _parse_object(second_text)
     left = _absolute_winner(str(first["winner"]), a_is_candidate=True)
     right = _absolute_winner(str(second["winner"]), a_is_candidate=False)
-    reasoning = "Order candidate-then-baseline: " + str(first.get("reasoning") or "") + " Order baseline-then-candidate: " + str(second.get("reasoning") or "")
-    if left == right and left in {"candidate", "baseline"}:
-        return JudgeResult(score=1.0 if left == "candidate" else 0.0, reasoning=reasoning, winner=left)  # type: ignore[arg-type]
-    return JudgeResult(score=0.5, reasoning=reasoning, winner="tie")
+    reasoning = (
+        "Order candidate-then-baseline: "
+        + str(first.get("reasoning") or "")
+        + " Order baseline-then-candidate: "
+        + str(second.get("reasoning") or "")
+    )
+    winner = left if left == right and left in {"candidate", "baseline"} else "tie"
+    row = _blank_row(spec, abstained=False)
+    row["winner"] = winner
+    row["score"] = 1.0 if winner == "candidate" else 0.0 if winner == "baseline" else 0.5
+    row["reasoning"] = reasoning
+    costs = [c for c in (_cost_usd(first_usage), _cost_usd(second_usage)) if c is not None]
+    row["cost_usd"] = sum(costs) if costs else None
+    row["orders"] = [left, right]
+    return row
+
+
+async def judge(metric_id: str, case: CaseView, output: OutputView, baseline: OutputView | None, config: dict, call_llm) -> JudgeResult:
+    """Score one judge metric. A single call_llm with no judges list is the old path."""
+    config = config or {}
+    panel = _panel(config)
+    single = panel == [None] or (len(panel) == 1 and panel[0] is None)
+    # A list of one judge is still a single voter, but it is pinned.
+    jury = len([item for item in panel if item is not None]) >= 2
+    if not single and len(panel) == 1 and not _accepts_judge(call_llm):
+        # One pinned judge and an old call_llm(messages): call it without judge=.
+        pass
+
+    named_rubric = metric_id in RUBRICS and metric_id not in PAIRWISE_METRICS
+    if metric_id == "rubric_score" or named_rubric:
+        messages = _rubric_messages(case, output, config, metric_id if metric_id != "rubric_score" else "rubric_score")
+        rows = []
+        for spec in panel:
+            if _abstains(spec, config, pairwise=False):
+                rows.append(_blank_row(spec, abstained=True))
+                continue
+            # Single unpinned judge must be called as call_llm(messages) with judge_spec None
+            # so the old tests and the current runner keep working.
+            call_spec = None if spec is None or (not jury and not _accepts_judge(call_llm)) else spec
+            rows.append(await _one_rubric(call_llm, messages, call_spec if spec is not None else None))
+            if spec is not None and rows[-1]["id"] == "judge":
+                rows[-1]["id"] = spec.get("id")
+                rows[-1]["reasoning_effort"] = spec.get("reasoning_effort")
+                rows[-1]["provider"] = spec.get("provider")
+                rows[-1]["model"] = spec.get("model")
+        return _finish_rubric(rows, single=not jury)
+
+    if metric_id not in PAIRWISE_METRICS:
+        raise KeyError(f"judge() does not implement {metric_id!r}")
+    if baseline is None:
+        raise ValueError(f"{metric_id} requires a baseline output")
+    rows = []
+    for spec in panel:
+        if _abstains(spec, config, pairwise=True):
+            rows.append(_blank_row(spec, abstained=True))
+            continue
+        call_spec = None if spec is None or (not jury and not _accepts_judge(call_llm)) else spec
+        row = await _one_pairwise(call_llm, case, output, baseline, config, metric_id, call_spec if spec is not None else None)
+        if spec is not None:
+            row["id"] = spec.get("id")
+            row["provider"] = spec.get("provider")
+            row["model"] = spec.get("model")
+            row["reasoning_effort"] = spec.get("reasoning_effort")
+        rows.append(row)
+    return _finish_pairwise(rows, single=not jury)

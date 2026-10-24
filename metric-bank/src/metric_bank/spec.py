@@ -313,7 +313,7 @@ def metric(
             "notes": input_notes.strip(),
         },
         "computation": {
-            "method": _choice("method", method, METHODS),
+            "method": "llm_judge" if status_for(id) == "judge" else _choice("method", method, METHODS),
             "formula": formula.strip(),
             "procedure": _strings("procedure", procedure, 3),
             "implementations": _strings("implementations", implementations, 1),

@@ -38,7 +38,8 @@ def test_runtime_status_matches_score_dispatch():
     implemented = {metric_id for metric_id, info in METRICS.items() if info is not None}
     assert set(SCORERS) <= implemented
     assert set(SCORERS) == set(IMPLEMENTED)
-    assert JUDGE == {"rubric_score", "pairwise_vs_baseline"}
+    assert {"rubric_score", "pairwise_vs_baseline"} <= set(JUDGE)
+    assert set(JUDGE).isdisjoint(SCORERS)
     assert RUNNER_MEASURED.isdisjoint(SCORERS)
     for metric_id in SCORERS:
         assert METRICS[metric_id].id == metric_id
@@ -48,6 +49,8 @@ def test_unimplemented_ids_fail_loudly():
     case = _case("hello")
     output = _out(text="hello")
     with pytest.raises(UnimplementedMetricError, match="runtime_status=planned"):
+        score("thumbs_up_rate", case, output, {})
+    with pytest.raises(UnimplementedMetricError, match="runtime_status=judge"):
         score("faithfulness", case, output, {})
     with pytest.raises(UnimplementedMetricError, match="runtime_status=judge"):
         score("rubric_score", case, output, {})
@@ -56,6 +59,14 @@ def test_unimplemented_ids_fail_loudly():
     with pytest.raises(KeyError):
         score("not_a_metric", case, output, {})
     assert score("exact_match", _case(None), output, {}) is None
+
+
+def test_classification_label_ignores_whitespace_think_blocks_and_trailing_punctuation():
+    billing = _case("billing")
+    assert score("classification_accuracy", billing, _out(text="\n\nbilling"), {}) == 1.0
+    assert score("classification_accuracy", billing, _out(text="<think>reason</think>\n\nBilling."), {}) == 1.0
+    assert score("classification_accuracy", billing, _out(text="shipping"), {}) == 0.0
+    assert score("classification_precision", billing, _out(text="\n\nbilling"), {}) == 1.0
 
 
 def test_registry_uses_bank_direction_and_aliases():
@@ -118,7 +129,7 @@ def test_aggregate_and_percentiles():
 
 
 def test_prompts_match_and_judges_parse():
-    for name in ("rubric.md", "pairwise.md"):
+    for name in ("rubric.md", "pairwise.md", "named.md"):
         repo = Path(__file__).resolve().parents[3] / "prompts" / "judge" / name
         packaged = Path(__file__).resolve().parent / "prompt_templates" / name
         assert repo.read_text(encoding="utf-8") == packaged.read_text(encoding="utf-8")

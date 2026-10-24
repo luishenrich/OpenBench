@@ -25,11 +25,17 @@ Fill ``human_agree`` (yes/no), ``human_score`` (rubric, 0–1),
 ``human_winner`` (candidate, baseline, or tie), and ``human_note`` in the CSV.
 The HTML file is a reading copy with those columns left blank.
 
-Agreement counts a reviewed row when ``human_agree`` is yes, or when that
-cell is blank and the pairwise labels match, or when that cell is blank and
-the rubric scores differ by at most 0.10. A note alone is not a review.
-Cohen's kappa uses pairwise labels (candidate/baseline/tie). Spearman uses
-rubric scores. Rows with a blank human judgment are left out of the rates.
+Jury columns sit in front of the human columns. They copy each judge's score,
+reasoning, and winner, plus who abstained, whether the two judges agreed, and
+the pinned reasoning effort. Inter-judge agreement is the share of sheet rows
+where both judges voted and agreed. Under 70% is flagged. One abstention is
+not a disagreement: the other judge decided alone.
+
+Agreement with the human counts a reviewed row when ``human_agree`` is yes, or
+when that cell is blank and the pairwise labels match, or when that cell is
+blank and the rubric scores differ by at most 0.10. A note alone is not a
+review. Cohen's kappa uses pairwise labels (candidate/baseline/tie). Spearman
+uses rubric scores. Rows with a blank human judgment are left out of the rates.
 """
 
 from __future__ import annotations
@@ -56,6 +62,17 @@ SHEET_COLUMNS = (
     "judge_score",
     "judge_winner",
     "judge_reasoning",
+    "judge_a_id",
+    "judge_a_score",
+    "judge_a_reasoning",
+    "judge_a_winner",
+    "judge_b_id",
+    "judge_b_score",
+    "judge_b_reasoning",
+    "judge_b_winner",
+    "judge_abstained",
+    "inter_judge_agree",
+    "reasoning_effort",
     "human_agree",
     "human_score",
     "human_winner",
@@ -69,6 +86,9 @@ _WIN = {"candidate", "win", "a"}
 _LOSS = {"baseline", "loss", "b"}
 _TIE = {"tie", "draw"}
 RUBRIC_TOLERANCE = 0.10
+# Luis's note flags low inter-judge agreement and does not set a cutoff.
+# 70% is the line used by this kit: below it, the summary says to flag the use case.
+LOW_INTER_JUDGE_AGREEMENT = 0.70
 
 
 def pairwise_label(value: object) -> str | None:
@@ -291,6 +311,46 @@ def sample_judged(records: list[dict], *, n: int = 10, seed: int = 0, baseline_k
     return picked
 
 
+def _panel_cell(row: object, key: str) -> str:
+    if not isinstance(row, dict) or row.get(key) is None:
+        return ""
+    value = row.get(key)
+    if isinstance(value, float):
+        return format(value, "g")
+    return str(value)
+
+
+def jury_fields(judge: dict) -> dict:
+    """Per-judge columns. Missing panel fields stay blank so old exports still score."""
+    panel = judge.get("judges") if isinstance(judge.get("judges"), list) else []
+    first = panel[0] if panel else {}
+    second = panel[1] if len(panel) > 1 else {}
+    abstained = judge.get("abstained")
+    if isinstance(abstained, list):
+        abstained_text = ",".join(str(item) for item in abstained)
+    else:
+        abstained_text = ""
+    agreement = judge.get("agreement")
+    if agreement is None:
+        agree = ""
+    else:
+        agree = "yes" if float(agreement) >= 1 else "no"
+    effort = judge.get("reasoning_effort")
+    return {
+        "judge_a_id": _panel_cell(first, "id"),
+        "judge_a_score": _panel_cell(first, "score"),
+        "judge_a_reasoning": _panel_cell(first, "reasoning"),
+        "judge_a_winner": _panel_cell(first, "winner"),
+        "judge_b_id": _panel_cell(second, "id"),
+        "judge_b_score": _panel_cell(second, "score"),
+        "judge_b_reasoning": _panel_cell(second, "reasoning"),
+        "judge_b_winner": _panel_cell(second, "winner"),
+        "judge_abstained": abstained_text,
+        "inter_judge_agree": agree,
+        "reasoning_effort": "" if not effort else render_value(effort),
+    }
+
+
 def sheet_rows(
     records: list[dict],
     *,
@@ -324,6 +384,7 @@ def sheet_rows(
                 "judge_score": "" if score is None else format(score, "g"),
                 "judge_winner": str(judge.get("winner") or ""),
                 "judge_reasoning": str(judge.get("reasoning") or ""),
+                **jury_fields(judge),
                 "human_agree": "",
                 "human_score": "",
                 "human_winner": "",
@@ -507,6 +568,24 @@ def spearman(xs: list[float], ys: list[float]) -> float | None:
     return _pearson(_average_ranks(xs), _average_ranks(ys))
 
 
+def _judges_agree(row: dict) -> bool | None:
+    """True/False when both judges voted, else None (one abstained, or no jury)."""
+    mark = str(row.get("inter_judge_agree") or "").strip().lower()
+    if mark in _YES:
+        return True
+    if mark in _NO:
+        return False
+    left = _float_or_none(row.get("judge_a_score"))
+    right = _float_or_none(row.get("judge_b_score"))
+    left_winner = pairwise_label(row.get("judge_a_winner"))
+    right_winner = pairwise_label(row.get("judge_b_winner"))
+    if left_winner and right_winner:
+        return left_winner == right_winner
+    if left is not None and right is not None:
+        return abs(left - right) <= RUBRIC_TOLERANCE
+    return None
+
+
 def score_rows(rows: list[dict]) -> dict:
     reviewed = [(row, _row_agrees(row)) for row in rows]
     judged = [(row, flag) for row, flag in reviewed if flag is not None]
@@ -524,6 +603,10 @@ def score_rows(rows: list[dict]) -> dict:
     kappa = cohens_kappa([left for left, _ in pairs], [right for _, right in pairs])
     rho = spearman([left for left, _ in rubric], [right for _, right in rubric])
     rate = (agreements / len(judged)) if judged else None
+    jury = [(row, flag) for row in rows if (flag := _judges_agree(row)) is not None]
+    jury_hits = sum(1 for _, flag in jury if flag)
+    jury_rate = (jury_hits / len(jury)) if jury else None
+    low_jury = None if jury_rate is None else jury_rate < LOW_INTER_JUDGE_AGREEMENT
     return {
         "sheet_rows": len(rows),
         "reviewed": len(judged),
@@ -533,6 +616,10 @@ def score_rows(rows: list[dict]) -> dict:
         "kappa": kappa,
         "rubric_n": len(rubric),
         "spearman": rho,
+        "inter_judge_n": len(jury),
+        "inter_judge_agreements": jury_hits,
+        "inter_judge_agreement": jury_rate,
+        "low_inter_judge_agreement": low_jury,
     }
 
 
@@ -563,6 +650,15 @@ def render_summary(stats: dict) -> str:
         rho = "n/a (need at least two rubric rows with human_score)"
     else:
         rho = f"{stats['spearman']:.2f} (n={stats['rubric_n']})"
+    if stats.get("inter_judge_n"):
+        jury_rate = (
+            f"{stats['inter_judge_agreements']}/{stats['inter_judge_n']} "
+            f"({100 * stats['inter_judge_agreement']:.0f}%)"
+        )
+        if stats.get("low_inter_judge_agreement"):
+            jury_rate += ". Low agreement: flag this use case."
+    else:
+        jury_rate = "n/a (no row where both judges voted)"
     small = ""
     if 0 < stats["reviewed"] < 10:
         small = "\n\nThis is a small sanity check, not a confidence interval."
@@ -570,12 +666,16 @@ def render_summary(stats: dict) -> str:
         "## Judge agreement\n\n"
         f"{headline}\n\n"
         f"- Agreement: {rate}\n"
+        f"- Inter-judge agreement: {jury_rate}\n"
         f"- Pairwise Cohen's kappa: {kappa}\n"
         f"- Rubric Spearman: {rho}"
         f"{small}\n\n"
         "Agreement is human_agree=yes, or a blank agree cell whose pairwise label matches "
         "or whose rubric score is within 0.10 of the judge. "
-        "Kappa uses candidate/baseline/tie. Spearman uses rubric scores.\n"
+        "Kappa uses candidate/baseline/tie. Spearman uses rubric scores. "
+        "Inter-judge agreement counts rows where both judges voted and agreed "
+        "(rubric scores within 0.10, or the same pairwise winner). "
+        "Below 70% the summary flags the use case. An abstention is left out.\n"
     )
 
 

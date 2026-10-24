@@ -7,7 +7,7 @@ import jsonschema
 
 from metric_bank.build import build_bank
 from metric_bank import illustrative as sketch
-from metric_bank.runtime import IMPLEMENTED, JUDGE, RUNNER_MEASURED, status_for
+from metric_bank.runtime import IMPLEMENTED, JUDGE, PLANNED_REASONS, RUNNER_MEASURED, status_for
 from metric_bank.schema_doc import schema_document
 from metric_bank.selector import EXAMPLES, select
 from metric_bank.spec import CATALOG_IDS
@@ -30,7 +30,8 @@ def test_bank_matches_schema_and_catalogue():
     assert by_id["field_f1"]["runtime_status"] == "implemented"
     assert by_id["rubric_score"]["runtime_status"] == "judge"
     assert by_id["ttft_ms"]["runtime_status"] == "runner_measured"
-    assert by_id["faithfulness"]["runtime_status"] == "planned"
+    assert by_id["faithfulness"]["runtime_status"] == "judge"
+    assert by_id["thumbs_up_rate"]["runtime_status"] == "planned"
     for metric in bank["metrics"]:
         assert metric["runtime_status"] == status_for(metric["id"])
     marked = {status: {item["id"] for item in bank["metrics"] if item["runtime_status"] == status} for status in ("implemented", "judge", "runner_measured")}
@@ -50,8 +51,11 @@ def test_catalogue_names_every_bank_id():
     section = catalogue.split("## Runnable today", 1)[1].split("\n## ", 1)[0]
     for metric_id in sorted(IMPLEMENTED | JUDGE | RUNNER_MEASURED):
         assert f"`{metric_id}`" in section
-    assert "`faithfulness`" not in section
+    assert "`thumbs_up_rate`" not in section
+    assert "`faithfulness`" in section
     assert "include_planned" in section
+    planned = {item["id"] for item in build_bank()["metrics"] if status_for(item["id"]) == "planned"}
+    assert set(PLANNED_REASONS) == planned
 
 
 def test_quality_axis_is_higher_better_unit_interval():
@@ -84,9 +88,9 @@ def test_worked_scorecards():
             assert by_id[metric_id]["runtime_status"] in runnable
 
     health = cards["health_claim_extraction"]
-    assert health["quality"] == ["field_accuracy", "json_schema_valid"]
+    assert health["quality"] == ["field_accuracy", "numeric_tolerance_accuracy", "json_schema_valid"]
     assert health["speed"]["ranking"] == "e2e_ms"
-    assert health["risk_gates"] == []
+    assert health["risk_gates"] == [{"id": "pii_leakage_rate", "threshold": "<= 0"}]
     assert [item["id"] for item in health["task_gates"]] == [
         "error_rate",
         "truncation_rate",
@@ -103,27 +107,47 @@ def test_worked_scorecards():
     assert "ttft_ms" not in health["quality"]
 
     chat = cards["fintech_support_chat"]
-    assert chat["quality"] == ["rubric_score"]
-    assert chat["judging"] == ["rubric_score"]
+    assert chat["quality"] == ["faithfulness", "tone_brand_fit", "answer_relevancy"]
+    assert chat["judging"] == []
     assert chat["speed"] == {"ranking": "ttft_ms", "also_report": []}
-    assert chat["risk_gates"] == []
+    assert [item["id"] for item in chat["risk_gates"]] == [
+        "safety_violation",
+        "over_refusal",
+        "non_advice_compliance",
+    ]
 
     batch = cards["nightly_ad_copy"]
-    assert batch["quality"] == ["rubric_score"]
+    assert batch["quality"] == ["tone_brand_fit", "contains_none", "length_within"]
     assert batch["speed"]["ranking"] is None
     assert batch["also_report"] == []
+    assert [item["id"] for item in batch["task_gates"]] == [
+        "error_rate",
+        "contains_none",
+        "length_within",
+    ]
 
     agent = cards["coding_agent"]
-    assert agent["quality"] == ["rubric_score"]
+    assert agent["quality"] == ["tool_call_correct", "tool_choice_correct"]
     assert "tool_argument_schema_valid" not in agent["quality"]
-    assert [item["id"] for item in agent["task_gates"]] == ["error_rate", "truncation_rate"]
+    assert [item["id"] for item in agent["task_gates"]] == [
+        "error_rate",
+        "truncation_rate",
+        "tool_argument_schema_valid",
+    ]
+    assert agent["risk_gates"] == [{"id": "insecure_code_rate", "threshold": "<= 0.01"}]
     assert agent["reliability_extra"] == []
     assert agent["speed"]["ranking"] == "e2e_ms"
 
     legal = cards["legal_contract_rag"]
-    assert legal["quality"] == ["rubric_score"]
-    assert legal["quality_alternates"] == []
-    assert [item["id"] for item in legal["task_gates"]] == ["error_rate"]
+    assert legal["quality"] == [
+        "faithfulness",
+        "citation_precision",
+        "citation_recall",
+        "unknown_abstention",
+        "context_recall",
+    ]
+    assert legal["quality_alternates"][0] == "answer_relevancy"
+    assert [item["id"] for item in legal["task_gates"]] == ["error_rate", "faithfulness"]
     assert legal["speed"]["ranking"] == "ttft_ms"
 
 
@@ -170,6 +194,50 @@ def test_include_planned_restores_the_research_scorecard():
     ]
     assert legal["quality_alternates"][0] == "answer_relevancy"
     assert any(item["id"] == "faithfulness" and item["threshold"] == ">= 0.9" for item in legal["task_gates"])
+
+
+def test_streamed_text_ranks_on_time_to_first_token():
+    assert select({"kind": "chat"})["speed"]["ranking"] == "ttft_ms"
+    assert select({"kind": "generation"})["speed"]["ranking"] == "ttft_ms"
+    assert select({"kind": "rag"})["speed"]["ranking"] == "ttft_ms"
+    assert select({"kind": "summarization", "user_facing": True})["speed"]["ranking"] == "ttft_ms"
+    assert select({"kind": "summarization"})["speed"]["ranking"] == "e2e_ms"
+    assert select({"kind": "extraction"})["speed"]["ranking"] == "e2e_ms"
+    assert select({"kind": "classification"})["speed"]["ranking"] == "e2e_ms"
+    assert select({"kind": "batch", "waiting": False})["speed"]["ranking"] is None
+
+
+def test_schema_is_a_quality_score_for_batch_and_generation():
+    batch = select({"kind": "batch", "has_schema": True, "waiting": False})
+    assert batch["quality"] == ["json_schema_valid"]
+    assert any(item["id"] == "json_schema_valid" for item in batch["task_gates"])
+    generation = select({"kind": "generation", "has_schema": True})
+    assert "json_schema_valid" in generation["quality"]
+    assert generation["speed"]["ranking"] == "ttft_ms"
+    assert any("not only a gate" in note for note in generation["notes"])
+
+
+def test_ocr_without_a_schema_is_a_transcription():
+    card = select({"kind": "extraction", "ocr": True})
+    assert card["quality"] == ["character_accuracy"]
+    assert "field_accuracy" not in card["quality"]
+    assert card["also_report"] == ["cer", "wer"]
+    words = select({"kind": "extraction", "ocr": True, "word_errors": True})
+    assert words["quality"] == ["word_accuracy"]
+    assert "field_accuracy" not in words["quality"]
+
+
+def test_feedback_text_keeps_rubric_beside_the_label():
+    card = select({"kind": "classification", "feedback_text": True})
+    assert card["quality"] == ["classification_f1", "rubric_score"]
+    assert card["judging"] == ["rubric_score"]
+
+
+def test_agent_without_tools_says_it_fell_back_to_rubric():
+    card = select({"kind": "agent", "tools": False, "multi_step_agent": True})
+    assert card["quality"] == ["rubric_score"]
+    assert any("fell back to rubric_score" in note for note in card["notes"])
+    assert any("tool_call_correct" in note for note in card["notes"])
 
 
 def test_open_ended_falls_back_to_one_judge():
@@ -224,7 +292,7 @@ def test_numeric_fields_survive_a_scanned_page():
             "numeric_fields": True,
         }
     )
-    assert "numeric_tolerance_accuracy" not in card["quality"]
+    assert "numeric_tolerance_accuracy" in card["quality"]
     assert "bbox_iou" not in card["quality"]
     assert "bbox_f1" in card["quality"]
     opted = select(
@@ -261,8 +329,14 @@ def test_fintech_with_secrets_keeps_refusal_gates():
             "phi_or_customer_data": True,
         }
     )
-    assert card["risk_gates"] == []
-    assert card["quality"] == ["rubric_score"]
+    assert [item["id"] for item in card["risk_gates"]] == [
+        "safety_violation",
+        "over_refusal",
+        "non_advice_compliance",
+        "pii_leakage_rate",
+        "secret_leakage_rate",
+    ]
+    assert card["quality"] == ["answer_relevancy"]
     full = select(
         {
             "kind": "chat",

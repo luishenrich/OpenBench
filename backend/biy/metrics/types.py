@@ -24,4 +24,11 @@ class OutputView:
 class JudgeResult:
     score: float
     reasoning: str
-    winner: Literal["candidate", "baseline", "tie"] | None
+    winner: Literal["candidate", "baseline", "tie"] | None = None
+    # Jury fields. Empty when a single unpinned judge ran. The runner stores these
+    # on result.judge once the contract grows; the names match the note to Raphaël.
+    judges: list[dict] | None = None
+    abstained: list[str] | None = None
+    agreement: float | None = None
+    low_agreement: bool | None = None
+    reasoning_effort: dict | None = None

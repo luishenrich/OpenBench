@@ -90,7 +90,7 @@
 </header>
 <main>
   <h2 id="decision">How many metrics are warranted</h2>
-  <p>The bank has one row per measurement a client benchmark can actually run. Public exams (MMLU, BIG-bench, GSM8K, HELM scenarios, Arena Elo) are priors, not metrics. Where Ragas and DeepEval name the same construct, one row is kept and the other name is an alias. Metrics marked avoid_as_primary exist so a selector can refuse BLEU, ROUGE, BERTScore, fluency, or embedding cosine as the sole quality score. Operational metrics are measured on the same run as quality. Only utility_axis=quality scores enter the 0–1 quality average, and they must already be higher-better. Lower-better risk rates are gates. A client scorecard should contain the always-on operational metrics, one speed metric chosen from the use-case kind, one to five quality metrics, and zero to five risk gates. Each row has runtime_status. The default selector proposes only metrics score() implements, the two judges, and the timing, token, and cost metrics the runner records. Planned rows stay in the bank. Set include_planned to opt in. If filtering would leave quality empty, the selector uses an implemented metric for that kind, or rubric_score. Document vision is included for pages and scans: character and word error, plus box overlap. Speech, image aesthetics, and caption preference are not. The bank is a library, not a list to run in full.</p>
+  <p>The bank has one row per measurement a client benchmark can actually run. Public exams (MMLU, BIG-bench, GSM8K, HELM scenarios, Arena Elo) are priors, not metrics. Where Ragas and DeepEval name the same construct, one row is kept and the other name is an alias. Metrics marked avoid_as_primary exist so a selector can refuse BLEU, ROUGE, BERTScore, fluency, or embedding cosine as the sole quality score. Operational metrics are measured on the same run as quality. Only utility_axis=quality scores enter the 0–1 quality average, and they must already be higher-better. Lower-better risk rates are gates. A client scorecard should contain the always-on operational metrics, one speed metric chosen from the use-case kind, one to five quality metrics, and zero to five risk gates. Each row has runtime_status. The default selector proposes only metrics score() implements, judge() rows (one rubric call, pairwise in both orders), and the timing, token, and cost metrics the runner records. Planned rows stay in the bank. Set include_planned to opt in. If filtering would leave quality empty, the selector uses an implemented metric for that kind, or rubric_score. Document vision is included for pages and scans: character and word error, plus box overlap. Speech, image aesthetics, and caption preference are not. The bank is a library, not a list to run in full.</p>
   <p>159 metrics sit in 22 categories (5 avoid_as_primary, 53 core, 24 diagnostic, 77 supporting). Core rows are the ones a selector should consider first when the brief matches. The avoid-as-primary rows exist so BLEU, ROUGE-L, BERTScore, summary fluency, and embedding cosine can be refused as the quality score. The remaining rows are supporting measurements or diagnostics.</p>
   <p>A row earned a place when three things were true. A client can compute it on their own cases. Two teams would otherwise implement it under different names. And the number can change a ship decision: quality, a hard gate, speed, cost, or a business outcome. A public exam fails the first test. An alias fails the second. A vanity score fails the third.</p>
   <p>The existing product catalogue, in <span class="mono">docs/metrics-catalog.md</span>, already fixed forty ids. Every one of those ids is in this bank with the same spelling, so a later <span class="mono">biy_metrics_list</span> can serve this file without a rename. This folder does not edit that catalogue. The bank is the superset.</p>
@@ -164,60 +164,60 @@
     <thead><tr><th>Category</th><th>Id</th><th>Name</th><th>Priority</th><th>Axis</th><th>Runtime</th><th>Layer</th></tr></thead>
     <tbody><tr><td>accuracy</td><td>classification_accuracy</td><td>Classification accuracy</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
 <tr><td>accuracy</td><td>classification_f1</td><td>Classification F1</td><td>core</td><td>quality</td><td>runner_measured</td><td>quality</td></tr>
-<tr><td>accuracy</td><td>classification_precision</td><td>Classification precision</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>accuracy</td><td>classification_recall</td><td>Classification recall</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>accuracy</td><td>contains_all</td><td>Contains all</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>accuracy</td><td>contains_none</td><td>Contains none</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
+<tr><td>accuracy</td><td>classification_precision</td><td>Classification precision</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>accuracy</td><td>classification_recall</td><td>Classification recall</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>accuracy</td><td>contains_all</td><td>Contains all</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>accuracy</td><td>contains_none</td><td>Contains none</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
 <tr><td>accuracy</td><td>exact_match</td><td>Exact match</td><td>core</td><td>quality</td><td>implemented</td><td>quality</td></tr>
 <tr><td>accuracy</td><td>matthews_correlation</td><td>Matthews correlation coefficient</td><td>diagnostic</td><td>none</td><td>planned</td><td>quality</td></tr>
-<tr><td>accuracy</td><td>regex_match</td><td>Regex match</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>accuracy</td><td>semantic_similarity</td><td>Semantic similarity</td><td>avoid_as_primary</td><td>none</td><td>planned</td><td>quality</td></tr>
-<tr><td>accuracy</td><td>set_f1</td><td>Set F1</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>accuracy</td><td>token_f1</td><td>Token F1</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
+<tr><td>accuracy</td><td>regex_match</td><td>Regex match</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>accuracy</td><td>semantic_similarity</td><td>Semantic similarity</td><td>avoid_as_primary</td><td>none</td><td>judge</td><td>quality</td></tr>
+<tr><td>accuracy</td><td>set_f1</td><td>Set F1</td><td>core</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>accuracy</td><td>token_f1</td><td>Token F1</td><td>core</td><td>quality</td><td>implemented</td><td>quality</td></tr>
 <tr><td>agents_tools</td><td>agent_task_success</td><td>Agent task success</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>agents_tools</td><td>goal_accuracy</td><td>Goal accuracy</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>agents_tools</td><td>hallucinated_tool_rate</td><td>Hallucinated-tool rate</td><td>supporting</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>agents_tools</td><td>irrelevance_abstention</td><td>Irrelevance abstention</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>agents_tools</td><td>plan_adherence</td><td>Plan adherence</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>agents_tools</td><td>step_efficiency</td><td>Step efficiency</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>agents_tools</td><td>tool_argument_schema_valid</td><td>Tool-argument schema validity</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>agents_tools</td><td>tool_call_correct</td><td>Tool-call match</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>agents_tools</td><td>tool_call_f1</td><td>Tool-call F1</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>agents_tools</td><td>tool_choice_correct</td><td>Tool choice</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
+<tr><td>agents_tools</td><td>goal_accuracy</td><td>Goal accuracy</td><td>supporting</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>agents_tools</td><td>hallucinated_tool_rate</td><td>Hallucinated-tool rate</td><td>supporting</td><td>gate_only</td><td>implemented</td><td>risk</td></tr>
+<tr><td>agents_tools</td><td>irrelevance_abstention</td><td>Irrelevance abstention</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>agents_tools</td><td>plan_adherence</td><td>Plan adherence</td><td>supporting</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>agents_tools</td><td>step_efficiency</td><td>Step efficiency</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>agents_tools</td><td>tool_argument_schema_valid</td><td>Tool-argument schema validity</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>agents_tools</td><td>tool_call_correct</td><td>Tool-call match</td><td>core</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>agents_tools</td><td>tool_call_f1</td><td>Tool-call F1</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>agents_tools</td><td>tool_choice_correct</td><td>Tool choice</td><td>core</td><td>quality</td><td>implemented</td><td>quality</td></tr>
 <tr><td>agents_tools</td><td>tool_error_recovery</td><td>Tool-error recovery</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
 <tr><td>bias_fairness</td><td>ambiguous_context_bias</td><td>Ambiguous-context bias</td><td>supporting</td><td>none</td><td>planned</td><td>risk</td></tr>
 <tr><td>bias_fairness</td><td>counterfactual_invariance</td><td>Counterfactual invariance</td><td>core</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
 <tr><td>bias_fairness</td><td>equalized_odds_gap</td><td>Equalized-odds gap</td><td>supporting</td><td>none</td><td>planned</td><td>risk</td></tr>
 <tr><td>bias_fairness</td><td>representation_skew</td><td>Representation skew</td><td>diagnostic</td><td>none</td><td>planned</td><td>risk</td></tr>
-<tr><td>bias_fairness</td><td>stereotype_rate</td><td>Stereotype rate</td><td>supporting</td><td>none</td><td>planned</td><td>risk</td></tr>
+<tr><td>bias_fairness</td><td>stereotype_rate</td><td>Stereotype rate</td><td>supporting</td><td>none</td><td>judge</td><td>risk</td></tr>
 <tr><td>bias_fairness</td><td>subgroup_performance_gap</td><td>Subgroup performance gap</td><td>core</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
 <tr><td>business_ux</td><td>containment_rate</td><td>Containment rate</td><td>supporting</td><td>none</td><td>planned</td><td>business</td></tr>
 <tr><td>business_ux</td><td>csat_proxy</td><td>CSAT</td><td>diagnostic</td><td>none</td><td>planned</td><td>business</td></tr>
 <tr><td>business_ux</td><td>escalation_rate</td><td>Escalation rate</td><td>supporting</td><td>gate_only</td><td>planned</td><td>business</td></tr>
 <tr><td>business_ux</td><td>human_acceptance_rate</td><td>Human acceptance rate</td><td>supporting</td><td>quality</td><td>planned</td><td>business</td></tr>
 <tr><td>business_ux</td><td>normalized_edit_distance</td><td>Normalized edit distance</td><td>supporting</td><td>none</td><td>planned</td><td>business</td></tr>
-<tr><td>business_ux</td><td>readability_band_match</td><td>Readability band match</td><td>supporting</td><td>quality</td><td>planned</td><td>business</td></tr>
+<tr><td>business_ux</td><td>readability_band_match</td><td>Readability band match</td><td>supporting</td><td>quality</td><td>implemented</td><td>business</td></tr>
 <tr><td>business_ux</td><td>regeneration_rate</td><td>Regeneration rate</td><td>diagnostic</td><td>none</td><td>planned</td><td>business</td></tr>
 <tr><td>business_ux</td><td>thumbs_up_rate</td><td>Thumbs-up rate</td><td>diagnostic</td><td>none</td><td>planned</td><td>business</td></tr>
-<tr><td>business_ux</td><td>tone_brand_fit</td><td>Brand-voice fit</td><td>core</td><td>quality</td><td>planned</td><td>business</td></tr>
-<tr><td>calibration_hallucination</td><td>brier_score</td><td>Brier score</td><td>supporting</td><td>none</td><td>planned</td><td>risk</td></tr>
+<tr><td>business_ux</td><td>tone_brand_fit</td><td>Brand-voice fit</td><td>core</td><td>quality</td><td>judge</td><td>business</td></tr>
+<tr><td>calibration_hallucination</td><td>brier_score</td><td>Brier score</td><td>supporting</td><td>none</td><td>implemented</td><td>risk</td></tr>
 <tr><td>calibration_hallucination</td><td>expected_calibration_error</td><td>Expected calibration error</td><td>supporting</td><td>none</td><td>planned</td><td>risk</td></tr>
-<tr><td>calibration_hallucination</td><td>hallucination</td><td>Hallucination rate</td><td>core</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>calibration_hallucination</td><td>overconfidence_rate</td><td>Overconfidence rate</td><td>supporting</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
+<tr><td>calibration_hallucination</td><td>hallucination</td><td>Hallucination rate</td><td>core</td><td>gate_only</td><td>judge</td><td>risk</td></tr>
+<tr><td>calibration_hallucination</td><td>overconfidence_rate</td><td>Overconfidence rate</td><td>supporting</td><td>gate_only</td><td>implemented</td><td>risk</td></tr>
 <tr><td>calibration_hallucination</td><td>selective_accuracy</td><td>Selective accuracy</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
 <tr><td>calibration_hallucination</td><td>semantic_entropy</td><td>Semantic entropy</td><td>diagnostic</td><td>none</td><td>planned</td><td>risk</td></tr>
 <tr><td>code</td><td>code_tests_pass</td><td>Unit-test pass rate</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>code</td><td>codebleu</td><td>CodeBLEU</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>code</td><td>insecure_code_rate</td><td>Insecure-code rate</td><td>supporting</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
+<tr><td>code</td><td>codebleu</td><td>CodeBLEU</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>code</td><td>insecure_code_rate</td><td>Insecure-code rate</td><td>supporting</td><td>gate_only</td><td>implemented</td><td>risk</td></tr>
 <tr><td>code</td><td>pass_at_k</td><td>pass@k</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
 <tr><td>code</td><td>patch_resolve_rate</td><td>Patch resolve rate</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>code</td><td>syntax_valid_rate</td><td>Syntax-valid rate</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>conversation</td><td>conversation_completeness</td><td>Conversation completeness</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>conversation</td><td>knowledge_retention</td><td>Knowledge retention</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>conversation</td><td>multi_turn_coherence</td><td>Multi-turn coherence</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>conversation</td><td>role_adherence</td><td>Role adherence</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>conversation</td><td>topic_adherence</td><td>Topic adherence</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>conversation</td><td>turn_relevancy</td><td>Turn relevancy</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
+<tr><td>code</td><td>syntax_valid_rate</td><td>Syntax-valid rate</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>conversation</td><td>conversation_completeness</td><td>Conversation completeness</td><td>core</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>conversation</td><td>knowledge_retention</td><td>Knowledge retention</td><td>core</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>conversation</td><td>multi_turn_coherence</td><td>Multi-turn coherence</td><td>supporting</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>conversation</td><td>role_adherence</td><td>Role adherence</td><td>supporting</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>conversation</td><td>topic_adherence</td><td>Topic adherence</td><td>supporting</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>conversation</td><td>turn_relevancy</td><td>Turn relevancy</td><td>supporting</td><td>quality</td><td>judge</td><td>quality</td></tr>
 <tr><td>cost</td><td>cache_hit_rate</td><td>Cache hit rate</td><td>supporting</td><td>none</td><td>planned</td><td>operational</td></tr>
 <tr><td>cost</td><td>cost_per_case_usd</td><td>Cost per case</td><td>core</td><td>cost</td><td>runner_measured</td><td>operational</td></tr>
 <tr><td>cost</td><td>cost_per_success_usd</td><td>Cost per successful case</td><td>core</td><td>cost</td><td>runner_measured</td><td>operational</td></tr>
@@ -235,46 +235,46 @@
 <tr><td>efficiency</td><td>throughput_rps</td><td>Throughput</td><td>diagnostic</td><td>none</td><td>planned</td><td>operational</td></tr>
 <tr><td>efficiency</td><td>ttfat_ms</td><td>Time to first answer token</td><td>supporting</td><td>speed</td><td>planned</td><td>operational</td></tr>
 <tr><td>efficiency</td><td>ttft_ms</td><td>Time to first token</td><td>core</td><td>speed</td><td>runner_measured</td><td>operational</td></tr>
-<tr><td>instruction_following</td><td>constraint_satisfaction_rate</td><td>Constraint satisfaction rate</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>instruction_following</td><td>instruction_following</td><td>Instruction following (strict)</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>instruction_following</td><td>instruction_following_loose</td><td>Instruction following (loose)</td><td>diagnostic</td><td>none</td><td>planned</td><td>quality</td></tr>
-<tr><td>instruction_following</td><td>length_within</td><td>Length within bounds</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>instruction_following</td><td>negative_constraint_adherence</td><td>Negative-constraint adherence</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>judging</td><td>g_eval</td><td>G-Eval</td><td>core</td><td>quality</td><td>planned</td><td>method</td></tr>
-<tr><td>judging</td><td>length_controlled_win_rate</td><td>Length-controlled win rate</td><td>diagnostic</td><td>none</td><td>planned</td><td>method</td></tr>
+<tr><td>instruction_following</td><td>constraint_satisfaction_rate</td><td>Constraint satisfaction rate</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>instruction_following</td><td>instruction_following</td><td>Instruction following (strict)</td><td>core</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>instruction_following</td><td>instruction_following_loose</td><td>Instruction following (loose)</td><td>diagnostic</td><td>none</td><td>implemented</td><td>quality</td></tr>
+<tr><td>instruction_following</td><td>length_within</td><td>Length within bounds</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>instruction_following</td><td>negative_constraint_adherence</td><td>Negative-constraint adherence</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>judging</td><td>g_eval</td><td>G-Eval</td><td>core</td><td>quality</td><td>judge</td><td>method</td></tr>
+<tr><td>judging</td><td>length_controlled_win_rate</td><td>Length-controlled win rate</td><td>diagnostic</td><td>none</td><td>judge</td><td>method</td></tr>
 <tr><td>judging</td><td>pairwise_vs_baseline</td><td>Pairwise win rate versus baseline</td><td>core</td><td>quality</td><td>judge</td><td>method</td></tr>
 <tr><td>judging</td><td>rubric_score</td><td>Rubric score</td><td>core</td><td>quality</td><td>judge</td><td>method</td></tr>
-<tr><td>knowledge</td><td>factscore</td><td>FActScore</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>knowledge</td><td>factual_correctness</td><td>Factual correctness</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>knowledge</td><td>freshness_accuracy</td><td>Freshness accuracy</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>knowledge</td><td>short_form_factuality</td><td>Short-form factuality</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>knowledge</td><td>unknown_abstention</td><td>Unknown abstention</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>multilingual</td><td>bleu</td><td>BLEU</td><td>avoid_as_primary</td><td>none</td><td>planned</td><td>quality</td></tr>
-<tr><td>multilingual</td><td>cross_lingual_consistency</td><td>Cross-lingual consistency</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>multilingual</td><td>language_is</td><td>Language match</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>multilingual</td><td>locale_format_adherence</td><td>Locale-format adherence</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>multilingual</td><td>translation_chrf</td><td>chrF</td><td>diagnostic</td><td>none</td><td>planned</td><td>quality</td></tr>
-<tr><td>multilingual</td><td>translation_comet</td><td>Translation COMET</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>privacy</td><td>copyright_regurgitation</td><td>Copyright regurgitation</td><td>diagnostic</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>privacy</td><td>pii_leakage_rate</td><td>PII leakage rate</td><td>core</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>privacy</td><td>secret_leakage_rate</td><td>Secret leakage rate</td><td>supporting</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>privacy</td><td>unnecessary_pii_echo_rate</td><td>Unnecessary PII echo rate</td><td>supporting</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>rag_grounding</td><td>answer_relevancy</td><td>Answer relevancy</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>rag_grounding</td><td>citation_precision</td><td>Citation precision</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>rag_grounding</td><td>citation_recall</td><td>Citation recall</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>rag_grounding</td><td>context_entity_recall</td><td>Context entity recall</td><td>diagnostic</td><td>none</td><td>planned</td><td>quality</td></tr>
-<tr><td>rag_grounding</td><td>context_precision</td><td>Context precision</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>rag_grounding</td><td>context_recall</td><td>Context recall</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>rag_grounding</td><td>context_relevancy</td><td>Context relevancy</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>rag_grounding</td><td>contradiction_rate</td><td>Contradiction rate</td><td>supporting</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>rag_grounding</td><td>faithfulness</td><td>Faithfulness</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>rag_grounding</td><td>groundedness_nli</td><td>NLI groundedness</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>rag_grounding</td><td>noise_sensitivity</td><td>Noise sensitivity</td><td>supporting</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>reasoning</td><td>math_equivalence</td><td>Math equivalence</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>reasoning</td><td>reasoning_trace_faithfulness</td><td>Reasoning-trace faithfulness</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
+<tr><td>knowledge</td><td>factscore</td><td>FActScore</td><td>supporting</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>knowledge</td><td>factual_correctness</td><td>Factual correctness</td><td>core</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>knowledge</td><td>freshness_accuracy</td><td>Freshness accuracy</td><td>supporting</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>knowledge</td><td>short_form_factuality</td><td>Short-form factuality</td><td>supporting</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>knowledge</td><td>unknown_abstention</td><td>Unknown abstention</td><td>core</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>multilingual</td><td>bleu</td><td>BLEU</td><td>avoid_as_primary</td><td>none</td><td>implemented</td><td>quality</td></tr>
+<tr><td>multilingual</td><td>cross_lingual_consistency</td><td>Cross-lingual consistency</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>multilingual</td><td>language_is</td><td>Language match</td><td>core</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>multilingual</td><td>locale_format_adherence</td><td>Locale-format adherence</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>multilingual</td><td>translation_chrf</td><td>chrF</td><td>diagnostic</td><td>none</td><td>implemented</td><td>quality</td></tr>
+<tr><td>multilingual</td><td>translation_comet</td><td>Translation COMET</td><td>core</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>privacy</td><td>copyright_regurgitation</td><td>Copyright regurgitation</td><td>diagnostic</td><td>gate_only</td><td>implemented</td><td>risk</td></tr>
+<tr><td>privacy</td><td>pii_leakage_rate</td><td>PII leakage rate</td><td>core</td><td>gate_only</td><td>implemented</td><td>risk</td></tr>
+<tr><td>privacy</td><td>secret_leakage_rate</td><td>Secret leakage rate</td><td>supporting</td><td>gate_only</td><td>implemented</td><td>risk</td></tr>
+<tr><td>privacy</td><td>unnecessary_pii_echo_rate</td><td>Unnecessary PII echo rate</td><td>supporting</td><td>gate_only</td><td>implemented</td><td>risk</td></tr>
+<tr><td>rag_grounding</td><td>answer_relevancy</td><td>Answer relevancy</td><td>core</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>rag_grounding</td><td>citation_precision</td><td>Citation precision</td><td>supporting</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>rag_grounding</td><td>citation_recall</td><td>Citation recall</td><td>supporting</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>rag_grounding</td><td>context_entity_recall</td><td>Context entity recall</td><td>diagnostic</td><td>none</td><td>implemented</td><td>quality</td></tr>
+<tr><td>rag_grounding</td><td>context_precision</td><td>Context precision</td><td>core</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>rag_grounding</td><td>context_recall</td><td>Context recall</td><td>core</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>rag_grounding</td><td>context_relevancy</td><td>Context relevancy</td><td>core</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>rag_grounding</td><td>contradiction_rate</td><td>Contradiction rate</td><td>supporting</td><td>gate_only</td><td>judge</td><td>risk</td></tr>
+<tr><td>rag_grounding</td><td>faithfulness</td><td>Faithfulness</td><td>core</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>rag_grounding</td><td>groundedness_nli</td><td>NLI groundedness</td><td>supporting</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>rag_grounding</td><td>noise_sensitivity</td><td>Noise sensitivity</td><td>supporting</td><td>gate_only</td><td>judge</td><td>risk</td></tr>
+<tr><td>reasoning</td><td>math_equivalence</td><td>Math equivalence</td><td>core</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>reasoning</td><td>reasoning_trace_faithfulness</td><td>Reasoning-trace faithfulness</td><td>supporting</td><td>quality</td><td>judge</td><td>quality</td></tr>
 <tr><td>reasoning</td><td>self_consistency_rate</td><td>Self-consistency rate</td><td>diagnostic</td><td>none</td><td>planned</td><td>quality</td></tr>
-<tr><td>reasoning</td><td>step_correctness</td><td>Step correctness</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>reliability</td><td>empty_output_rate</td><td>Empty-output rate</td><td>diagnostic</td><td>none</td><td>planned</td><td>operational</td></tr>
+<tr><td>reasoning</td><td>step_correctness</td><td>Step correctness</td><td>core</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>reliability</td><td>empty_output_rate</td><td>Empty-output rate</td><td>diagnostic</td><td>none</td><td>implemented</td><td>operational</td></tr>
 <tr><td>reliability</td><td>error_rate</td><td>Error rate</td><td>core</td><td>gate_only</td><td>runner_measured</td><td>operational</td></tr>
 <tr><td>reliability</td><td>flip_rate</td><td>Flip rate</td><td>supporting</td><td>none</td><td>planned</td><td>operational</td></tr>
 <tr><td>reliability</td><td>pass_hat_k</td><td>pass^k</td><td>core</td><td>none</td><td>planned</td><td>operational</td></tr>
@@ -283,38 +283,38 @@
 <tr><td>reliability</td><td>truncation_rate</td><td>Truncation rate</td><td>core</td><td>gate_only</td><td>runner_measured</td><td>operational</td></tr>
 <tr><td>robustness</td><td>long_context_accuracy</td><td>Long-context accuracy</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
 <tr><td>robustness</td><td>lost_in_the_middle_drop</td><td>Lost-in-the-middle drop</td><td>diagnostic</td><td>none</td><td>planned</td><td>risk</td></tr>
-<tr><td>robustness</td><td>negation_robustness</td><td>Negation robustness</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
+<tr><td>robustness</td><td>negation_robustness</td><td>Negation robustness</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
 <tr><td>robustness</td><td>option_order_sensitivity</td><td>Option-order sensitivity</td><td>supporting</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
 <tr><td>robustness</td><td>paraphrase_invariance</td><td>Paraphrase invariance</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>robustness</td><td>sycophancy_rate</td><td>Sycophancy rate</td><td>supporting</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
+<tr><td>robustness</td><td>sycophancy_rate</td><td>Sycophancy rate</td><td>supporting</td><td>gate_only</td><td>judge</td><td>risk</td></tr>
 <tr><td>robustness</td><td>typo_robustness</td><td>Typo robustness</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>safety</td><td>jailbreak_robustness</td><td>Jailbreak robustness</td><td>supporting</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>safety</td><td>misuse_refusal</td><td>Misuse refusal</td><td>supporting</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>safety</td><td>non_advice_compliance</td><td>Non-advice compliance</td><td>supporting</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>safety</td><td>over_refusal</td><td>Over-refusal rate</td><td>core</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>safety</td><td>policy_violation_rate</td><td>Policy-violation rate</td><td>supporting</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>safety</td><td>prompt_injection_resistance</td><td>Prompt-injection resistance</td><td>core</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>safety</td><td>refusal_calibration</td><td>Refusal calibration</td><td>supporting</td><td>none</td><td>planned</td><td>risk</td></tr>
-<tr><td>safety</td><td>safety_violation</td><td>Harmful-compliance rate</td><td>core</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>safety</td><td>toxicity_rate</td><td>Toxicity rate</td><td>supporting</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
-<tr><td>structured_output</td><td>enum_adherence</td><td>Enum adherence</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>structured_output</td><td>extraneous_field_rate</td><td>Extraneous-field rate</td><td>diagnostic</td><td>gate_only</td><td>planned</td><td>risk</td></tr>
+<tr><td>safety</td><td>jailbreak_robustness</td><td>Jailbreak robustness</td><td>supporting</td><td>gate_only</td><td>judge</td><td>risk</td></tr>
+<tr><td>safety</td><td>misuse_refusal</td><td>Misuse refusal</td><td>supporting</td><td>gate_only</td><td>judge</td><td>risk</td></tr>
+<tr><td>safety</td><td>non_advice_compliance</td><td>Non-advice compliance</td><td>supporting</td><td>gate_only</td><td>judge</td><td>risk</td></tr>
+<tr><td>safety</td><td>over_refusal</td><td>Over-refusal rate</td><td>core</td><td>gate_only</td><td>judge</td><td>risk</td></tr>
+<tr><td>safety</td><td>policy_violation_rate</td><td>Policy-violation rate</td><td>supporting</td><td>gate_only</td><td>judge</td><td>risk</td></tr>
+<tr><td>safety</td><td>prompt_injection_resistance</td><td>Prompt-injection resistance</td><td>core</td><td>gate_only</td><td>judge</td><td>risk</td></tr>
+<tr><td>safety</td><td>refusal_calibration</td><td>Refusal calibration</td><td>supporting</td><td>none</td><td>implemented</td><td>risk</td></tr>
+<tr><td>safety</td><td>safety_violation</td><td>Harmful-compliance rate</td><td>core</td><td>gate_only</td><td>judge</td><td>risk</td></tr>
+<tr><td>safety</td><td>toxicity_rate</td><td>Toxicity rate</td><td>supporting</td><td>gate_only</td><td>judge</td><td>risk</td></tr>
+<tr><td>structured_output</td><td>enum_adherence</td><td>Enum adherence</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>structured_output</td><td>extraneous_field_rate</td><td>Extraneous-field rate</td><td>diagnostic</td><td>gate_only</td><td>implemented</td><td>risk</td></tr>
 <tr><td>structured_output</td><td>field_accuracy</td><td>Field accuracy</td><td>core</td><td>quality</td><td>implemented</td><td>quality</td></tr>
 <tr><td>structured_output</td><td>field_f1</td><td>Field F1</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
-<tr><td>structured_output</td><td>format_valid</td><td>Format validity</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
+<tr><td>structured_output</td><td>format_valid</td><td>Format validity</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
 <tr><td>structured_output</td><td>json_schema_valid</td><td>JSON Schema validity</td><td>core</td><td>quality</td><td>implemented</td><td>quality</td></tr>
-<tr><td>structured_output</td><td>json_valid</td><td>JSON parse rate</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>structured_output</td><td>numeric_tolerance_accuracy</td><td>Numeric tolerance accuracy</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>structured_output</td><td>required_field_recall</td><td>Required-field recall</td><td>diagnostic</td><td>none</td><td>planned</td><td>quality</td></tr>
+<tr><td>structured_output</td><td>json_valid</td><td>JSON parse rate</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>structured_output</td><td>numeric_tolerance_accuracy</td><td>Numeric tolerance accuracy</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>structured_output</td><td>required_field_recall</td><td>Required-field recall</td><td>diagnostic</td><td>none</td><td>implemented</td><td>quality</td></tr>
 <tr><td>structured_output</td><td>sql_execution_accuracy</td><td>SQL execution accuracy</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>summarization</td><td>bertscore_f1</td><td>BERTScore F1</td><td>avoid_as_primary</td><td>none</td><td>planned</td><td>quality</td></tr>
-<tr><td>summarization</td><td>compression_ratio</td><td>Compression ratio</td><td>diagnostic</td><td>none</td><td>planned</td><td>quality</td></tr>
-<tr><td>summarization</td><td>rouge_l</td><td>ROUGE-L</td><td>avoid_as_primary</td><td>none</td><td>planned</td><td>quality</td></tr>
-<tr><td>summarization</td><td>summary_coherence</td><td>Summary coherence</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>summarization</td><td>summary_conciseness</td><td>Summary conciseness</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>summarization</td><td>summary_coverage</td><td>Summary coverage</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
-<tr><td>summarization</td><td>summary_fluency</td><td>Summary fluency</td><td>avoid_as_primary</td><td>none</td><td>planned</td><td>quality</td></tr>
-<tr><td>summarization</td><td>summary_relevance</td><td>Summary relevance</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
+<tr><td>summarization</td><td>bertscore_f1</td><td>BERTScore F1</td><td>avoid_as_primary</td><td>none</td><td>judge</td><td>quality</td></tr>
+<tr><td>summarization</td><td>compression_ratio</td><td>Compression ratio</td><td>diagnostic</td><td>none</td><td>implemented</td><td>quality</td></tr>
+<tr><td>summarization</td><td>rouge_l</td><td>ROUGE-L</td><td>avoid_as_primary</td><td>none</td><td>implemented</td><td>quality</td></tr>
+<tr><td>summarization</td><td>summary_coherence</td><td>Summary coherence</td><td>core</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>summarization</td><td>summary_conciseness</td><td>Summary conciseness</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
+<tr><td>summarization</td><td>summary_coverage</td><td>Summary coverage</td><td>core</td><td>quality</td><td>judge</td><td>quality</td></tr>
+<tr><td>summarization</td><td>summary_fluency</td><td>Summary fluency</td><td>avoid_as_primary</td><td>none</td><td>judge</td><td>quality</td></tr>
+<tr><td>summarization</td><td>summary_relevance</td><td>Summary relevance</td><td>supporting</td><td>quality</td><td>judge</td><td>quality</td></tr>
 <tr><td>vision</td><td>bbox_f1</td><td>Box F1</td><td>core</td><td>quality</td><td>implemented</td><td>quality</td></tr>
 <tr><td>vision</td><td>bbox_iou</td><td>Box IoU</td><td>core</td><td>quality</td><td>implemented</td><td>quality</td></tr>
 <tr><td>vision</td><td>cer</td><td>Character error rate</td><td>core</td><td>none</td><td>implemented</td><td>quality</td></tr>
@@ -324,7 +324,7 @@
   </table>
 
   <h2 id="scorecard">Five scorecards</h2>
-  <p>The default card keeps the operational metrics computed from result rows: error rate, truncation, throttle, cost per case, cost per success, and output tokens per case, plus time to first token or end-to-end latency when someone is waiting. Cost per success is the cost used for ranking. Classification uses classification_f1, which the ranking computes over a candidate's cases. If a kind has no runnable quality metric, the quality slot is rubric_score.</p>
+  <p>The default card keeps the operational metrics computed from result rows: error rate, truncation, throttle, cost per case, cost per success, and output tokens per case, plus time to first token for streamed text or end-to-end latency for a finished object. Cost per success is the cost used for ranking. Classification uses classification_f1, which the ranking computes over a candidate's cases. If a kind has no runnable quality metric, the quality slot is rubric_score. An agent with no tool trace says that fallback in the card notes. An agent with tools uses tool_call_correct and tool_choice_correct.</p>
   <p>Selection rules, the signal table, and a prompt for the app's model are in <span class="mono">selection/GUIDE.md</span>. The cards below are the reference selector, not a hand-edited illustration, so they stay aligned with the guide and the tests.</p>
   
             <article class="card">
@@ -333,15 +333,15 @@
               <p>A claims platform extracts a fixed JSON object from an explanation-of-benefits packet: member id, service date, billed amount, allowed amount, and denial code. The caller waits for the object. Amounts may be off by one cent. The packet contains PHI.</p>
               <table>
                 <tr><th>Always on</th><td>error_rate, truncation_rate, throttle_rate, cost_per_case_usd, cost_per_success_usd, tokens_out_per_case</td></tr>
-                <tr><th>Quality</th><td>field_accuracy, json_schema_valid</td></tr>
+                <tr><th>Quality</th><td>field_accuracy, numeric_tolerance_accuracy, json_schema_valid</td></tr>
                 <tr><th>First left out</th><td>—</td></tr>
                 <tr><th>Speed</th><td>e2e_ms</td></tr>
                 <tr><th>Also timed</th><td>—</td></tr>
-                <tr><th>Risk gates</th><td>—</td></tr>
+                <tr><th>Risk gates</th><td>pii_leakage_rate &lt;= 0</td></tr>
                 <tr><th>Task gates</th><td>error_rate &lt;= 0.01, truncation_rate &lt;= 0.01, json_schema_valid &gt;= 0.99</td></tr>
                 <tr><th>Reported, not averaged</th><td>—</td></tr>
               </table>
-              <ul><li>End-to-end latency is the speed metric the runner records. Time to first token does not matter, because the caller cannot use a partial object.</li><li>Field accuracy and JSON schema validity are implemented, so they are the default quality terms. Schema validity is also a gate at 0.99. Numeric tolerance is planned; pass include_planned to add it.</li><li>PHI leakage is planned, so the default card does not gate on it. It is not a quality term when it is included.</li></ul>
+              <ul><li>End-to-end latency is the speed metric the runner records. Time to first token does not matter, because the caller cannot use a partial object.</li><li>Field accuracy, numeric tolerance, and JSON schema validity are the quality terms. Schema validity is also a gate at 0.99.</li><li>PHI leakage is an implemented risk gate at zero. It is not a quality term.</li></ul>
             </article>
             
             <article class="card">
@@ -350,15 +350,15 @@
               <p>A streaming support assistant answers account questions in the company&#x27;s voice. A help-center knowledge base is retrieved when the agent decides it is relevant, but the product is not a system of record. Candidates include reasoning models. The assistant must refuse crimes and scams, must not refuse ordinary balance questions, and must not give personalized financial advice.</p>
               <table>
                 <tr><th>Always on</th><td>error_rate, truncation_rate, throttle_rate, cost_per_case_usd, cost_per_success_usd, tokens_out_per_case</td></tr>
-                <tr><th>Quality</th><td>rubric_score</td></tr>
+                <tr><th>Quality</th><td>faithfulness, tone_brand_fit, answer_relevancy</td></tr>
                 <tr><th>First left out</th><td>—</td></tr>
                 <tr><th>Speed</th><td>ttft_ms</td></tr>
                 <tr><th>Also timed</th><td>—</td></tr>
-                <tr><th>Risk gates</th><td>—</td></tr>
+                <tr><th>Risk gates</th><td>safety_violation &lt;= 0.01, over_refusal &lt;= 0.05, non_advice_compliance &gt;= 0.98</td></tr>
                 <tr><th>Task gates</th><td>error_rate &lt;= 0.02</td></tr>
                 <tr><th>Reported, not averaged</th><td>—</td></tr>
               </table>
-              <ul><li>Faithfulness, brand fit, and answer relevancy name the constructs, but they are planned. The default quality slot is rubric_score until those scores exist.</li><li>Harmful compliance, over-refusal, and the advice boundary are the research risk gates. They are planned, so the default card does not include them. Pass include_planned to restore them.</li><li>Time to first token ranks speed, because the runner records it. Time to first answer token is planned and is not on the default card.</li></ul>
+              <ul><li>Faithfulness, brand fit, and answer relevancy are judge metrics. They are the default quality terms. The jury is two judges when the run configures both.</li><li>Harmful compliance, over-refusal, and the advice boundary are judge risk gates on the default card.</li><li>Time to first token ranks speed. Time to first answer token stays planned and is not on the default card.</li></ul>
             </article>
             
             <article class="card">
@@ -367,15 +367,15 @@
               <p>A job writes product blurbs overnight. Editors read them in the morning. Copy must sound like the brand, must not name competitors, and must stay inside a character window. Monthly volume is known. Nobody is waiting on a token.</p>
               <table>
                 <tr><th>Always on</th><td>error_rate, truncation_rate, throttle_rate, cost_per_case_usd, cost_per_success_usd, tokens_out_per_case</td></tr>
-                <tr><th>Quality</th><td>rubric_score</td></tr>
+                <tr><th>Quality</th><td>tone_brand_fit, contains_none, length_within</td></tr>
                 <tr><th>First left out</th><td>—</td></tr>
                 <tr><th>Speed</th><td>none</td></tr>
                 <tr><th>Also timed</th><td>—</td></tr>
                 <tr><th>Risk gates</th><td>—</td></tr>
-                <tr><th>Task gates</th><td>error_rate &lt;= 0.05</td></tr>
+                <tr><th>Task gates</th><td>error_rate &lt;= 0.05, contains_none &gt;= 0.99, length_within &gt;= 0.99</td></tr>
                 <tr><th>Reported, not averaged</th><td>—</td></tr>
               </table>
-              <ul><li>Batch does not rank on latency. The speed weight in the product profile is zero.</li><li>Brand fit, banned strings, and the length window are planned. The default quality metric is rubric_score.</li><li>Cost per successful case is runner-measured and stays on the card. Monthly cost is planned, so a known volume does not add it unless include_planned is set.</li></ul>
+              <ul><li>Batch does not rank on latency. The speed weight in the product profile is zero.</li><li>Brand fit is a judge metric. Banned strings and the length window are implemented, and both are task gates as well as quality terms.</li><li>Cost per successful case is runner-measured and stays on the card. Monthly cost stays planned unless include_planned is set.</li></ul>
             </article>
             
             <article class="card">
@@ -384,15 +384,15 @@
               <p>An agent edits a repository through tools, runs the project&#x27;s tests, and may open a pull request. Several tool sequences can be legal. Arguments must match the tool schema before anything executes. Generated code can be merged, so insecure patterns matter. The team cares that a task succeeds every time, not once in eight samples.</p>
               <table>
                 <tr><th>Always on</th><td>error_rate, truncation_rate, throttle_rate, cost_per_case_usd, cost_per_success_usd, tokens_out_per_case</td></tr>
-                <tr><th>Quality</th><td>rubric_score</td></tr>
+                <tr><th>Quality</th><td>tool_call_correct, tool_choice_correct</td></tr>
                 <tr><th>First left out</th><td>—</td></tr>
                 <tr><th>Speed</th><td>e2e_ms</td></tr>
                 <tr><th>Also timed</th><td>—</td></tr>
-                <tr><th>Risk gates</th><td>—</td></tr>
-                <tr><th>Task gates</th><td>error_rate &lt;= 0.01, truncation_rate &lt;= 0.01</td></tr>
+                <tr><th>Risk gates</th><td>insecure_code_rate &lt;= 0.01</td></tr>
+                <tr><th>Task gates</th><td>error_rate &lt;= 0.01, truncation_rate &lt;= 0.01, tool_argument_schema_valid &gt;= 0.99</td></tr>
                 <tr><th>Reported, not averaged</th><td>—</td></tr>
               </table>
-              <ul><li>Tool-call match, tool choice, tests, and task success are planned. The default quality metric is rubric_score. Pass include_planned to restore them.</li><li>Argument-schema validity and pass^k are planned, so they are not on the default card.</li><li>Task wall time is planned. The runner records end-to-end latency, so that is the ranking speed metric until task time is measured.</li></ul>
+              <ul><li>Tool-call match and tool choice are implemented quality terms. Unit tests and task success stay planned: they need a sandbox or a finished task, not one output.</li><li>Argument-schema validity is a task gate. Insecure-code rate is a risk gate. pass^k stays planned because score() sees one output.</li><li>Task wall time is planned. The runner records end-to-end latency, so that is the ranking speed metric.</li></ul>
             </article>
             
             <article class="card">
@@ -401,15 +401,15 @@
               <p>An internal tool answers questions about a contract the firm uploaded. Answers must be supported by the retrieved clauses, must cite them, and must say when the contract is silent. Retrieval quality is in scope. The tool is not a public chatbot.</p>
               <table>
                 <tr><th>Always on</th><td>error_rate, truncation_rate, throttle_rate, cost_per_case_usd, cost_per_success_usd, tokens_out_per_case</td></tr>
-                <tr><th>Quality</th><td>rubric_score</td></tr>
-                <tr><th>First left out</th><td>—</td></tr>
+                <tr><th>Quality</th><td>faithfulness, citation_precision, citation_recall, unknown_abstention, context_recall</td></tr>
+                <tr><th>First left out</th><td>answer_relevancy, context_precision</td></tr>
                 <tr><th>Speed</th><td>ttft_ms</td></tr>
                 <tr><th>Also timed</th><td>—</td></tr>
                 <tr><th>Risk gates</th><td>—</td></tr>
-                <tr><th>Task gates</th><td>error_rate &lt;= 0.02</td></tr>
+                <tr><th>Task gates</th><td>error_rate &lt;= 0.02, faithfulness &gt;= 0.9</td></tr>
                 <tr><th>Reported, not averaged</th><td>—</td></tr>
               </table>
-              <ul><li>The research card is faithfulness, citations, abstention, and context recall. Those rows are planned, so the default quality metric is rubric_score.</li><li>Pass include_planned to restore that card. Answer relevancy is the first metric that does not fit its cap.</li><li>Hallucination rate stays off. It is the gate form of grounding, and it is not implemented.</li></ul>
+              <ul><li>Quality is faithfulness, citation precision, citation recall, unknown abstention, and context recall. Faithfulness is a judge metric and also a task gate at 0.9.</li><li>Answer relevancy is the first metric past the quality cap.</li><li>Hallucination rate stays off. It is the gate form of grounding, and faithfulness is already the measurement.</li></ul>
             </article>
             
 
