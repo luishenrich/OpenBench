@@ -87,8 +87,19 @@ def test_worked_scorecards():
     assert health["quality"] == ["field_accuracy", "json_schema_valid"]
     assert health["speed"]["ranking"] == "e2e_ms"
     assert health["risk_gates"] == []
-    assert [item["id"] for item in health["task_gates"]] == ["json_schema_valid"]
-    assert health["always_on"] == ["cost_per_case_usd", "cost_per_success_usd", "tokens_out_per_case"]
+    assert [item["id"] for item in health["task_gates"]] == [
+        "error_rate",
+        "truncation_rate",
+        "json_schema_valid",
+    ]
+    assert health["always_on"] == [
+        "error_rate",
+        "truncation_rate",
+        "throttle_rate",
+        "cost_per_case_usd",
+        "cost_per_success_usd",
+        "tokens_out_per_case",
+    ]
     assert "ttft_ms" not in health["quality"]
 
     chat = cards["fintech_support_chat"]
@@ -105,14 +116,14 @@ def test_worked_scorecards():
     agent = cards["coding_agent"]
     assert agent["quality"] == ["rubric_score"]
     assert "tool_argument_schema_valid" not in agent["quality"]
-    assert agent["task_gates"] == []
+    assert [item["id"] for item in agent["task_gates"]] == ["error_rate", "truncation_rate"]
     assert agent["reliability_extra"] == []
     assert agent["speed"]["ranking"] == "e2e_ms"
 
     legal = cards["legal_contract_rag"]
     assert legal["quality"] == ["rubric_score"]
     assert legal["quality_alternates"] == []
-    assert legal["task_gates"] == []
+    assert [item["id"] for item in legal["task_gates"]] == ["error_rate"]
     assert legal["speed"]["ranking"] == "ttft_ms"
 
 
@@ -235,7 +246,7 @@ def test_select_does_not_require_id_title_or_narrative():
     assert card["example_id"] == "brief"
     assert card["title"] == "classification"
     assert card["narrative"] == ""
-    assert card["quality"] == ["classification_accuracy"]
+    assert card["quality"] == ["classification_f1"]
     assert select({"kind": "classification", "include_planned": True})["quality"] == ["classification_f1"]
 
 

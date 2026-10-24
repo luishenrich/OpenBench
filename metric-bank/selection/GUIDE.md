@@ -12,7 +12,7 @@ Each row has `runtime_status`: `implemented` (`score()`), `judge` (`judge()`), `
 
 If the filter would leave quality empty, the selector fills it with an implemented metric for the kind (`field_accuracy` for extraction, `classification_accuracy` for classification) or `rubric_score`. `score()` raises for an id it does not implement. `None` still means the case has nothing to score, such as a missing reference.
 
-Runner-measured ids are `ttft_ms`, `e2e_ms`, `output_tps`, `tokens_in_per_case`, `tokens_out_per_case`, `cost_per_case_usd`, and `cost_per_success_usd`. `task_e2e_ms`, `ttfat_ms`, `monthly_cost_usd`, `error_rate`, `truncation_rate`, and `throttle_rate` are planned.
+Runner-measured ids are `ttft_ms`, `e2e_ms`, `output_tps`, `tokens_in_per_case`, `tokens_out_per_case`, `cost_per_case_usd`, `cost_per_success_usd`, `error_rate`, `truncation_rate`, `throttle_rate`, and `classification_f1` (macro F1 over a candidate's cases, not a per-case `score()`). `task_e2e_ms`, `ttfat_ms`, and `monthly_cost_usd` are planned.
 
 ## What you may put on a scorecard
 
@@ -90,7 +90,7 @@ Public exams are not in this table. MMLU, BIG-bench, GSM8K, HELM scenarios, and 
 
 ## Worked clients
 
-These are the default cards, runnable metrics only. Always-on metrics on every card are `cost_per_case_usd`, `cost_per_success_usd`, and `tokens_out_per_case`. `error_rate`, `truncation_rate`, and `throttle_rate` return with `include_planned`.
+These are the default cards, runnable metrics only. Always-on metrics on every card are `error_rate`, `truncation_rate`, `throttle_rate`, `cost_per_case_usd`, `cost_per_success_usd`, and `tokens_out_per_case`. `error_rate` is also a task gate.
 
 ### 1. Health insurer claim extraction (`health_claim_extraction`)
 
@@ -101,7 +101,7 @@ A claims platform extracts a fixed JSON object from an explanation-of-benefits p
 | Quality | `field_accuracy`, `json_schema_valid` |
 | Speed | `e2e_ms` |
 | Risk gate | none (`pii_leakage_rate` is planned) |
-| Task gates | `json_schema_valid` ≥ 0.99 |
+| Task gates | `error_rate` ≤ 0.01, `truncation_rate` ≤ 0.01, `json_schema_valid` ≥ 0.99 |
 
 `numeric_tolerance_accuracy` is the research metric for dollar fields. It is planned, so it is not on the default card. Schema validity is one measurement used two ways: the rate enters quality, and 0.99 disqualifies. Time to first token is the wrong speed metric because a partial object is not a result.
 
@@ -114,7 +114,7 @@ A streaming assistant answers account questions in the company's voice. A help-c
 | Quality | `rubric_score` |
 | Speed | `ttft_ms` |
 | Risk gates | none |
-| Task gate | none |
+| Task gate | `error_rate` ≤ 0.02 |
 
 `faithfulness`, `tone_brand_fit`, and `answer_relevancy` are the research quality metrics. They are planned, so the default slot is `rubric_score`. The research risk gates are `safety_violation`, `over_refusal`, and `non_advice_compliance`. `ttfat_ms` is planned and is not reported beside time to first token until the runner records it. Pass `include_planned` to restore that card.
 
@@ -127,7 +127,7 @@ A job writes product blurbs overnight. Copy must sound like the brand, must not 
 | Quality | `rubric_score` |
 | Speed | none |
 | Risk gates | none |
-| Task gates | none |
+| Task gates | `error_rate` ≤ 0.05 |
 | Also report | none (`monthly_cost_usd` is planned) |
 
 The product profile for batch puts no weight on speed. `tone_brand_fit`, `contains_none`, and `length_within` are planned. Rank on cost per success. Monthly cost comes back with `include_planned`.
@@ -141,7 +141,7 @@ An agent edits a repository through tools, runs tests, and may open a pull reque
 | Quality | `rubric_score` |
 | Speed | `e2e_ms` |
 | Risk gate | none |
-| Task gates | none |
+| Task gates | `error_rate` ≤ 0.01, `truncation_rate` ≤ 0.01 |
 | Reliability, not quality | none |
 
 `tool_call_correct`, `tool_choice_correct`, `code_tests_pass`, and `agent_task_success` are planned. `task_e2e_ms`, `tool_argument_schema_valid`, `insecure_code_rate`, and `pass_hat_k` are planned too. The runner records end-to-end latency, so that is the ranking speed metric. Pass `include_planned` for the research card.
@@ -156,7 +156,7 @@ An internal tool answers questions about a contract the firm uploaded. Answers m
 | First alternate, over the cap | none on the default card |
 | Speed | `ttft_ms` |
 | Risk gates | none |
-| Task gates | none |
+| Task gates | `error_rate` ≤ 0.02 |
 
 With `include_planned`, quality is `faithfulness`, `citation_precision`, `citation_recall`, `unknown_abstention`, and `context_recall`, and the first alternate is `answer_relevancy`. Hallucination rate is the gate form of the same grounding construct and is not added beside faithfulness.
 
@@ -169,7 +169,7 @@ You are choosing a benchmark scorecard from the BIY metric bank. Return only ids
 
 By default return only rows whose runtime_status is implemented, judge, or runner_measured. Planned rows stay off the card unless the brief sets include_planned. If that leaves quality empty, use field_accuracy for extraction, classification_accuracy for classification, or rubric_score.
 
-Include the runnable always-on metrics (cost_per_case_usd, cost_per_success_usd, tokens_out_per_case). Pick one speed metric the runner measures (ttft_ms or e2e_ms), or none for batch. Pick one to five quality metrics whose utility_axis is quality and whose runtime_status is runnable. Pick risk and task gates only when those ids are runnable, unless include_planned is set.
+Include the runnable always-on metrics (error_rate, truncation_rate, throttle_rate, cost_per_case_usd, cost_per_success_usd, tokens_out_per_case). error_rate is always a task gate. Pick one speed metric the runner measures (ttft_ms or e2e_ms), or none for batch. Pick one to five quality metrics whose utility_axis is quality and whose runtime_status is runnable. For classification that is classification_f1. Pick risk and task gates only when those ids are runnable, unless include_planned is set.
 
 Do not select a metric marked avoid_as_primary as the quality score. Do not select a gate_form as a quality metric when the primary of that construct is already selected. Do not select two metrics from a double_count group. Do not select more than one of rubric_score and g_eval. Do not select pairwise_vs_baseline without a baseline. Do not select a metric whose required inputs the client cannot provide. Do not treat a public exam as a metric.
 

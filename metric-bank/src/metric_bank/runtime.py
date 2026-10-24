@@ -8,9 +8,9 @@ implemented
 judge
     judge() computes the id. score() does not.
 runner_measured
-    The runner records it from stream timing, usage, or cost
-    (contract/services.md: "stream each call → timing, usage, cost").
-    score() does not recompute it.
+    Computed from result rows outside score(): stream timing, usage, cost,
+    reliability rates, or a set-level score such as classification_f1.
+    score() does not recompute it per case.
 planned
     Everything else. In the bank, off the default scorecard.
 """
@@ -40,8 +40,9 @@ JUDGE = frozenset({"rubric_score", "pairwise_vs_baseline"})
 # timing: ttft_ms, e2e_ms, tokens_per_s (output_tps).
 # usage: prompt tokens (tokens_in_per_case), completion tokens (tokens_out_per_case).
 # cost: cost_per_case_usd and cost_per_success_usd.
-# task_e2e_ms, ttfat_ms, monthly_cost_usd, and the reliability rates are planned:
-# the runner comment does not record them.
+# reliability: error_rate, truncation_rate (finish_reason length), throttle_rate (HTTP 429).
+# classification_f1 is set-level (macro F1 over a candidate's cases), not a per-case score().
+# task_e2e_ms, ttfat_ms, and monthly_cost_usd stay planned.
 RUNNER_MEASURED = frozenset(
     {
         "ttft_ms",
@@ -51,6 +52,10 @@ RUNNER_MEASURED = frozenset(
         "tokens_out_per_case",
         "cost_per_case_usd",
         "cost_per_success_usd",
+        "error_rate",
+        "truncation_rate",
+        "throttle_rate",
+        "classification_f1",
     }
 )
 
