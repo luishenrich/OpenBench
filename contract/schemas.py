@@ -100,7 +100,7 @@ class WorkspacePatch(BaseModel):
 
 class Me(BaseModel):
     user_id: UUID
-    email: str
+    email: str | None  # with a workspace key: the owner's email (first member), null if unknown
     workspace: Workspace
     mcp_key_last4: str | None
 
