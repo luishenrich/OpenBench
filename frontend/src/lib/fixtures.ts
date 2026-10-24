@@ -5,12 +5,11 @@ import estimateJson from '@fixtures/estimate.json'
 import meJson from '@fixtures/me.json'
 import metricsJson from '@fixtures/metrics.json'
 import modelsJson from '@fixtures/models.json'
-import resultsJson from '@fixtures/results.json'
 import runDoneJson from '@fixtures/run_done.json'
 import runRunningJson from '@fixtures/run_running.json'
 import useCasesJson from '@fixtures/use_cases.json'
 import type {
-  Case, CaseIn, CasePatch, CatalogModel, GenerateCasesIn, Estimate, Me, MetricInfo, ResultsPage, Run, RunBrief, RunIn, UseCase, UseCasePatch,
+  Case, CaseIn, CasePatch, CatalogModel, GenerateCasesIn, Estimate, Me, MetricInfo, ResultOut, ResultsPage, Run, RunBrief, RunIn, UseCase, UseCasePatch,
 } from '@/types'
 import type { Workspace, WorkspacePatch } from '@/types'
 
@@ -157,10 +156,33 @@ function visibleUseCases(): UseCase[] {
 const runDone: Run = (() => {
   const run = clone(runDoneJson) as unknown as Run
   run.progress = { ...run.progress, judged: run.progress.total, judge_total: run.progress.total }
+  // the contract fixture's actual cost predates the jury; with jurors the run costs more than the models alone
+  run.actual_cost_usd = 0.58
+  run.est_cost_usd = 0.74
   return run
 })()
+// "Detect the document language" (fx-run-4): one format metric, every model 100%, so quality can't separate them.
+function flatRun(run: Run): Run {
+  const one = { mean: 1, std: 0, ci_low: 1, ci_high: 1 }
+  run.leaderboard = run.leaderboard.map((c) => ({
+    ...c, quality: { ...c.quality, ...one }, metrics: { json_schema_valid: { ...one, n: c.n } }, passed_gates: true, failed_gates: [],
+  }))
+  run.pareto_points = run.pareto_points.map((p) => ({ ...p, quality: 1 }))
+  run.progress = { ...run.progress, judged: 0, judge_total: 0 }
+  run.judge_agreement = null
+  run.actual_cost_usd = 0.43
+  if (run.recommendation) {
+    run.recommendation = {
+      ...run.recommendation,
+      headline: "Switch to GLM-5.3-Flash: same valid JSON as GPT-6.1 Sol at 1/21 of the cost",
+      quality_vs_reference_pct: 100,
+      reasons: ['Passes every gate (schema valid 100%, no errors)', 'Quality 1.000 vs 1.000 for GPT-6.1 Sol', 'p95 latency 2.8 s vs 5.3 s for GPT-6.1 Sol', 'Every candidate ties on quality; ranked by cost and latency'],
+    }
+  }
+  return run
+}
+const FLAT_RUNS = new Set(['fx-run-4'])
 const runRunning = runRunningJson as unknown as Run
-const results = clone(resultsJson) as unknown as ResultsPage
 const PLAYBACK_MS = 20_000
 const started = new Map<string, number>() // run id → playback start
 
@@ -168,14 +190,15 @@ function playback(id: string, useCaseId: string): Run {
   const t0 = started.get(id) ?? Date.now()
   started.set(id, t0)
   const f = Math.min(1, (Date.now() - t0) / PLAYBACK_MS)
-  if (f >= 1) return { ...clone(runDone), id, use_case_id: useCaseId }
+  if (f >= 1) return { ...clone(runDone), id, use_case_id: useCaseId, started_at: new Date(t0).toISOString(), finished_at: new Date(t0 + PLAYBACK_MS).toISOString() }
   const total = runDone.progress.total
   const done = Math.round(total * f)
   // partial leaderboard: same rows, n grows, recommendation withheld until done
   const leaderboard = f < 0.15 ? [] : clone(runDone.leaderboard).map((c) => ({
     ...c,
     n: Math.round(c.n * f),
-    quality: { ...c.quality, n: Math.round(c.n * f), ci_low: c.quality.ci_low - 0.04 * (1 - f), ci_high: Math.min(1, c.quality.ci_high + 0.04 * (1 - f)) },
+    // the jury scores after the calls: in the first half nothing has a quality yet
+    quality: f < 0.45 ? { mean: 0, std: 0, ci_low: 0, ci_high: 0, n: 0 } : { ...c.quality, n: Math.round(c.n * f), ci_low: c.quality.ci_low - 0.04 * (1 - f), ci_high: Math.min(1, c.quality.ci_high + 0.04 * (1 - f)) },
     rank: null,
   }))
   return {
@@ -185,13 +208,80 @@ function playback(id: string, useCaseId: string): Run {
     status: 'running',
     candidates: clone(runDone.candidates),
     references: clone(runDone.references),
-    progress: { ...runRunning.progress, done, total, errors: f > 0.5 ? 1 : 0, judged: Math.round(done * 0.9), judge_total: total },
+    progress: { ...runRunning.progress, done, total, errors: f > 0.5 ? 1 : 0, judged: f < 0.45 ? 0 : Math.round(done * 0.9), judge_total: total },
     leaderboard,
     pareto_points: f < 0.15 ? [] : clone(runDone.pareto_points),
     recommendation: null,
+    created_at: new Date(t0).toISOString(),
+    started_at: new Date(t0).toISOString(),
+    actual_cost_usd: runDone.actual_cost_usd * f,
+    est_cost_usd: runDone.est_cost_usd,
     finished_at: null,
   }
 }
+
+// Every case × candidate × repeat of a run, built from the case's expected output: weaker models drop or
+// garble a field now and then, one call times out. Deterministic, so screenshots are stable.
+const resultCache = new Map<string, ResultOut[]>()
+function hash(str: string) {
+  let h = 2166136261
+  for (const ch of str) h = Math.imul(h ^ ch.charCodeAt(0), 16777619)
+  h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16
+  return (h >>> 0) / 4294967296
+}
+const SKILL: Record<string, number> = { 'GLM-5.3-Flash': 0.9, 'DeepSeek-V4.1-Flash-1017': 0.92, 'mimo-v2.6-pro': 0.93, 'gpt-oss-120b': 0.82, 'MiniMax-M3.1-Flash': 0.7, 'gpt-6.1-sol': 0.97, 'gpt-6-luna': 0.88 }
+function resultsFor(runId: string): ResultOut[] {
+  if (resultCache.has(runId)) return resultCache.get(runId)!
+  const ucId = runId === runDone.id ? runDone.use_case_id : useCases.find((u) => u.latest_run?.id === runId)?.id ?? runDone.use_case_id
+  const uc = useCases.find((u) => u.id === ucId)
+  const flat = FLAT_RUNS.has(runId)
+  const judged = !flat && !!uc?.metrics.some((m) => m.metric_id === 'rubric_score' || m.metric_id === 'llm_judge')
+  const out: ResultOut[] = []
+  let n = 0
+  for (const c of cases.filter((x) => x.use_case_id === ucId)) {
+    for (const cand of runDone.leaderboard) {
+      for (let rep = 0; rep < 3; rep++) {
+        const seed = hash(`${c.id}|${cand.candidate_key}|${rep}`)
+        const skill = flat ? 1 : SKILL[cand.model.split('/').pop()!] ?? 0.85
+        const ok = seed < skill
+        const timeout = !flat && cand.model.endsWith('gpt-oss-120b') && c.id.endsWith('102') && rep === 1
+        const ref = c.reference && typeof c.reference === 'object' ? (c.reference as Record<string, unknown>) : null
+        let json: unknown = ref ? { ...ref } : { language: 'en', confidence: Number((0.9 + seed * 0.09).toFixed(2)) }
+        if (ref && !ok) {
+          const keys = Object.keys(ref)
+          const k = keys[Math.floor(seed * 97) % keys.length]
+          json = { ...ref, [k]: typeof ref[k] === 'number' ? Math.round((ref[k] as number) * 1.1) : `${String(ref[k]).slice(0, 4)}…` }
+        }
+        const fieldAcc = ref ? (ok ? 1 : 0.8) : 1
+        const scores: Record<string, number> = flat ? { json_schema_valid: 1 } : { json_schema_valid: seed < 0.97 || skill > 0.9 ? 1 : 0, field_accuracy: fieldAcc }
+        const e2e = Math.round((cand.e2e_ms.p50 || 1500) * (0.75 + seed * 0.6))
+        const r: ResultOut = {
+          id: `fx-res-${runId}-${n++}`, candidate_key: cand.candidate_key, case_id: c.id, repeat_idx: rep,
+          output: timeout ? {} : { json, text: JSON.stringify(json) },
+          timing: { ttft_ms: Math.round(e2e * 0.25), e2e_ms: timeout ? 30000 : e2e, tokens_per_s: cand.tokens_per_s },
+          usage: {}, cost_usd: timeout ? null : Number((cand.cost_per_call_usd * (0.8 + seed * 0.4)).toPrecision(2)),
+          error: timeout ? 'timeout after 30 s' : null, scores: timeout ? {} : scores, judge: null,
+        }
+        if (judged && !timeout) {
+          const fam = cand.model.split('/')[0]
+          const jurors = DEFAULT_JURORS.filter((j) => j.split('/')[0] !== fam)
+          const base = ok ? 0.9 : 0.6
+          const js = jurors.map((j, i) => ({
+            key: j, reasoning_effort: i < 2 ? 'low' : 'default', score: Math.min(1, Number((base + ((seed * (i + 3)) % 0.1)).toFixed(2))),
+            reasoning: ok ? 'All five fields match the invoice text; date normalised to ISO and the total parsed with the right decimal separator.' : 'One field does not match the source text, so the extraction would need a manual fix.',
+          }))
+          const mean = js.reduce((a, j) => a + (j.score ?? 0), 0) / js.length
+          r.scores.rubric_score = Number(mean.toFixed(2))
+          r.judge = { mode: 'rubric', score: r.scores.rubric_score, agreement: js.every((j) => Math.abs((j.score ?? 0) - mean) < 0.1), abstained: DEFAULT_JURORS.filter((j) => j.split('/')[0] === fam), jurors: js }
+        }
+        out.push(r)
+      }
+    }
+  }
+  resultCache.set(runId, out)
+  return out
+}
+const DEFAULT_JURORS = ['openai/gpt-6-luna', 'deepseek-ai/DeepSeek-V4.1-Flash-1017', 'zai-org/GLM-5.3']
 
 function findUseCase(id: string): UseCase {
   const uc = useCases.find((u) => u.id === id)
@@ -289,7 +379,10 @@ const unslowed: typeof import('./api').api = {
     if (id === runDone.id) return wait(runDone)
     const uc = useCases.find((u) => u.latest_run?.id === id)
     // finished runs of the extra use cases replay the finished fixture instead of starting a playback
-    if (uc && !started.has(id) && uc.latest_run?.status === 'done') return wait({ ...clone(runDone), id, use_case_id: uc.id })
+    if (uc && !started.has(id) && uc.latest_run?.status === 'done') {
+      const r = { ...clone(runDone), id, use_case_id: uc.id }
+      return wait(FLAT_RUNS.has(id) ? flatRun(r) : r)
+    }
     const run = playback(id, uc?.id ?? runDone.use_case_id)
     if (uc && run.status === 'done') {
       uc.latest_run = {
@@ -301,8 +394,10 @@ const unslowed: typeof import('./api').api = {
     return wait(run, 120)
   },
   cancelRun: async (id: string) => wait({ ...playback(id, runDone.use_case_id), status: 'cancelled' as const }),
-  results: (_id: string, _params: { candidate_key?: string; case_id?: string; cursor?: string } = {}) =>
-    wait(results),
+  results: (id: string, params: { candidate_key?: string; case_id?: string; cursor?: string } = {}) => {
+    const items = resultsFor(id).filter((r) => (!params.case_id || r.case_id === params.case_id) && (!params.candidate_key || r.candidate_key === params.candidate_key))
+    return wait<ResultsPage>({ items: items.slice(0, 50), next_cursor: items.length > 50 ? 'more' : null })
+  },
 }
 
 export const fixtureApi = Object.fromEntries(Object.entries(unslowed).map(([name, fn]) => [name, async (...args: unknown[]) => {
