@@ -1,0 +1,303 @@
+{
+  "id": "25399d5d-0be3-4acc-bd62-d70796310bc7",
+  "use_case_id": "80d110b7-6aa7-4991-8ff7-aedfb4152094",
+  "status": "done",
+  "progress": {
+    "done": 16,
+    "total": 16,
+    "errors": 0,
+    "judged": 16,
+    "judge_total": 16
+  },
+  "candidates": [
+    {
+      "provider": "openrouter",
+      "model": "xiaomi/mimo-v2.6-pro",
+      "params": {
+        "reasoning_effort": "medium"
+      }
+    },
+    {
+      "provider": "nebius",
+      "model": "deepseek-ai/DeepSeek-V4-Pro-0813",
+      "params": {}
+    }
+  ],
+  "references": [
+    {
+      "provider": "openrouter",
+      "model": "openai/gpt-6.1-sol",
+      "params": {
+        "reasoning_effort": "medium"
+      }
+    },
+    {
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna",
+      "params": {
+        "reasoning_effort": "medium"
+      }
+    }
+  ],
+  "repeats": 1,
+  "est_cost_usd": 0.05451,
+  "actual_cost_usd": 0.011274,
+  "judge_agreement": 0.0,
+  "created_at": "2026-10-24T12:41:41.697792Z",
+  "started_at": "2026-10-24T12:41:42.614143Z",
+  "finished_at": "2026-10-24T12:42:03.122341Z",
+  "error": null,
+  "leaderboard": [
+    {
+      "candidate_key": "openrouter:xiaomi/mimo-v2.6-pro@medium",
+      "provider": "openrouter",
+      "model": "xiaomi/mimo-v2.6-pro",
+      "is_reference": false,
+      "reference_label": null,
+      "reasoning_effort": "medium",
+      "avg_reasoning_tokens": 34.2,
+      "n": 4,
+      "quality": {
+        "mean": 0.825,
+        "std": 0.04999999999999999,
+        "ci_low": 0.775,
+        "ci_high": 0.85,
+        "n": 4
+      },
+      "metrics": {
+        "rubric_score": {
+          "mean": 0.825,
+          "std": 0.04999999999999999,
+          "ci_low": 0.775,
+          "ci_high": 0.85,
+          "n": 4
+        }
+      },
+      "ttft_ms": {
+        "p50": 1547.1,
+        "p95": 1737.35
+      },
+      "e2e_ms": {
+        "p50": 3573.8,
+        "p95": 3913.16
+      },
+      "tokens_per_s": 48.9,
+      "cost_per_call_usd": 0.00010549,
+      "cost_per_success_usd": 0.00012786,
+      "error_rate": 0.0,
+      "scores": {
+        "quality": 0.825,
+        "speed": 0.4446,
+        "cost": 1.0,
+        "utility": 0.7577
+      },
+      "passed_gates": true,
+      "failed_gates": [],
+      "pareto": true,
+      "rank": 1
+    },
+    {
+      "candidate_key": "nebius:deepseek-ai/DeepSeek-V4-Pro-0813",
+      "provider": "nebius",
+      "model": "deepseek-ai/DeepSeek-V4-Pro-0813",
+      "is_reference": false,
+      "reference_label": null,
+      "reasoning_effort": "default",
+      "avg_reasoning_tokens": 70.0,
+      "n": 4,
+      "quality": {
+        "mean": 0.675,
+        "std": 0.20615528128088306,
+        "ci_low": 0.5,
+        "ci_high": 0.8500000000000001,
+        "n": 4
+      },
+      "metrics": {
+        "rubric_score": {
+          "mean": 0.675,
+          "std": 0.20615528128088306,
+          "ci_low": 0.5,
+          "ci_high": 0.8500000000000001,
+          "n": 4
+        }
+      },
+      "ttft_ms": {
+        "p50": 580.5,
+        "p95": 772.505
+      },
+      "e2e_ms": {
+        "p50": 1309.15,
+        "p95": 1465.0349999999999
+      },
+      "tokens_per_s": 163.8,
+      "cost_per_call_usd": 0.00059532,
+      "cost_per_success_usd": 0.00088196,
+      "error_rate": 0.0,
+      "scores": {
+        "quality": 0.675,
+        "speed": 1.0,
+        "cost": 0.1772,
+        "utility": 0.5588
+      },
+      "passed_gates": true,
+      "failed_gates": [],
+      "pareto": true,
+      "rank": 2
+    },
+    {
+      "candidate_key": "openrouter:openai/gpt-6-luna@medium",
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna",
+      "is_reference": true,
+      "reference_label": "GPT-6 Luna",
+      "reasoning_effort": "medium",
+      "avg_reasoning_tokens": 75.2,
+      "n": 4,
+      "quality": {
+        "mean": 1.0,
+        "std": 0.0,
+        "ci_low": 1.0,
+        "ci_high": 1.0,
+        "n": 4
+      },
+      "metrics": {
+        "rubric_score": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci_low": 1.0,
+          "ci_high": 1.0,
+          "n": 4
+        }
+      },
+      "ttft_ms": {
+        "p50": 2292.7,
+        "p95": 2483.53
+      },
+      "e2e_ms": {
+        "p50": 3164.1,
+        "p95": 3339.89
+      },
+      "tokens_per_s": 241.9,
+      "cost_per_call_usd": 6.565e-05,
+      "cost_per_success_usd": 6.565e-05,
+      "error_rate": 0.0,
+      "scores": {
+        "quality": 1.0,
+        "speed": 0.3111,
+        "cost": 1.0,
+        "utility": 0.7917
+      },
+      "passed_gates": true,
+      "failed_gates": [],
+      "pareto": false,
+      "rank": null
+    },
+    {
+      "candidate_key": "openrouter:openai/gpt-6.1-sol@medium",
+      "provider": "openrouter",
+      "model": "openai/gpt-6.1-sol",
+      "is_reference": true,
+      "reference_label": "GPT-6.1 Sol",
+      "reasoning_effort": "medium",
+      "avg_reasoning_tokens": 41.5,
+      "n": 4,
+      "quality": {
+        "mean": 0.925,
+        "std": 0.15000000000000002,
+        "ci_low": 0.7749999999999999,
+        "ci_high": 1.0,
+        "n": 4
+      },
+      "metrics": {
+        "rubric_score": {
+          "mean": 0.925,
+          "std": 0.15000000000000002,
+          "ci_low": 0.7749999999999999,
+          "ci_high": 1.0,
+          "n": 4
+        }
+      },
+      "ttft_ms": {
+        "p50": 1858.35,
+        "p95": 4438.594999999998
+      },
+      "e2e_ms": {
+        "p50": 2521.3999999999996,
+        "p95": 4859.234999999999
+      },
+      "tokens_per_s": 189.7,
+      "cost_per_call_usd": 0.000933,
+      "cost_per_success_usd": 0.00100865,
+      "error_rate": 0.0,
+      "scores": {
+        "quality": 0.925,
+        "speed": 0.174,
+        "cost": 0.1131,
+        "utility": 0.435
+      },
+      "passed_gates": true,
+      "failed_gates": [],
+      "pareto": false,
+      "rank": null
+    }
+  ],
+  "pareto_points": [
+    {
+      "candidate_key": "openrouter:xiaomi/mimo-v2.6-pro@medium",
+      "label": "mimo-v2.6-pro",
+      "quality": 0.825,
+      "cost_per_success_usd": 0.00012786363636363635,
+      "latency_ms": 1737.35,
+      "is_reference": false,
+      "pareto": true
+    },
+    {
+      "candidate_key": "nebius:deepseek-ai/DeepSeek-V4-Pro-0813",
+      "label": "DeepSeek-V4-Pro-0813",
+      "quality": 0.675,
+      "cost_per_success_usd": 0.0008819555555555555,
+      "latency_ms": 772.505,
+      "is_reference": false,
+      "pareto": true
+    },
+    {
+      "candidate_key": "openrouter:openai/gpt-6.1-sol@medium",
+      "label": "GPT-6.1 Sol",
+      "quality": 0.925,
+      "cost_per_success_usd": 0.0010086486486486487,
+      "latency_ms": 4438.594999999998,
+      "is_reference": true,
+      "pareto": false
+    },
+    {
+      "candidate_key": "openrouter:openai/gpt-6-luna@medium",
+      "label": "GPT-6 Luna",
+      "quality": 1.0,
+      "cost_per_success_usd": 6.565e-05,
+      "latency_ms": 2483.53,
+      "is_reference": true,
+      "pareto": false
+    }
+  ],
+  "recommendation": {
+    "candidate_key": "openrouter:xiaomi/mimo-v2.6-pro@medium",
+    "provider": "openrouter",
+    "model": "xiaomi/mimo-v2.6-pro",
+    "headline": "Switch to mimo-v2.6-pro: 82% of GPT-6 Luna's quality at 1.6× the cost",
+    "reasons": [
+      "Passes every gate",
+      "Quality 0.825 vs 1.000 for GPT-6 Luna",
+      "p95 latency 1.7 s vs 2.5 s for GPT-6 Luna",
+      "Statistical tie on quality with DeepSeek-V4-Pro-0813; ranked by the trade-off profile",
+      "Low judge agreement (0%): check the judged scores by hand"
+    ],
+    "reference_key": "openrouter:openai/gpt-6-luna@medium",
+    "quality_vs_reference_pct": 82.5,
+    "cost_multiple_vs_reference": 1.6068,
+    "latency_delta_ms": -746.2,
+    "statistical_tie_with": [
+      "nebius:deepseek-ai/DeepSeek-V4-Pro-0813"
+    ],
+    "est_monthly_savings_usd": null
+  }
+}

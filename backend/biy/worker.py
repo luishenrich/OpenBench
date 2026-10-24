@@ -13,12 +13,13 @@ from uuid import UUID
 
 from arq.connections import RedisSettings
 
-from contract.schemas import IOSpec
+from contract.schemas import IOSpec, JudgeConfig
 
 from . import db, ranking, scoring
 from .config import settings
 from .providers import CallResult, ProviderClient, build_messages, response_format
 from .providers.client import strip_think
+from .providers.references import family
 
 log = logging.getLogger("biy.worker")
 
@@ -63,9 +64,9 @@ async def execute_run(ctx, run_id: str) -> None:
     metric_specs = uc.get("metrics") or []
     cases = await db.fetch("select id, input, reference from test_case where use_case_id = $1 order by created_at, id",
                            run["use_case_id"])
-    refs = list(snap["candidates"]) + ([snap["baseline"]] if snap.get("baseline") else [])
-    baseline_key = ranking.candidate_key(snap["baseline"]["provider"], snap["baseline"]["model"]) \
-        if snap.get("baseline") else None
+    references = ranking.references_of(snap)
+    refs = list(snap["candidates"]) + references
+    reference_keys = {ranking.key_of(r) for r in references}
 
     done = {(r["candidate_key"], r["case_id"], r["repeat_idx"]) for r in await db.fetch(
         "select candidate_key, case_id, repeat_idx from result where run_id = $1", rid)}
@@ -84,7 +85,7 @@ async def execute_run(ctx, run_id: str) -> None:
     async def one(ref: dict, case: dict, rep: int) -> None:
         if cancelled.is_set():
             return
-        key = ranking.candidate_key(ref["provider"], ref["model"])
+        key = ranking.key_of(ref)
         try:
             res = await _client(ref["provider"], clients).chat(
                 ref["model"], build_messages(io, case["input"]),
@@ -102,7 +103,7 @@ async def execute_run(ctx, run_id: str) -> None:
                                    cost_usd, error, scores)
                values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                on conflict (run_id, candidate_key, case_id, repeat_idx) do nothing""",
-            rid, key, key == baseline_key, case["id"], rep, res.output(), res.timing(), res.usage or {},
+            rid, key, key in reference_keys, case["id"], rep, res.output(), res.timing(), res.usage or {},
             res.cost_usd, res.error, scores)
         if res.cost_usd:
             await db.execute("update run set actual_cost_usd = actual_cost_usd + $2 where id = $1", rid, res.cost_usd)
@@ -110,18 +111,20 @@ async def execute_run(ctx, run_id: str) -> None:
     watcher = asyncio.create_task(watch_cancel())
     try:
         jobs = [one(ref, case, rep) for ref in refs for case in cases for rep in range(run["repeats"])
-                if (ranking.candidate_key(ref["provider"], ref["model"]), case["id"], rep) not in done]
+                if (ranking.key_of(ref), case["id"], rep) not in done]
         log.info("run %s: %d calls (%d already done)", run_id, len(jobs), len(done))
         await asyncio.gather(*jobs)
         if not cancelled.is_set():
-            await _judge_pass(rid, snap, io_spec, cases, baseline_key, clients, cancelled)
+            await _judge_pass(rid, snap, io_spec, cases, clients, cancelled)
         if cancelled.is_set():
             log.info("run %s cancelled", run_id)
             return
-        from .services.runs import RANKING_RESULTS_SQL
+        from .services.runs import RANKING_RESULTS_SQL, judge_agreement
         results = await db.fetch(RANKING_RESULTS_SQL, rid)
-        summary = ranking.build(results, snap, done=True)
+        agreement = judge_agreement(results)
+        summary = ranking.build(results, snap, done=True, judge_agreement=agreement)
         summary = {
+            "judge_agreement": agreement,
             "leaderboard": [c.model_dump(mode="json") for c in summary["leaderboard"]],
             "pareto_points": [p.model_dump(mode="json") for p in summary["pareto_points"]],
             "recommendation": summary["recommendation"].model_dump(mode="json") if summary["recommendation"] else None,
@@ -141,9 +144,29 @@ async def execute_run(ctx, run_id: str) -> None:
             await c.aclose()
 
 
-async def _judge_pass(rid: UUID, snap: dict, io_spec: IOSpec, cases: list[dict], baseline_key: str | None,
+AGREE_WITHIN = 0.25  # rubric: two jurors agree when their 0–1 scores are this close
+
+
+def _jury_rubric(scores: list[float]) -> tuple[float, bool | None]:
+    agree = (max(scores) - min(scores) <= AGREE_WITHIN) if len(scores) >= 2 else None
+    return sum(scores) / len(scores), agree
+
+
+def _jury_pairwise(winners: list[str]) -> tuple[float, str, bool | None]:
+    """A win counts only if every non-abstaining juror (each already both orders) agrees."""
+    agree = (len(set(winners)) == 1) if len(winners) >= 2 else None
+    w = winners[0] if len(set(winners)) == 1 else "tie"
+    return {"candidate": 1.0, "baseline": 0.0}.get(w, 0.5), w, agree
+
+
+async def _judge_pass(rid: UUID, snap: dict, io_spec: IOSpec, cases: list[dict],
                       clients: dict[str, ProviderClient], cancelled: asyncio.Event) -> None:
-    """Score judge metrics (rubric, pairwise vs baseline) with the run's judge model."""
+    """Judge metrics with the run's jury (contract JudgeConfig).
+
+    Rubric: every output (candidates and references), score = mean of the jurors.
+    Pairwise: candidates against the pairwise reference (the first reference).
+    A juror abstains on outputs from its own model family (and, pairwise, on the reference's).
+    """
     judge_specs = [m for m in snap["use_case"].get("metrics") or [] if scoring.is_judge_metric(m["metric_id"])]
     if not judge_specs:
         return
@@ -152,45 +175,72 @@ async def _judge_pass(rid: UUID, snap: dict, io_spec: IOSpec, cases: list[dict],
                     [m["metric_id"] for m in judge_specs])
         return
     await db.execute("update run set status = 'scoring' where id = $1", rid)
-    judge_cfg = snap["judge"]
-    judge_client = _client(judge_cfg["provider"], clients)
+    judge_cfg = JudgeConfig(**snap["judge"])
+    by_key = {ranking.key_of(r): r for r in list(snap["candidates"]) + ranking.references_of(snap)}
+    pair_key = snap.get("pairwise_reference") or next((ranking.key_of(r) for r in ranking.references_of(snap)), None)
     case_by_id = {c["id"]: c for c in cases}
     rows = await db.fetch("""select id, candidate_key, case_id, repeat_idx, output, scores from result
                              where run_id = $1 and error is null and judge is null""", rid)
-    baseline_out = {(r["case_id"], r["repeat_idx"]): r["output"] for r in rows if r["candidate_key"] == baseline_key}
-    judge_total = sum(1 for r in rows if r["candidate_key"] != baseline_key)
-    await db.execute("update run set summary = $2 where id = $1", rid, {"judge_total": judge_total})
+    pair_out = {(r["case_id"], r["repeat_idx"]): r["output"] for r in rows if r["candidate_key"] == pair_key}
+    await db.execute("update run set summary = $2 where id = $1", rid, {"judge_total": len(rows)})
 
-    async def call_llm(messages: list[dict]) -> str:
-        res = await judge_client.chat(judge_cfg["model"], messages, params={"temperature": 0})
-        if not res.ok:
-            raise RuntimeError(res.error)
-        if res.cost_usd:
-            await db.execute("update run set actual_cost_usd = actual_cost_usd + $2 where id = $1", rid, res.cost_usd)
-        return res.text
+    def juror_call(j):
+        async def call_llm(messages: list[dict]) -> str:
+            res = await _client(j.provider, clients).chat(j.model, messages, params=dict(j.params))
+            if not res.ok:
+                raise RuntimeError(res.error)
+            if res.cost_usd:
+                await db.execute("update run set actual_cost_usd = actual_cost_usd + $2 where id = $1",
+                                 rid, res.cost_usd)
+            return res.text
+        return call_llm
+
+    jurors = [(j, ranking.candidate_key(j.provider, j.model, j.params), juror_call(j)) for j in judge_cfg.judges]
 
     def view(o: dict | None) -> scoring.OutputView | None:
         return scoring.OutputView(strip_think(o.get("text") or ""), o.get("json"), o.get("tool_calls")) if o else None
 
     async def one(r: dict) -> None:
-        if cancelled.is_set() or r["candidate_key"] == baseline_key:
+        if cancelled.is_set():
             return
+        model = (by_key.get(r["candidate_key"]) or {}).get("model", r["candidate_key"].split(":", 1)[-1])
         case = case_by_id[r["case_id"]]
         cv = scoring.CaseView(case["input"], case["reference"], io_spec)
         scores, judge_info = dict(r["scores"] or {}), None
         for m in judge_specs:
-            base = view(baseline_out.get((r["case_id"], r["repeat_idx"])))
-            if m["metric_id"] == "pairwise_vs_baseline" and base is None:
+            pairwise = m["metric_id"] == "pairwise_vs_baseline"
+            opponent = view(pair_out.get((r["case_id"], r["repeat_idx"]))) if pairwise else None
+            if pairwise and (opponent is None or r["candidate_key"] == pair_key or r["candidate_key"] not in by_key
+                             or r["candidate_key"] in {ranking.key_of(x) for x in ranking.references_of(snap)}):
                 continue
-            cfg = {**(m.get("config") or {}), "mode": judge_cfg.get("mode"), "rubric": judge_cfg.get("rubric")}
-            try:
-                jr = await scoring.judge(m["metric_id"], cv, view(r["output"]), base, cfg, call_llm)
-            except Exception as e:
-                log.warning("judge %s failed on result %s: %s", m["metric_id"], r["id"], e)
+            own = {family(model)} | ({family(by_key[pair_key]["model"])} if pairwise and pair_key in by_key else set())
+            cfg = {**(m.get("config") or {}), "mode": judge_cfg.mode, "rubric": judge_cfg.rubric}
+            votes, abstained = [], []
+            for j, jkey, call in jurors:
+                if family(j.model) in own:
+                    abstained.append(jkey)
+                    continue
+                try:
+                    jr = await scoring.judge(m["metric_id"], cv, view(r["output"]), opponent, cfg, call)
+                except Exception as e:
+                    log.warning("juror %s failed on result %s: %s", jkey, r["id"], e)
+                    continue
+                votes.append({"key": jkey, "reasoning_effort": j.params.get("reasoning_effort"),
+                              "score": float(jr.score), "reasoning": jr.reasoning,
+                              "winner": getattr(jr, "winner", None)})
+            if not votes:
+                judge_info = {"mode": m["metric_id"], "score": None, "abstained": abstained, "jurors": [],
+                              "agreement": None}
                 continue
-            scores[m["metric_id"]] = float(jr.score)
-            judge_info = {"mode": m["metric_id"], "score": jr.score, "reasoning": jr.reasoning,
-                          "winner": getattr(jr, "winner", None)}
+            if pairwise:
+                score, winner, agree = _jury_pairwise([v["winner"] or "tie" for v in votes])
+            else:
+                (score, agree), winner = _jury_rubric([v["score"] for v in votes]), None
+            scores[m["metric_id"]] = round(score, 4)
+            judge_info = {"mode": m["metric_id"], "score": round(score, 4), "winner": winner, "agreement": agree,
+                          "abstained": abstained, "jurors": votes,
+                          # one string for readers of the single-judge shape (dashboard, agreement kit)
+                          "reasoning": "  |  ".join(f"{v['key'].split(':', 1)[1]}: {v['reasoning']}" for v in votes)}
         await db.execute("update result set scores = $2, judge = $3 where id = $1", r["id"], scores,
                          judge_info or {"mode": "skipped"})
 
@@ -200,6 +250,7 @@ async def _judge_pass(rid: UUID, snap: dict, io_spec: IOSpec, cases: list[dict],
 class WorkerSettings:
     functions = [execute_run]
     redis_settings = RedisSettings.from_dsn(settings.redis_url or "redis://localhost:6379")
+    queue_name = settings.arq_queue
     max_jobs = 4
     job_timeout = 3600
     max_tries = 3  # a retried run resumes: results are idempotent

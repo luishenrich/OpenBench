@@ -99,10 +99,68 @@
         "pairwise_vs_baseline": 1.0
       },
       "judge": {
-        "mode": "pairwise",
-        "winner": "candidate",
+        "mode": "pairwise_vs_baseline",
         "score": 1.0,
-        "reasoning": "Both answers solve the issue; the candidate is shorter and states the 24 h limit. Same verdict in both orders."
+        "winner": "candidate",
+        "agreement": null,
+        "abstained": [
+          "openrouter:openai/gpt-6-luna@low"
+        ],
+        "jurors": [
+          {
+            "key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+            "reasoning_effort": "low",
+            "score": 1.0,
+            "winner": "candidate",
+            "reasoning": "Both answers solve the issue; the candidate is shorter and states the 24 h limit. Same verdict in both orders."
+          }
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000304",
+      "candidate_key": "nebius:zai-org/GLM-5.3-Flash",
+      "case_id": "00000000-0000-0000-0000-000000000151",
+      "repeat_idx": 0,
+      "output": {
+        "text": "Your refund was sent today; it can take 3–5 business days to show up."
+      },
+      "timing": {
+        "ttft_ms": 360.0,
+        "e2e_ms": 1100.0,
+        "tokens_per_s": 90.0
+      },
+      "usage": {
+        "prompt_tokens": 170,
+        "completion_tokens": 30
+      },
+      "cost_usd": 4e-05,
+      "error": null,
+      "scores": {
+        "rubric_score": 0.85
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 0.85,
+        "winner": null,
+        "agreement": true,
+        "abstained": [],
+        "jurors": [
+          {
+            "key": "openrouter:openai/gpt-6-luna@low",
+            "reasoning_effort": "low",
+            "score": 0.8,
+            "winner": null,
+            "reasoning": "Correct and polite; could name the refund amount."
+          },
+          {
+            "key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+            "reasoning_effort": "low",
+            "score": 0.9,
+            "winner": null,
+            "reasoning": "Answers the question with a clear timeline."
+          }
+        ]
       }
     }
   ],

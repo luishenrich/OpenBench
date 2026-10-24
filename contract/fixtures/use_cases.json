@@ -13,8 +13,10 @@
     ],
     "current_model": {
       "provider": "openrouter",
-      "model": "openai/gpt-4.1-mini",
-      "params": {}
+      "model": "openai/gpt-6-luna",
+      "params": {
+        "reasoning_effort": "medium"
+      }
     },
     "profile": {
       "weights": {
@@ -117,8 +119,10 @@
     ],
     "current_model": {
       "provider": "openrouter",
-      "model": "openai/gpt-4.1-mini",
-      "params": {}
+      "model": "openai/gpt-6-luna",
+      "params": {
+        "reasoning_effort": "medium"
+      }
     },
     "profile": {
       "weights": {

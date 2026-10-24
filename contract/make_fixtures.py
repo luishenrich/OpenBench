@@ -51,7 +51,7 @@ extract = s.UseCase(
     id=UC_EXTRACT, workspace_id=WS, name="Extract invoice fields", kind="extraction",
     description="Pulls vendor, number, date and total out of invoice text for bookkeeping.",
     source_refs=[s.SourceRef(repo="example/app", path="src/billing/extract.ts", line=42, symbol="extractInvoice")],
-    current_model=s.ModelRef(provider="openrouter", model="openai/gpt-4.1-mini"),
+    current_model=s.ModelRef(provider="openrouter", model="openai/gpt-6-luna", params={"reasoning_effort": "medium"}),
     profile=s.Profile(weights={"quality": 60, "speed": 25, "cost": 15},
                       targets={"e2e_ms_p95": 2000, "e2e_ms_p95_max": 8000, "cost_per_call_usd": 0.0005, "cost_per_call_usd_max": 0.005}),
     gates=[s.Gate(metric_id="json_schema_valid", op=">=", value=0.99), s.Gate(metric_id="error_rate", op="<=", value=0.02)],
@@ -69,7 +69,7 @@ classify = s.UseCase(
     id=UC_CLASSIFY, workspace_id=WS, name="Route support tickets", kind="classification",
     description="Labels each incoming ticket as billing, bug, how_to or account.",
     source_refs=[s.SourceRef(repo="example/app", path="src/support/route.py", line=17, symbol="route_ticket")],
-    current_model=s.ModelRef(provider="openrouter", model="openai/gpt-4.1-mini"),
+    current_model=s.ModelRef(provider="openrouter", model="openai/gpt-6-luna", params={"reasoning_effort": "medium"}),
     profile=s.Profile(weights={"quality": 50, "speed": 30, "cost": 20}),
     gates=[s.Gate(metric_id="error_rate", op="<=", value=0.02)],
     metrics=[s.MetricSpec(metric_id="classification_accuracy", weight=1)],
@@ -125,21 +125,26 @@ shortlist_models = [
                    shortlist=True, role="frontier", aa_index=46, license="mit"),
 ]
 
+# provider, model, reference label (None = candidate), quality, std, ttft, e2e, cost/call, rank, pareto,
+# reasoning effort, avg reasoning tokens
 cands = [
-    ("nebius", "zai-org/GLM-5.3-Flash", False, 0.962, 0.031, 410, 1650, 0.00009, 1, True),
-    ("nebius", "deepseek-ai/DeepSeek-V4.1-Flash-1017", False, 0.971, 0.027, 260, 1420, 0.00021, 2, True),
-    ("openrouter", "xiaomi/mimo-v2.6-pro", False, 0.975, 0.024, 2600, 5100, 0.00031, 3, True),
-    ("nebius", "openai/gpt-oss-120b", False, 0.918, 0.048, 290, 980, 0.00010, 4, False),
-    ("nebius", "MiniMaxAI/MiniMax-M3.1-Flash", False, 0.884, 0.061, 330, 1900, 0.00011, None, False),
-    ("openrouter", "openai/gpt-4.1-mini", True, 0.981, 0.022, 520, 1750, 0.00046, None, False),
+    ("nebius", "zai-org/GLM-5.3-Flash", None, 0.962, 0.031, 410, 1650, 0.00009, 1, True, "default", 212.0),
+    ("nebius", "deepseek-ai/DeepSeek-V4.1-Flash-1017", None, 0.971, 0.027, 260, 1420, 0.00021, 2, True, "default", 48.0),
+    ("openrouter", "xiaomi/mimo-v2.6-pro", None, 0.975, 0.024, 2600, 5100, 0.00031, 3, True, "medium", 640.0),
+    ("nebius", "openai/gpt-oss-120b", None, 0.918, 0.048, 290, 980, 0.00010, 4, False, "default", None),
+    ("nebius", "MiniMaxAI/MiniMax-M3.1-Flash", None, 0.884, 0.061, 330, 1900, 0.00011, None, False, "default", 95.0),
+    ("openrouter", "openai/gpt-6.1-sol", "GPT-6.1 Sol", 0.985, 0.019, 900, 3100, 0.00190, None, False, "medium", 410.0),
+    ("openrouter", "openai/gpt-6-luna", "GPT-6 Luna", 0.958, 0.034, 380, 1500, 0.00010, None, False, "medium", 120.0),
 ]
 
 
-def cand_result(provider, model, base, q, std, ttft, e2e, cost, rank, pareto, n=150):
-    key = f"{provider}:{model}"
-    disq = rank is None and not base
+def cand_result(provider, model, ref_label, q, std, ttft, e2e, cost, rank, pareto, effort, reasoning_tokens, n=150):
+    is_ref = ref_label is not None
+    key = f"{provider}:{model}" + (f"@{effort}" if effort and effort != "default" else "")
+    disq = rank is None and not is_ref
     return s.CandidateResult(
-        candidate_key=key, provider=provider, model=model, is_baseline=base, n=n,
+        candidate_key=key, provider=provider, model=model, is_reference=is_ref, reference_label=ref_label,
+        reasoning_effort=effort, avg_reasoning_tokens=reasoning_tokens, n=n,
         quality=s.Stat(mean=q, std=std, ci_low=round(q - 1.96 * std / n ** 0.5 * 2, 3), ci_high=round(min(1, q + 1.96 * std / n ** 0.5 * 2), 3), n=n),
         metrics={
             "json_schema_valid": s.Stat(mean=0.97 if disq else 1.0, std=0.17 if disq else 0.0, ci_low=0.94 if disq else 1.0, ci_high=0.99 if disq else 1.0, n=n),
@@ -155,31 +160,37 @@ def cand_result(provider, model, base, q, std, ttft, e2e, cost, rank, pareto, n=
 
 
 board = [cand_result(*c) for c in cands]
-pareto = [s.ParetoPoint(candidate_key=b.candidate_key, label=b.model.split("/")[-1], quality=b.quality.mean,
-                        cost_per_success_usd=b.cost_per_success_usd, latency_ms=b.e2e_ms.p95, is_baseline=b.is_baseline, pareto=b.pareto)
+pareto = [s.ParetoPoint(candidate_key=b.candidate_key, label=b.reference_label or b.model.split("/")[-1], quality=b.quality.mean,
+                        cost_per_success_usd=b.cost_per_success_usd, latency_ms=b.e2e_ms.p95, is_reference=b.is_reference,
+                        pareto=b.pareto)
           for b in board]
 rec = s.Recommendation(
     candidate_key="nebius:zai-org/GLM-5.3-Flash", provider="nebius", model="zai-org/GLM-5.3-Flash",
-    headline="Switch to GLM-5.3-Flash: 98% of today's quality at 1/5 of the cost",
+    headline="Switch to GLM-5.3-Flash: 98% of GPT-6.1 Sol's quality at 1/21 of the cost",
     reasons=["Passes every gate (schema valid 100%, no errors)",
-             "Field accuracy 0.962 vs 0.981 for gpt-4.1-mini; CIs overlap with DeepSeek-V4.1-Flash, so the cheaper one wins",
-             "p95 latency 2.8 s vs 3.0 s today"],
-    quality_vs_baseline_pct=98.1, cost_multiple_vs_baseline=0.2, latency_delta_ms=-170,
+             "Quality 0.962 vs 0.985 for GPT-6.1 Sol",
+             "p95 latency 2.8 s vs 5.3 s for GPT-6.1 Sol",
+             "Statistical tie on quality with DeepSeek-V4.1-Flash-1017; ranked by the trade-off profile"],
+    reference_key="openrouter:openai/gpt-6.1-sol@medium",
+    quality_vs_reference_pct=97.7, cost_multiple_vs_reference=0.0474, latency_delta_ms=-2465,
     statistical_tie_with=["nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017"], est_monthly_savings_usd=412.0,
 )
-candidates = [s.ModelRef(provider=c[0], model=c[1]) for c in cands if not c[2]]
+candidates = [s.ModelRef(provider=c[0], model=c[1], params={"reasoning_effort": c[10]} if c[10] not in (None, "default") else {})
+              for c in cands if not c[2]]
+references = [s.ModelRef(provider=c[0], model=c[1], params={"reasoning_effort": c[10]}) for c in cands if c[2]]
 run_done = s.Run(id=RUN, use_case_id=UC_EXTRACT, status="done",
                  progress=s.Progress(done=900, total=900, errors=2, judged=0, judge_total=0),
-                 candidates=candidates, repeats=3, est_cost_usd=0.41, actual_cost_usd=0.37,
+                 candidates=candidates, references=references, repeats=3, est_cost_usd=0.41, actual_cost_usd=0.37,
+                 judge_agreement=0.86,
                  created_at=T0, started_at=T0 + timedelta(seconds=3), finished_at=T0 + timedelta(minutes=9),
                  leaderboard=board, pareto_points=pareto, recommendation=rec)
 run_running = s.Run(id=RUN_LIVE, use_case_id=UC_CLASSIFY, status="running",
                     progress=s.Progress(done=312, total=900, errors=1),
-                    candidates=candidates, repeats=3, est_cost_usd=0.22, actual_cost_usd=0.08,
+                    candidates=candidates, references=references, repeats=3, est_cost_usd=0.22, actual_cost_usd=0.08,
                     created_at=T0 + timedelta(minutes=10), started_at=T0 + timedelta(minutes=10, seconds=2), finished_at=None,
                     leaderboard=[], pareto_points=[], recommendation=None)
 
-estimate = s.Estimate(calls=900, est_input_tokens=540000, est_output_tokens=180000, est_cost_usd=0.41, judge_cost_usd=0.0,
+estimate = s.Estimate(calls=1050, est_input_tokens=630000, est_output_tokens=210000, est_cost_usd=0.41, judge_cost_usd=0.0,
                       total_usd=0.41, per_candidate=[s.EstimateLine(provider=c[0], model=c[1], calls=150, est_cost_usd=round(c[7] * 150, 4)) for c in cands])
 results = s.ResultsPage(items=[
     s.ResultOut(id=uid(300), candidate_key="nebius:zai-org/GLM-5.3-Flash", case_id=uid(101), repeat_idx=0,
@@ -200,8 +211,20 @@ results = s.ResultsPage(items=[
                 output={"text": "Thanks for flagging this! I've reset your password link; it is valid for 24 hours."},
                 timing={"ttft_ms": 380, "e2e_ms": 1200, "tokens_per_s": 88.0}, usage={"prompt_tokens": 180, "completion_tokens": 40},
                 cost_usd=0.00005, error=None, scores={"pairwise_vs_baseline": 1.0},
-                judge={"mode": "pairwise", "winner": "candidate", "score": 1.0,
-                       "reasoning": "Both answers solve the issue; the candidate is shorter and states the 24 h limit. Same verdict in both orders."}),
+                judge={"mode": "pairwise_vs_baseline", "score": 1.0, "winner": "candidate", "agreement": None,
+                       "abstained": ["openrouter:openai/gpt-6-luna@low"],
+                       "jurors": [{"key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low", "reasoning_effort": "low",
+                                   "score": 1.0, "winner": "candidate",
+                                   "reasoning": "Both answers solve the issue; the candidate is shorter and states the 24 h limit. Same verdict in both orders."}]}),
+    s.ResultOut(id=uid(304), candidate_key="nebius:zai-org/GLM-5.3-Flash", case_id=uid(151), repeat_idx=0,
+                output={"text": "Your refund was sent today; it can take 3–5 business days to show up."},
+                timing={"ttft_ms": 360, "e2e_ms": 1100, "tokens_per_s": 90.0}, usage={"prompt_tokens": 170, "completion_tokens": 30},
+                cost_usd=0.00004, error=None, scores={"rubric_score": 0.85},
+                judge={"mode": "rubric_score", "score": 0.85, "winner": None, "agreement": True, "abstained": [],
+                       "jurors": [{"key": "openrouter:openai/gpt-6-luna@low", "reasoning_effort": "low", "score": 0.8,
+                                   "winner": None, "reasoning": "Correct and polite; could name the refund amount."},
+                                  {"key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low", "reasoning_effort": "low",
+                                   "score": 0.9, "winner": None, "reasoning": "Answers the question with a clear timeline."}]}),
 ], next_cursor="eyJvZmZzZXQiOjR9")
 
 OUT.mkdir(exist_ok=True)

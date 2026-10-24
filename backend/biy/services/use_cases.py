@@ -127,7 +127,7 @@ async def add_cases(workspace_id: UUID, use_case_id: UUID, items: list[CaseIn]) 
 
 
 async def generate_cases(workspace_id: UUID, use_case_id: UUID, req: GenerateCasesIn) -> list[Case]:
-    """Synthetic cases from the metrics runtime's generator (Jad's), written by the use case's judge model.
+    """Synthetic cases from the metrics runtime's generator (Jad's), written by the jury's open-weight juror.
 
     Existing cases are the seeds; every generated case has a reference (validated against the
     response schema when there is one). Fewer than n may come back.
@@ -138,7 +138,8 @@ async def generate_cases(workspace_id: UUID, use_case_id: UUID, req: GenerateCas
 
     uc = await get_use_case(workspace_id, use_case_id)
     existing = await list_cases(workspace_id, use_case_id)
-    judge = uc.judge or (await get_workspace(workspace_id)).default_judge
+    jury = (uc.judge or (await get_workspace(workspace_id)).default_judge).judges
+    judge = next((j for j in jury if j.provider == "nebius"), jury[0])  # an open-weight juror writes the cases
     async with ProviderClient(judge.provider) as client:
         async def call_llm(messages: list[dict]) -> str:
             res = await client.chat(judge.model, messages, params={"temperature": 0.8, "max_tokens": 8192})

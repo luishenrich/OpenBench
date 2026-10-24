@@ -3,6 +3,10 @@
 Scores per axis are in [0, 1]. With a target and a max in the profile, an axis scores 1 at the
 target and 0 at the max, on a log scale (contract Profile). Without targets, it is relative to
 the best candidate in the run. Utility = Q^wq · S^ws · C^wc with weights normalised to 1.
+
+References (closed frontier models, and "today" = the use case's current model) are measured the
+same way but never ranked, never on the Pareto front and never recommended. The recommendation is
+compared with the best reference by quality.
 """
 
 from __future__ import annotations
@@ -14,10 +18,35 @@ from typing import Any
 from contract.schemas import CandidateResult, ParetoPoint, Recommendation, Scores, Stat
 
 from . import scoring
+from .providers import catalog
+from .providers import references as refs_info
 
 
-def candidate_key(provider: str, model: str) -> str:
-    return f"{provider}:{model}"
+def candidate_key(provider: str, model: str, params: dict | None = None) -> str:
+    """"<provider>:<model>", plus "@<effort>" when a reasoning effort is pinned."""
+    effort = (params or {}).get("reasoning_effort")
+    return f"{provider}:{model}" + (f"@{effort}" if effort and effort != "default" else "")
+
+
+def key_of(ref: dict) -> str:
+    return candidate_key(ref["provider"], ref["model"], ref.get("params"))
+
+
+def effort_of(ref: dict) -> str | None:
+    """Pinned effort, or "default" for a reasoning model left at the provider's default."""
+    effort = (ref.get("params") or {}).get("reasoning_effort")
+    if effort:
+        return effort
+    m = catalog.get_model(ref["provider"], ref["model"]) or {}
+    return "default" if (m.get("verified") or {}).get("reasoning") else None
+
+
+def references_of(snapshot: dict) -> list[dict]:
+    """The run's references, each with a label. Older runs stored one "baseline" (= today)."""
+    if snapshot.get("references") is not None:
+        return snapshot["references"]
+    b = snapshot.get("baseline")
+    return [{**b, "label": "today"}] if b else []
 
 
 def short_name(model: str) -> str:
@@ -75,7 +104,7 @@ def _passes(value: float | None, op: str, threshold: float) -> bool:
     return {">=": value >= threshold, "<=": value <= threshold, ">": value > threshold, "<": value < threshold}[op]
 
 
-def build(results: list[dict], snapshot: dict, done: bool) -> dict[str, Any]:
+def build(results: list[dict], snapshot: dict, done: bool, judge_agreement: float | None = None) -> dict[str, Any]:
     """{"leaderboard", "pareto_points", "recommendation"} for Run. `results` are result rows."""
     uc = snapshot["use_case"]
     profile = uc.get("profile") or snapshot.get("default_profile") or {}
@@ -84,10 +113,11 @@ def build(results: list[dict], snapshot: dict, done: bool) -> dict[str, Any]:
     metric_specs = uc.get("metrics") or []
     speed_by_ttft = uc.get("kind") in ("chat", "agent")
 
-    candidates = {candidate_key(m["provider"], m["model"]): m for m in snapshot["candidates"]}
-    baseline = snapshot.get("baseline")
-    if baseline:
-        candidates[candidate_key(baseline["provider"], baseline["model"])] = baseline
+    candidates = {key_of(m): m for m in snapshot["candidates"]}
+    reference_keys = set()
+    for r in references_of(snapshot):
+        candidates.setdefault(key_of(r), r)
+        reference_keys.add(key_of(r))
 
     by_cand: dict[str, list[dict]] = defaultdict(list)
     for r in results:
@@ -109,6 +139,8 @@ def build(results: list[dict], snapshot: dict, done: bool) -> dict[str, Any]:
         e2es = [r["timing"]["e2e_ms"] for r in ok if (r.get("timing") or {}).get("e2e_ms") is not None]
         tpss = [r["timing"]["tokens_per_s"] for r in ok if (r.get("timing") or {}).get("tokens_per_s")]
         costs = [r["cost_usd"] for r in ok if r.get("cost_usd") is not None]
+        reasoning = [rt for r in ok if (rt := ((r.get("usage") or {}).get("completion_tokens_details") or {})
+                                        .get("reasoning_tokens")) is not None]
         cost_per_call = sum(costs) / len(costs) if costs else 0.0
         quality = scoring.aggregate(qualities) if qualities else None
         # set-level quality metrics (e.g. classification_f1): one value per candidate, bootstrap CI over cases
@@ -129,7 +161,9 @@ def build(results: list[dict], snapshot: dict, done: bool) -> dict[str, Any]:
         quality = quality or Stat(mean=0, std=0, ci_low=0, ci_high=0, n=0)
         success = quality.mean * (1 - (len(rs) - len(ok)) / len(rs))
         rows.append({
-            "key": key, "ref": ref, "is_baseline": key == (baseline and candidate_key(baseline["provider"], baseline["model"])),
+            "key": key, "ref": ref, "is_reference": key in reference_keys,
+            "label": (ref.get("label") or refs_info.label(ref["model"])) if key in reference_keys else None,
+            "avg_reasoning_tokens": round(sum(reasoning) / len(reasoning), 1) if reasoning else None,
             "n": len(rs), "quality": quality,
             "metrics": {mid: corpus[mid][0] if mid in corpus else scoring.aggregate(v) for mid, v in per_metric.items()},
             "metric_means": {mid: sum(v) / len(v) for mid, v in per_metric.items()},
@@ -146,8 +180,10 @@ def build(results: list[dict], snapshot: dict, done: bool) -> dict[str, Any]:
         return {"leaderboard": [], "pareto_points": [], "recommendation": None}
 
     latency = lambda c: (c["ttft"].p95 if speed_by_ttft and c["ttft"] else c["e2e"].p95)  # noqa: E731
-    best_lat = min((latency(c) for c in rows if latency(c)), default=None)
-    best_cost = min((c["cost_per_call"] for c in rows if c["cost_per_call"] > 0), default=None)
+    # speed / cost scores are relative to the best *candidate*: references don't move the scale
+    pool = [c for c in rows if not c["is_reference"]] or rows
+    best_lat = min((latency(c) for c in pool if latency(c)), default=None)
+    best_cost = min((c["cost_per_call"] for c in pool if c["cost_per_call"] > 0), default=None)
     lat_key = "ttft_ms_p95" if speed_by_ttft else "e2e_ms_p95"
     wsum = sum(weights.values()) or 1
     wq, ws, wc = (weights.get(k, 0) / wsum for k in ("quality", "speed", "cost"))
@@ -162,11 +198,13 @@ def build(results: list[dict], snapshot: dict, done: bool) -> dict[str, Any]:
                              if not _passes(_gate_value(c, g["metric_id"]), g["op"], g["value"])]
         if c["error_rate"] > 0.5 and not any(g["metric_id"] == "error_rate" for g in uc.get("gates") or []):
             c["failed_gates"].append("error_rate <= 0.5")  # implicit floor when the use case sets none
+        if c["quality"].n == 0 and c["error_rate"] < 1 and any(scoring.in_quality(m["metric_id"]) for m in metric_specs):
+            c["failed_gates"].append("quality not scored")  # e.g. every juror abstained: unknown, not 0
 
-    # Pareto over quality ↑, cost per success ↓, latency ↓
+    # Pareto over quality ↑, cost per success ↓, latency ↓, among candidates only
     def dominated(a: dict) -> bool:
         ca = a["cost_per_success"] if a["cost_per_success"] is not None else math.inf
-        for b in rows:
+        for b in pool:
             if b is a:
                 continue
             cb = b["cost_per_success"] if b["cost_per_success"] is not None else math.inf
@@ -176,63 +214,72 @@ def build(results: list[dict], snapshot: dict, done: bool) -> dict[str, Any]:
         return False
 
     for c in rows:  # a candidate with no successful call has nothing to trade off
-        c["pareto"] = c["error_rate"] < 1 and not dominated(c)
-    ranked = sorted((c for c in rows if not c["failed_gates"]), key=lambda c: -c["scores"].utility)
+        c["pareto"] = not c["is_reference"] and c["error_rate"] < 1 and not dominated(c)
+    ranked = sorted((c for c in rows if not c["failed_gates"] and not c["is_reference"]),
+                    key=lambda c: -c["scores"].utility)
     for i, c in enumerate(ranked, start=1):
         c["rank"] = i
 
     leaderboard = [CandidateResult(
-        candidate_key=c["key"], provider=c["ref"]["provider"], model=c["ref"]["model"], is_baseline=c["is_baseline"],
-        n=c["n"], quality=c["quality"], metrics=c["metrics"], ttft_ms=c["ttft"], e2e_ms=c["e2e"],
+        candidate_key=c["key"], provider=c["ref"]["provider"], model=c["ref"]["model"],
+        is_reference=c["is_reference"], reference_label=c["label"], reasoning_effort=effort_of(c["ref"]),
+        avg_reasoning_tokens=c["avg_reasoning_tokens"], n=c["n"], quality=c["quality"], metrics=c["metrics"], ttft_ms=c["ttft"], e2e_ms=c["e2e"],
         tokens_per_s=c["tps"], cost_per_call_usd=round(c["cost_per_call"], 8),
         cost_per_success_usd=round(c["cost_per_success"], 8) if c["cost_per_success"] is not None else None,
         error_rate=round(c["error_rate"], 4), scores=c["scores"], passed_gates=not c["failed_gates"],
         failed_gates=c["failed_gates"], pareto=c["pareto"], rank=c.get("rank"),
-    ) for c in sorted(rows, key=lambda c: (c.get("rank") or 10_000, -c["scores"].utility))]
+    ) for c in sorted(rows, key=lambda c: (c["is_reference"], c.get("rank") or 10_000, -c["scores"].utility))]
 
     pareto_points = [ParetoPoint(
-        candidate_key=c["key"], label=short_name(c["ref"]["model"]), quality=round(c["quality"].mean, 4),
-        cost_per_success_usd=c["cost_per_success"], latency_ms=latency(c), is_baseline=c["is_baseline"],
+        candidate_key=c["key"], label=c["label"] or short_name(c["ref"]["model"]), quality=round(c["quality"].mean, 4),
+        cost_per_success_usd=c["cost_per_success"], latency_ms=latency(c), is_reference=c["is_reference"],
         pareto=c["pareto"],
     ) for c in rows]
 
-    rec = _recommend(ranked, next((c for c in rows if c["is_baseline"]), None), latency) if done else None
+    rec = _recommend(ranked, [c for c in rows if c["is_reference"]], latency, judge_agreement) if done else None
     return {"leaderboard": leaderboard, "pareto_points": pareto_points, "recommendation": rec}
 
 
-def _recommend(ranked: list[dict], base: dict | None, latency) -> Recommendation | None:
-    pick = next((c for c in ranked if not c["is_baseline"]), None)
+def _recommend(ranked: list[dict], references: list[dict], latency,
+               judge_agreement: float | None = None) -> Recommendation | None:
+    pick = ranked[0] if ranked else None
     if not pick:
         return None
     name = short_name(pick["ref"]["model"])
+    usable = [r for r in references if r["error_rate"] < 1 and r["quality"].mean > 0]
+    best = max(usable, key=lambda r: r["quality"].mean, default=None)  # the bar to compare with
+    today = next((r for r in usable if r["label"] == "today"), None)
     q_pct = cost_x = lat_delta = None
     reasons = ["Passes every gate" + (f" (error rate {pick['error_rate']:.0%})" if pick["error_rate"] else "")]
-    if base and base["quality"].mean > 0:
-        q_pct = round(100 * pick["quality"].mean / base["quality"].mean, 1)
-        if base["cost_per_call"] > 0:
-            cost_x = round(pick["cost_per_call"] / base["cost_per_call"], 3)
-        lat_delta = round(latency(pick) - latency(base), 1)
-        reasons.append(f"Quality {pick['quality'].mean:.3f} vs {base['quality'].mean:.3f} for "
-                       f"{short_name(base['ref']['model'])}")
-        reasons.append(f"p95 latency {latency(pick) / 1000:.1f} s vs {latency(base) / 1000:.1f} s today")
-    ties = [c["key"] for c in ranked if c is not pick and not c["is_baseline"]
+    if best:
+        q_pct = round(100 * pick["quality"].mean / best["quality"].mean, 1)
+        if best["cost_per_call"] > 0:
+            cost_x = round(pick["cost_per_call"] / best["cost_per_call"], 4)
+        lat_delta = round(latency(pick) - latency(best), 1)
+        reasons.append(f"Quality {pick['quality'].mean:.3f} vs {best['quality'].mean:.3f} for {best['label']}")
+        reasons.append(f"p95 latency {latency(pick) / 1000:.1f} s vs {latency(best) / 1000:.1f} s for {best['label']}")
+    if today and today is not best and today["cost_per_call"] > 0:
+        reasons.append(f"{pick['cost_per_call'] / today['cost_per_call']:.2f}× the cost per call of today's model "
+                       f"({short_name(today['ref']['model'])})")
+    ties = [c["key"] for c in ranked if c is not pick
             and c["quality"].ci_low <= pick["quality"].ci_high and pick["quality"].ci_low <= c["quality"].ci_high]
     if ties:
         reasons.append(f"Statistical tie on quality with {', '.join(short_name(k.split(':', 1)[1]) for k in ties)}; "
                        "ranked by the trade-off profile")
-    base_rank = base.get("rank") if base else None
-    if base_rank is not None and base_rank < pick["rank"]:
-        # today's model wins the trade-off: say so, and name the best open alternative
-        base_name = short_name(base["ref"]["model"])
-        headline = f"Keep {base_name}: no candidate beats it on this trade-off profile; closest is {name}"
-        reasons.insert(0, f"{base_name} ranks #{base_rank}, {name} #{pick['rank']} by utility")
+    if judge_agreement is not None and judge_agreement < 0.7:
+        reasons.append(f"Low judge agreement ({judge_agreement:.0%}): check the judged scores by hand")
+    if today and today["scores"].utility > pick["scores"].utility:
+        # today's model beats the best open candidate on this profile: say so, name the closest
+        headline = (f"Keep today's model ({short_name(today['ref']['model'])}): no open model beats it on this "
+                    f"trade-off profile; closest is {name}")
     elif q_pct is not None and cost_x:
         cost = f"1/{round(1 / cost_x)} of the cost" if cost_x < 1 else f"{cost_x:.1f}× the cost"
-        headline = f"Switch to {name}: {q_pct:.0f}% of today's quality at {cost}"
+        headline = f"Switch to {name}: {q_pct:.0f}% of {best['label']}'s quality at {cost}"
     else:
         headline = f"Use {name}: best trade-off of quality, speed and cost in this run"
     return Recommendation(
         candidate_key=pick["key"], provider=pick["ref"]["provider"], model=pick["ref"]["model"],
-        headline=headline, reasons=reasons, quality_vs_baseline_pct=q_pct, cost_multiple_vs_baseline=cost_x,
+        headline=headline, reasons=reasons, reference_key=best["key"] if best else None,
+        quality_vs_reference_pct=q_pct, cost_multiple_vs_reference=cost_x,
         latency_delta_ms=lat_delta, statistical_tie_with=ties,
     )

@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     database_url: str | None = None
     db_pool_size: int = 4  # per process; Supabase's session pooler caps all clients at 15
     redis_url: str | None = None
+    # arq queue. Local workers must not share prod's queue (prod would pick up local runs, and the reverse).
+    arq_queue: str = "arq:queue"
     supabase_url: str | None = None  # dashboard tokens are verified against its JWKS (ES256)
     nebius_api_key: str | None = None
     openrouter_api_key: str | None = None

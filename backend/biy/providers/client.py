@@ -68,8 +68,8 @@ class CallResult:
         return self.error is None
 
     @property
-    def candidate_key(self) -> str:
-        return f"{self.provider}:{self.model}"
+    def reasoning_tokens(self) -> int | None:
+        return (self.usage.get("completion_tokens_details") or {}).get("reasoning_tokens")
 
     @property
     def json(self) -> Any | None:
@@ -192,6 +192,14 @@ class ProviderClient:
         belong to a single endpoint.
         """
         params = dict(params or {})
+        # reasoning_effort: OpenRouter takes {"reasoning": {"effort"}}, Nebius / OpenAI take it as is.
+        # "default" (or unset) sends nothing: the provider's own default.
+        effort = params.pop("reasoning_effort", None)
+        if effort and effort != "default":
+            if self.provider == "openrouter":
+                params["reasoning"] = {**(params.get("reasoning") or {}), "effort": effort}
+            else:
+                params["reasoning_effort"] = effort
         body: dict[str, Any] = {
             "model": model,
             "messages": messages,
@@ -208,7 +216,7 @@ class ProviderClient:
         endpoint = None
         if self.provider == "openrouter":
             needs = {"max_tokens"} | ({"tools"} if tools else set()) | (
-                {"response_format"} if response_format else set())
+                {"response_format"} if response_format else set()) | ({"reasoning"} if "reasoning" in body else set())
             endpoint = openrouter_provider or catalog.pick_openrouter_endpoint(model, needs)
             routing: dict[str, Any] = {"allow_fallbacks": False, "require_parameters": True}
             if endpoint:
