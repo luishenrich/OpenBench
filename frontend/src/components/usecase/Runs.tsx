@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Line, LoadingRegion, Skeleton } from '@/components/Skeleton'
 import { Badge, Panel, StatusPill } from '@/components/ui'
+import VerdictCard from '@/components/VerdictCard'
 import { focusRing } from '@/components/usecases/kit'
 import { api } from '@/lib/api'
 import { ago, ms, usd } from '@/lib/format'
@@ -62,6 +63,26 @@ export function LatestRun({ brief }: { brief: RunBrief | null }) {
   const v = briefVerdict(brief) ?? (r ? runVerdict(r) : null)
   const figs = r && brief.status === 'done' ? figuresOf(r, v === 'keep') : []
   const frac = r && r.progress.total ? r.progress.done / r.progress.total : null
+
+  // a finished run with a recommendation gets the same verdict card as the run page
+  const full = r && r.status === 'done' && r.recommendation ? runVerdict(r) : null
+  if (r && full && r.recommendation) {
+    return (
+      <div>
+        <VerdictCard
+          rec={r.recommendation} verdict={full}
+          reference={r.leaderboard.find((c) => c.candidate_key === r.recommendation?.reference_key)}
+          pick={r.leaderboard.find((c) => c.candidate_key === r.recommendation!.candidate_key)}
+        />
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 px-1">
+          <span className="text-xs text-faint">
+            {r.candidates.length} open-weight {r.candidates.length === 1 ? 'candidate' : 'candidates'}, {r.repeats} repeats, {usd(r.actual_cost_usd)} spent{brief.finished_at ? `, finished ${ago(brief.finished_at)}` : ''}
+          </span>
+          <Link to={`/runs/${brief.id}`} className={linkCls}>Open the run <span aria-hidden>→</span></Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <Panel className="p-5">
