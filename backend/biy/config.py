@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     nebius_concurrency: int = 16
     openrouter_concurrency: int = 8
     openai_concurrency: int = 8
+    # The jury's own connections (per provider), so judging isn't held to the candidates' limits.
+    judge_concurrency: int = 32
     # Local development only: no token needed, every request uses one demo workspace.
     biy_dev_no_auth: bool = False
     static_dir: Path = ROOT / "frontend" / "dist"

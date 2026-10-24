@@ -26,9 +26,9 @@ log = logging.getLogger("biy.worker")
 CANCEL_POLL_S = 3.0
 
 
-def _client(provider: str, clients: dict[str, ProviderClient]) -> ProviderClient:
+def _client(provider: str, clients: dict[str, ProviderClient], limit: int | None = None) -> ProviderClient:
     if provider not in clients:
-        limit = getattr(settings, f"{provider}_concurrency", 8)
+        limit = limit or getattr(settings, f"{provider}_concurrency", 8)
         clients[provider] = ProviderClient(provider, concurrency=limit)
     return clients[provider]
 
@@ -186,7 +186,8 @@ async def _judge_pass(rid: UUID, snap: dict, io_spec: IOSpec, cases: list[dict],
 
     def juror_call(j):
         async def call_llm(messages: list[dict]) -> str:
-            res = await _client(j.provider, clients).chat(j.model, messages, params=dict(j.params))
+            res = await _client(j.provider, judge_clients, settings.judge_concurrency).chat(
+                j.model, messages, params=dict(j.params))
             if not res.ok:
                 raise RuntimeError(res.error)
             if res.cost_usd:
@@ -195,6 +196,7 @@ async def _judge_pass(rid: UUID, snap: dict, io_spec: IOSpec, cases: list[dict],
             return res.text
         return call_llm
 
+    judge_clients: dict[str, ProviderClient] = {}  # the jury's own connections, closed below
     jurors = [(j, ranking.candidate_key(j.provider, j.model, j.params), juror_call(j)) for j in judge_cfg.judges]
 
     def view(o: dict | None) -> scoring.OutputView | None:
@@ -215,19 +217,19 @@ async def _judge_pass(rid: UUID, snap: dict, io_spec: IOSpec, cases: list[dict],
                 continue
             own = {family(model)} | ({family(by_key[pair_key]["model"])} if pairwise and pair_key in by_key else set())
             cfg = {**(m.get("config") or {}), "mode": judge_cfg.mode, "rubric": judge_cfg.rubric}
-            votes, abstained = [], []
-            for j, jkey, call in jurors:
-                if family(j.model) in own:
-                    abstained.append(jkey)
-                    continue
+            abstained = [jkey for j, jkey, _ in jurors if family(j.model) in own]
+
+            async def vote(j, jkey, call) -> dict | None:
                 try:
                     jr = await scoring.judge(m["metric_id"], cv, view(r["output"]), opponent, cfg, call)
                 except Exception as e:
                     log.warning("juror %s failed on result %s: %s", jkey, r["id"], e)
-                    continue
-                votes.append({"key": jkey, "reasoning_effort": j.params.get("reasoning_effort"),
-                              "score": float(jr.score), "reasoning": jr.reasoning,
-                              "winner": getattr(jr, "winner", None)})
+                    return None
+                return {"key": jkey, "reasoning_effort": j.params.get("reasoning_effort"),
+                        "score": float(jr.score), "reasoning": jr.reasoning, "winner": getattr(jr, "winner", None)}
+
+            # jurors in parallel: a result waits for the slowest juror, not for all three in a row
+            votes = [v for v in await asyncio.gather(*(vote(*jr) for jr in jurors if jr[1] not in abstained)) if v]
             if not votes:
                 judge_info = {"mode": m["metric_id"], "score": None, "abstained": abstained, "jurors": [],
                               "agreement": None}
@@ -244,7 +246,11 @@ async def _judge_pass(rid: UUID, snap: dict, io_spec: IOSpec, cases: list[dict],
         await db.execute("update result set scores = $2, judge = $3 where id = $1", r["id"], scores,
                          judge_info or {"mode": "skipped"})
 
-    await asyncio.gather(*(one(r) for r in rows))
+    try:
+        await asyncio.gather(*(one(r) for r in rows))
+    finally:
+        for c in judge_clients.values():
+            await c.aclose()
 
 
 class WorkerSettings:
