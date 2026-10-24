@@ -38,13 +38,16 @@ class JudgeModel(BaseModel):
 
 
 def _default_jury() -> list[JudgeModel]:
+    """Three families, so every output keeps ≥ 2 votes after a juror abstains on its own family.
+    GLM stays at the provider's default effort: on Nebius, setting any effort nearly turns its reasoning off."""
     return [JudgeModel(provider="openrouter", model="openai/gpt-6-luna", params={"reasoning_effort": "low"}),
             JudgeModel(provider="nebius", model="deepseek-ai/DeepSeek-V4.1-Flash-1017",
-                       params={"reasoning_effort": "low"})]
+                       params={"reasoning_effort": "low"}),
+            JudgeModel(provider="nebius", model="zai-org/GLM-5.3")]
 
 
 class JudgeConfig(BaseModel):
-    """A jury of judges from different model families (Verga et al. 2024).
+    """A jury of judges from three model families (Verga et al. 2024): Luna, DeepSeek, GLM.
 
     Rubric: mean of the judges' scores. Pairwise: both orders × every judge; a win counts only if
     all non-abstaining judges agree in both orders, else a tie (0.5). A judge abstains on outputs
@@ -138,6 +141,7 @@ class UseCasePatch(BaseModel):
     metrics: list[MetricSpec] | None = None
     judge: JudgeConfig | None = None
     io_spec: IOSpec | None = None
+    pinned: bool | None = None  # pinning sets pinned_at; unpinning clears it
 
 
 class RunBrief(BaseModel):
@@ -155,6 +159,9 @@ class UseCase(UseCaseIn):
     latest_run: RunBrief | None = None
     created_by: Literal["mcp", "dashboard"] = "dashboard"
     created_at: datetime
+    updated_at: datetime | None = None  # last change to the use case or any of its cases
+    pinned: bool = False
+    pinned_at: datetime | None = None
 
 
 class CaseIn(BaseModel):
@@ -170,6 +177,16 @@ class CaseIn(BaseModel):
 class Case(CaseIn):
     id: UUID
     use_case_id: UUID
+    # Edits don't touch past runs: their results keep what was run. updated_at later than a run's
+    # finished_at means "edited after that run" (the dashboard shows it).
+    updated_at: datetime | None = None
+
+
+class CasePatch(BaseModel):
+    """PATCH /api/use-cases/{id}/cases/{case_id}: any subset. "reference": null clears it."""
+    input: dict[str, Any] | None = None
+    reference: Any | None = None
+    tags: list[str] | None = None
 
 
 class GenerateCasesIn(BaseModel):

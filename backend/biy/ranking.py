@@ -161,7 +161,7 @@ def build(results: list[dict], snapshot: dict, done: bool, judge_agreement: floa
         quality = quality or Stat(mean=0, std=0, ci_low=0, ci_high=0, n=0)
         success = quality.mean * (1 - (len(rs) - len(ok)) / len(rs))
         rows.append({
-            "key": key, "ref": ref, "is_reference": key in reference_keys,
+            "key": key, "ref": ref, "is_reference": key in reference_keys, "ok": ok,
             "label": (ref.get("label") or refs_info.label(ref["model"])) if key in reference_keys else None,
             "avg_reasoning_tokens": round(sum(reasoning) / len(reasoning), 1) if reasoning else None,
             "n": len(rs), "quality": quality,
@@ -236,12 +236,40 @@ def build(results: list[dict], snapshot: dict, done: bool, judge_agreement: floa
         pareto=c["pareto"],
     ) for c in rows]
 
-    rec = _recommend(ranked, [c for c in rows if c["is_reference"]], latency, judge_agreement) if done else None
+    rec = _recommend(ranked, [c for c in rows if c["is_reference"]], latency, judge_agreement,
+                     metric_specs) if done else None
     return {"leaderboard": leaderboard, "pareto_points": pareto_points, "recommendation": rec}
 
 
+def _jurors(c: dict, judge_ids: set[str]) -> set[str]:
+    """Jurors who voted on this candidate's outputs for the judge metrics."""
+    return {v["key"] for r in c["ok"] if isinstance(j := r.get("judge"), dict) and j.get("mode") in judge_ids
+            for v in j.get("jurors") or []}
+
+
+def _quality_with(c: dict, metric_specs: list[dict], judge_ids: set[str], jurors: set[str]) -> float | None:
+    """Mean quality of c with judge-metric scores re-averaged over `jurors` only (like-for-like)."""
+    qs = []
+    for r in c["ok"]:
+        scores = dict(r.get("scores") or {})
+        j = r.get("judge") if isinstance(r.get("judge"), dict) else {}
+        if j.get("mode") in judge_ids:
+            votes = [v["score"] for v in j.get("jurors") or [] if v["key"] in jurors and v.get("score") is not None]
+            if votes:
+                scores[j["mode"]] = sum(votes) / len(votes)
+            else:
+                scores.pop(j["mode"], None)
+        if (q := _quality(scores, metric_specs)) is not None:
+            qs.append(q)
+    return sum(qs) / len(qs) if qs else None
+
+
+def _juror_name(key: str) -> str:
+    return short_name(key.split(":", 1)[-1]).split("@")[0]
+
+
 def _recommend(ranked: list[dict], references: list[dict], latency,
-               judge_agreement: float | None = None) -> Recommendation | None:
+               judge_agreement: float | None = None, metric_specs: list[dict] | None = None) -> Recommendation | None:
     pick = ranked[0] if ranked else None
     if not pick:
         return None
@@ -253,10 +281,26 @@ def _recommend(ranked: list[dict], references: list[dict], latency,
     reasons = ["Passes every gate" + (f" (error rate {pick['error_rate']:.0%})" if pick["error_rate"] else "")]
     if best:
         q_pct = round(100 * pick["quality"].mean / best["quality"].mean, 1)
+        quality_line = f"Quality {pick['quality'].mean:.3f} vs {best['quality'].mean:.3f} for {best['label']}"
+        # Fairness: jurors abstain on their own family, so a reference and a candidate can be judged by
+        # different jurors. Compare like with like: only the jurors that judged both, when there are ≥ 2.
+        judge_ids = {m["metric_id"] for m in metric_specs or [] if scoring.is_judge_metric(m["metric_id"])}
+        if judge_ids:
+            common = _jurors(pick, judge_ids) & _jurors(best, judge_ids)
+            if len(common) >= 2:
+                qp, qb = (_quality_with(c, metric_specs, judge_ids, common) for c in (pick, best))
+                if qp is not None and qb:
+                    q_pct = round(100 * qp / qb, 1)
+                    quality_line = (f"Quality {qp:.3f} vs {qb:.3f} for {best['label']}, on the jurors that judged "
+                                    f"both ({', '.join(sorted(_juror_name(k) for k in common))}); "
+                                    f"{pick['quality'].mean:.3f} vs {best['quality'].mean:.3f} on all jurors")
+            else:
+                quality_line += (f"; fewer than 2 jurors judged both {name} and {best['label']}, so each side "
+                                 "uses its own non-abstaining jurors")
         if best["cost_per_call"] > 0:
             cost_x = round(pick["cost_per_call"] / best["cost_per_call"], 4)
         lat_delta = round(latency(pick) - latency(best), 1)
-        reasons.append(f"Quality {pick['quality'].mean:.3f} vs {best['quality'].mean:.3f} for {best['label']}")
+        reasons.append(quality_line)
         reasons.append(f"p95 latency {latency(pick) / 1000:.1f} s vs {latency(best) / 1000:.1f} s for {best['label']}")
     if today and today is not best and today["cost_per_call"] > 0:
         reasons.append(f"{pick['cost_per_call'] / today['cost_per_call']:.2f}× the cost per call of today's model "

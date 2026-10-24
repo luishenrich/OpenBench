@@ -27,6 +27,11 @@
           "params": {
             "reasoning_effort": "low"
           }
+        },
+        {
+          "provider": "nebius",
+          "model": "zai-org/GLM-5.3",
+          "params": {}
         }
       ],
       "mode": "rubric",

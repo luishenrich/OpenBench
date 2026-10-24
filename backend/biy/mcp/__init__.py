@@ -6,6 +6,7 @@ structured content plus a short text summary with names next to ids. Errors say 
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 from uuid import UUID
@@ -16,7 +17,8 @@ from fastmcp.exceptions import ToolError
 from fastmcp.server.dependencies import get_http_headers
 from fastmcp.tools import ToolResult
 
-from contract.schemas import CaseIn, GenerateCasesIn, ModelRef, RunIn, ScorecardBrief, UseCaseIn, UseCasePatch
+from contract.schemas import (CaseIn, CasePatch, GenerateCasesIn, ModelRef, RunIn, ScorecardBrief, UseCaseIn,
+                              UseCasePatch)
 
 from .. import catalog
 from ..auth import caller_from_token
@@ -188,6 +190,39 @@ async def biy_cases_add(use_case_id: UUID, cases: list[CaseIn]) -> ToolResult:
     Never send secrets or real customer data: replace them with realistic fakes."""
     added = await _call(uc_service.add_cases(await _ws(), use_case_id, cases))
     return _result(f"Added {len(added)} cases to {use_case_id}.", {"added": len(added), "ids": [str(c.id) for c in added]})
+
+
+def _preview(v: Any, n: int = 80) -> str:
+    text = v if isinstance(v, str) else json.dumps(v, ensure_ascii=False)
+    return text if len(text) <= n else text[:n - 1] + "…"
+
+
+@mcp.tool(annotations=READ)
+async def biy_cases_list(use_case_id: UUID, limit: int = 50, offset: int = 0) -> ToolResult:
+    """Cases of a use case, compact: id, a short preview of input and reference, source, tags. Paginated."""
+    limit = max(1, min(limit, 200))
+    cases = await _call(uc_service.list_cases(await _ws(), use_case_id, limit=limit, offset=offset))
+    items = [{"id": str(c.id), "input": _preview(c.input.get("vars") or c.input),
+              "reference": _preview(c.reference) if c.reference is not None else None,
+              "source": c.source, "tags": c.tags, "images": len(c.input.get("images") or [])} for c in cases]
+    lines = [f"{i['id']}  [{i['source']}] {i['input']}" + (f"  → {i['reference']}" if i["reference"] else "") for i in items]
+    more = f"\n(next page: offset={offset + limit})" if len(items) == limit else ""
+    return _result(f"{len(items)} cases (offset {offset}):\n" + "\n".join(lines) + more,
+                   {"items": items, "next_offset": offset + limit if len(items) == limit else None})
+
+
+@mcp.tool
+async def biy_cases_update(use_case_id: UUID, case_id: UUID, patch: CasePatch) -> ToolResult:
+    """Edit one case: any of input, reference (null clears it), tags. Past runs keep their results."""
+    c = await _call(uc_service.update_case(await _ws(), use_case_id, case_id, patch))
+    return _result(f"Updated case {c.id}: {_preview(c.input.get('vars') or c.input)}", {"id": str(c.id)})
+
+
+@mcp.tool(annotations={"destructiveHint": True})
+async def biy_cases_delete(use_case_id: UUID, case_ids: list[UUID]) -> ToolResult:
+    """Delete cases from a use case (ids from biy_cases_list). Past runs keep their results."""
+    n = await _call(uc_service.delete_cases(await _ws(), use_case_id, case_ids))
+    return _result(f"Deleted {n} of {len(case_ids)} cases.", {"deleted": n})
 
 
 @mcp.tool
