@@ -1,0 +1,798 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://biy.local/schema/metric-bank.schema.json",
+  "title": "BIY metric bank",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "bank_version",
+    "updated",
+    "name",
+    "design_notes",
+    "selection_policy",
+    "categories",
+    "priors",
+    "metrics"
+  ],
+  "properties": {
+    "bank_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "updated": {
+      "type": "string",
+      "format": "date"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3
+    },
+    "design_notes": {
+      "type": "string",
+      "minLength": 80
+    },
+    "selection_policy": {
+      "$ref": "#/$defs/policy"
+    },
+    "categories": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/category"
+      }
+    },
+    "priors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/prior"
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/metric"
+      }
+    }
+  },
+  "$defs": {
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "category",
+        "description",
+        "measures",
+        "when_to_use",
+        "when_not_to_use",
+        "required_inputs",
+        "computation",
+        "score",
+        "cost_effort",
+        "limitations",
+        "related_metrics",
+        "tags",
+        "provenance",
+        "granularity",
+        "layer",
+        "selector_priority",
+        "gate_suitable",
+        "always_on",
+        "default_for_kinds",
+        "utility_axis",
+        "quality_transform",
+        "construct_group",
+        "group_role",
+        "aliases",
+        "config",
+        "reported_statistics",
+        "catalog_match"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{1,63}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "accuracy",
+            "reasoning",
+            "knowledge",
+            "rag_grounding",
+            "summarization",
+            "code",
+            "conversation",
+            "instruction_following",
+            "structured_output",
+            "vision",
+            "agents_tools",
+            "multilingual",
+            "safety",
+            "bias_fairness",
+            "privacy",
+            "robustness",
+            "calibration_hallucination",
+            "efficiency",
+            "cost",
+            "reliability",
+            "business_ux",
+            "judging"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 80
+        },
+        "measures": {
+          "type": "string",
+          "minLength": 40
+        },
+        "when_to_use": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "use_cases",
+            "industries",
+            "signals"
+          ],
+          "properties": {
+            "use_cases": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "industries": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "general",
+                  "healthcare",
+                  "finance",
+                  "insurance",
+                  "legal",
+                  "public_sector",
+                  "retail",
+                  "advertising",
+                  "customer_support",
+                  "education",
+                  "software",
+                  "hr",
+                  "media",
+                  "telecom",
+                  "manufacturing"
+                ]
+              }
+            },
+            "signals": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "when_not_to_use": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required_inputs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "inputs",
+            "notes"
+          ],
+          "properties": {
+            "inputs": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "model_output",
+                  "prompt_or_input",
+                  "reference_answer",
+                  "source_document",
+                  "retrieved_context",
+                  "gold_context",
+                  "labels",
+                  "human_raters",
+                  "llm_judge",
+                  "embedding_model",
+                  "nli_model",
+                  "tool_trace",
+                  "expected_tool_calls",
+                  "tool_schema",
+                  "allowed_tools",
+                  "plan",
+                  "unit_tests",
+                  "execution_environment",
+                  "static_analyzer",
+                  "server_logs",
+                  "usage_tokens",
+                  "timestamps",
+                  "price_table",
+                  "repeat_samples",
+                  "token_logprobs",
+                  "confidence",
+                  "demographic_metadata",
+                  "subgroup_labels",
+                  "policy_spec",
+                  "constraints",
+                  "json_schema",
+                  "toxicity_classifier",
+                  "pii_detector",
+                  "language_id_model",
+                  "reference_translation",
+                  "locale_spec",
+                  "brand_guide",
+                  "monthly_volume",
+                  "gpu_price",
+                  "conversation_history",
+                  "copyright_corpus",
+                  "production_outcomes",
+                  "user_feedback",
+                  "attack_set",
+                  "benign_set"
+                ]
+              }
+            },
+            "notes": {
+              "type": "string",
+              "minLength": 20
+            }
+          }
+        },
+        "computation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "formula",
+            "procedure",
+            "implementations"
+          ],
+          "properties": {
+            "method": {
+              "type": "string",
+              "enum": [
+                "deterministic",
+                "statistical",
+                "llm_judge",
+                "human",
+                "classifier",
+                "log_derived",
+                "execution",
+                "hybrid"
+              ]
+            },
+            "formula": {
+              "type": "string",
+              "minLength": 12
+            },
+            "procedure": {
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "implementations": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "score": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "min",
+            "max",
+            "unit",
+            "direction",
+            "interpretation",
+            "aggregation",
+            "suggested_gate"
+          ],
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "unit": {
+              "type": "string",
+              "enum": [
+                "ratio",
+                "score",
+                "milliseconds",
+                "tokens_per_second",
+                "requests_per_second",
+                "usd",
+                "tokens",
+                "usd_per_million_tokens",
+                "minutes",
+                "dimensionless"
+              ]
+            },
+            "direction": {
+              "type": "string",
+              "enum": [
+                "higher_better",
+                "lower_better",
+                "closer_to_zero",
+                "target_band",
+                "report_only"
+              ]
+            },
+            "interpretation": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "at",
+                  "meaning"
+                ],
+                "properties": {
+                  "at": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "meaning": {
+                    "type": "string",
+                    "minLength": 12
+                  }
+                }
+              }
+            },
+            "aggregation": {
+              "type": "string",
+              "minLength": 3
+            },
+            "suggested_gate": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "cost_effort": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "level",
+            "driver",
+            "notes"
+          ],
+          "properties": {
+            "level": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ]
+            },
+            "driver": {
+              "type": "string",
+              "minLength": 3
+            },
+            "notes": {
+              "type": "string",
+              "minLength": 20
+            }
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "related_metrics": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "tags": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "provenance": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "granularity": {
+          "type": "string",
+          "enum": [
+            "case",
+            "run",
+            "corpus",
+            "conversation"
+          ]
+        },
+        "layer": {
+          "type": "string",
+          "enum": [
+            "quality",
+            "risk",
+            "operational",
+            "business",
+            "method"
+          ]
+        },
+        "selector_priority": {
+          "type": "string",
+          "enum": [
+            "core",
+            "supporting",
+            "diagnostic",
+            "avoid_as_primary"
+          ]
+        },
+        "gate_suitable": {
+          "type": "boolean"
+        },
+        "always_on": {
+          "type": "boolean"
+        },
+        "default_for_kinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "chat",
+              "batch",
+              "extraction",
+              "agent",
+              "classification",
+              "rag",
+              "summarization",
+              "generation",
+              "other"
+            ]
+          }
+        },
+        "utility_axis": {
+          "type": "string",
+          "enum": [
+            "quality",
+            "speed",
+            "cost",
+            "gate_only",
+            "none"
+          ]
+        },
+        "quality_transform": {
+          "type": "string",
+          "enum": [
+            "identity",
+            "one_minus",
+            "not_a_quality_input"
+          ]
+        },
+        "construct_group": {
+          "type": "string",
+          "minLength": 2
+        },
+        "group_role": {
+          "type": "string",
+          "enum": [
+            "primary",
+            "alternate",
+            "gate_form",
+            "diagnostic",
+            "method"
+          ]
+        },
+        "aliases": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "config": {
+          "type": "object"
+        },
+        "reported_statistics": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "catalog_match": {
+          "type": "boolean"
+        }
+      }
+    },
+    "category": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "description",
+        "always_on",
+        "selector_notes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "enum": [
+            "accuracy",
+            "reasoning",
+            "knowledge",
+            "rag_grounding",
+            "summarization",
+            "code",
+            "conversation",
+            "instruction_following",
+            "structured_output",
+            "vision",
+            "agents_tools",
+            "multilingual",
+            "safety",
+            "bias_fairness",
+            "privacy",
+            "robustness",
+            "calibration_hallucination",
+            "efficiency",
+            "cost",
+            "reliability",
+            "business_ux",
+            "judging"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2
+        },
+        "description": {
+          "type": "string",
+          "minLength": 20
+        },
+        "always_on": {
+          "type": "boolean"
+        },
+        "selector_notes": {
+          "type": "string",
+          "minLength": 20
+        }
+      }
+    },
+    "prior": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "what_it_measures",
+        "useful_as",
+        "do_not_use_as",
+        "citation"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{1,63}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 2
+        },
+        "what_it_measures": {
+          "type": "string",
+          "minLength": 20
+        },
+        "useful_as": {
+          "type": "string",
+          "minLength": 20
+        },
+        "do_not_use_as": {
+          "type": "string",
+          "minLength": 20
+        },
+        "citation": {
+          "type": "string",
+          "minLength": 5
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "caps",
+        "always_on",
+        "speed_by_kind",
+        "quality_rule",
+        "gate_rule",
+        "judge_rule",
+        "double_count_groups"
+      ],
+      "properties": {
+        "caps": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "quality_metrics",
+            "risk_metrics",
+            "business_metrics",
+            "judging_metrics"
+          ],
+          "properties": {
+            "quality_metrics": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "risk_metrics": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "business_metrics": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "judging_metrics": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "always_on": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "speed_by_kind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "chat",
+            "batch",
+            "extraction",
+            "agent",
+            "classification",
+            "rag",
+            "summarization",
+            "generation",
+            "other"
+          ],
+          "properties": {
+            "chat": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "batch": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "extraction": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "agent": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "classification": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "rag": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "summarization": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "generation": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "other": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "quality_rule": {
+          "type": "string",
+          "minLength": 20
+        },
+        "gate_rule": {
+          "type": "string",
+          "minLength": 20
+        },
+        "judge_rule": {
+          "type": "string",
+          "minLength": 20
+        },
+        "double_count_groups": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}
