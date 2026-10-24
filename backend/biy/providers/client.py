@@ -27,7 +27,7 @@ PROVIDERS = {
 
 DEFAULT_MAX_TOKENS = 4096  # reasoning models spend tokens before answering
 TIMEOUT = httpx.Timeout(180.0, connect=15.0)
-RETRY_STATUS = {429, 500, 502, 503, 504}
+RETRY_STATUS = {408, 429, 500, 502, 503, 504, 529}  # 529: Nebius "System is overloaded"
 MAX_ATTEMPTS = 4
 
 
@@ -76,8 +76,9 @@ class CallResult:
         return parse_json(self.text)
 
     def output(self) -> dict[str, Any]:
-        """ResultOut.output / OutputView shape."""
-        return {"text": self.text, "json": self.json, "tool_calls": self.tool_calls}
+        """ResultOut.output / OutputView shape, plus finish_reason (truncation_rate)."""
+        return {"text": self.text, "json": self.json, "tool_calls": self.tool_calls,
+                "finish_reason": self.finish_reason}
 
     def timing(self) -> dict[str, float | None]:
         """ResultOut.timing shape."""
@@ -101,9 +102,14 @@ def parse_json(text: str) -> Any | None:
 
 
 def call_cost(usage: dict, price: dict | None) -> float | None:
-    """USD for one call. OpenRouter reports the real charge; otherwise tokens × list price."""
+    """USD for one call. OpenRouter reports the real charge; otherwise tokens × list price.
+
+    With BYOK (a provider key stored in OpenRouter), `cost` is only OpenRouter's fee and the
+    provider bills `cost_details.upstream_inference_cost` separately: count both.
+    """
     if usage.get("cost") is not None:
-        return float(usage["cost"])
+        upstream = (usage.get("cost_details") or {}).get("upstream_inference_cost") if usage.get("is_byok") else None
+        return round(float(usage["cost"]) + float(upstream or 0), 10)
     if not price or not usage:
         return None
     cached = (usage.get("prompt_tokens_details") or {}).get("cached_tokens") or 0
@@ -118,10 +124,18 @@ def call_cost(usage: dict, price: dict | None) -> float | None:
 def _error(resp: httpx.Response) -> str:
     try:
         body = resp.json()
-        msg = body.get("error", body)
-        if isinstance(msg, dict):
-            msg = msg.get("message", msg)
-        return f"HTTP {resp.status_code}: {str(msg)[:300]}"
+        err = body.get("error", body)
+        msg = err.get("message", err) if isinstance(err, dict) else err
+        # OpenRouter wraps the upstream's own error in metadata.raw ("Provider returned error")
+        raw = (err.get("metadata") or {}).get("raw") if isinstance(err, dict) else None
+        if raw:
+            try:
+                inner = json.loads(raw).get("error", {})
+                raw = inner.get("message", inner) if isinstance(inner, dict) else inner
+            except (json.JSONDecodeError, AttributeError):
+                pass
+            msg = f"{msg}: {raw}"
+        return f"HTTP {resp.status_code}: {str(msg)[:400]}"
     except Exception:
         return f"HTTP {resp.status_code}: {resp.text[:300]}"
 
