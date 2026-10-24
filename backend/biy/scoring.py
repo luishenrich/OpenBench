@@ -40,8 +40,14 @@ class OutputView:
 
 
 def is_judge_metric(metric_id: str) -> bool:
-    info = getattr(_bank, "METRICS", {}).get(metric_id) if _HAS_BANK else None
-    return (getattr(info, "kind", None) == "judge") if info else metric_id in JUDGE_METRICS
+    from .services import metrics as bank_info  # lazy: services imports this module
+    return bank_info.is_judge(metric_id) or metric_id in JUDGE_METRICS
+
+
+def in_quality(metric_id: str) -> bool:
+    """Only metrics on the bank's quality axis enter Q (cer/wer are reported, gates stay gates)."""
+    from .services import metrics as bank_info
+    return bank_info.utility_axis(metric_id) == "quality"
 
 
 def has_judge() -> bool:
@@ -183,10 +189,12 @@ def _field_f1(case: CaseView, out: OutputView, cfg: dict) -> float | None:
     return 0.0 if p + r == 0 else 2 * p * r / (p + r)
 
 
-_FALLBACK = {
+_FALLBACK = {  # bank ids (aliases are resolved before scoring)
     "json_valid": _json_valid,
     "json_schema_valid": _json_schema_valid,
     "exact_match": _exact_match,
+    "classification_accuracy": _label_accuracy,
     "label_accuracy": _label_accuracy,
+    "field_accuracy": _field_f1,
     "field_f1": _field_f1,
 }

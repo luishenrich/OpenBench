@@ -3,7 +3,7 @@
 Every function takes the caller's workspace_id first.
 """
 
-from . import runs, use_cases, workspace
+from . import metrics, runs, use_cases, workspace
 from .errors import CostNotConfirmed, Invalid, NotFound
 
-__all__ = ["runs", "use_cases", "workspace", "CostNotConfirmed", "Invalid", "NotFound"]
+__all__ = ["metrics", "runs", "use_cases", "workspace", "CostNotConfirmed", "Invalid", "NotFound"]

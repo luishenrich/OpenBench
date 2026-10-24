@@ -7,11 +7,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 
-from contract.schemas import (Case, CaseIn, Estimate, GenerateCasesIn, Me, ResultsPage, Run, RunBrief, RunIn, UseCase,
-                              UseCaseIn, UseCasePatch)
+from contract.schemas import (Case, CaseIn, Estimate, GenerateCasesIn, Me, MetricInfo, ResultsPage, Run, RunBrief, RunIn,
+                              Scorecard, ScorecardBrief, UseCase, UseCaseIn, UseCasePatch)
 
 from .auth import Caller, current_caller
-from .services import CostNotConfirmed, Invalid, NotFound, runs, use_cases, workspace
+from .services import CostNotConfirmed, Invalid, NotFound, metrics, runs, use_cases, workspace
 
 router = APIRouter(prefix="/api")
 
@@ -40,6 +40,18 @@ async def me(c: Caller = Depends(current_caller)):
 @router.post("/me/mcp-key")
 async def new_mcp_key(c: Caller = Depends(current_caller)) -> dict:
     return {"key": await workspace.rotate_mcp_key(c.workspace_id)}
+
+
+# --- metric bank -------------------------------------------------------------
+
+@router.get("/metrics", response_model=list[MetricInfo])
+def list_metrics(kind: str | None = None, category: str | None = None):
+    return metrics.list_metrics(kind=kind, category=category)
+
+
+@router.post("/metrics/select", response_model=Scorecard)
+def select_metrics(brief: ScorecardBrief):
+    return metrics.scorecard(brief)
 
 
 # --- use cases + cases -------------------------------------------------------

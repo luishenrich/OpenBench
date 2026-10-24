@@ -38,9 +38,11 @@ def _axis(value: float | None, target: float | None, worst: float | None, best_s
 
 
 def _quality(scores: dict[str, float], metric_specs: list[dict]) -> float | None:
-    """Weighted mean of the use case's metrics present in this result."""
+    """Weighted mean of the use case's quality-axis metrics present in this result."""
     total = weight = 0.0
     for m in metric_specs:
+        if not scoring.in_quality(m["metric_id"]):
+            continue
         v = scores.get(m["metric_id"])
         if v is not None:
             total += v * m.get("weight", 1.0)
@@ -49,17 +51,21 @@ def _quality(scores: dict[str, float], metric_specs: list[dict]) -> float | None
 
 
 def _gate_value(c: dict, metric_id: str) -> float | None:
+    """Value a gate compares. Latency gates without a suffix use p95."""
     if metric_id in c["metric_means"]:
         return c["metric_means"][metric_id]
+    ttft = c["ttft"]
     return {
         "quality": c["quality"].mean,
         "error_rate": c["error_rate"],
-        "ttft_ms_p95": c["ttft"].p95 if c["ttft"] else None,
-        "ttft_ms_p50": c["ttft"].p50 if c["ttft"] else None,
-        "e2e_ms_p95": c["e2e"].p95,
-        "e2e_ms_p50": c["e2e"].p50,
-        "cost_per_call_usd": c["cost_per_call"],
-        "tokens_per_s": c["tps"],
+        "truncation_rate": c["truncation_rate"],
+        "throttle_rate": c["throttle_rate"],
+        "ttft_ms": ttft.p95 if ttft else None, "ttft_ms_p95": ttft.p95 if ttft else None,
+        "ttft_ms_p50": ttft.p50 if ttft else None,
+        "e2e_ms": c["e2e"].p95, "e2e_ms_p95": c["e2e"].p95, "e2e_ms_p50": c["e2e"].p50,
+        "cost_per_call_usd": c["cost_per_call"], "cost_per_case_usd": c["cost_per_call"],
+        "cost_per_success_usd": c["cost_per_success"],
+        "output_tps": c["tps"], "tokens_per_s": c["tps"],
     }.get(metric_id)
 
 
@@ -117,6 +123,8 @@ def build(results: list[dict], snapshot: dict, done: bool) -> dict[str, Any]:
             "cost_per_call": cost_per_call,
             "cost_per_success": cost_per_call / success if success > 0 else None,
             "error_rate": (len(rs) - len(ok)) / len(rs),
+            "truncation_rate": sum(1 for r in rs if (r.get("output") or {}).get("finish_reason") == "length") / len(rs),
+            "throttle_rate": sum(1 for r in rs if "HTTP 429" in (r.get("error") or "")) / len(rs),
         })
     if not rows:
         return {"leaderboard": [], "pareto_points": [], "recommendation": None}

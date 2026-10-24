@@ -8,6 +8,7 @@ from uuid import UUID
 from contract.schemas import Case, CaseIn, RunBrief, UseCase, UseCaseIn, UseCasePatch
 
 from .. import db
+from . import metrics
 from .errors import NotFound
 
 _JSON_FIELDS = ("source_refs", "current_model", "profile", "gates", "metrics", "judge", "io_spec")
@@ -62,6 +63,8 @@ async def get_use_case(workspace_id: UUID, use_case_id: UUID) -> UseCase:
 
 
 async def create_use_cases(workspace_id: UUID, items: list[UseCaseIn], created_by: str = "dashboard") -> list[UseCase]:
+    items = [it.model_copy(update={"metrics": metrics.normalize_metrics(it.metrics),
+                                   "gates": metrics.normalize_gates(it.gates)}) for it in items]
     ids = []
     async with (await db.pool()).acquire() as c, c.transaction():
         for it in items:
@@ -76,6 +79,10 @@ async def create_use_cases(workspace_id: UUID, items: list[UseCaseIn], created_b
 
 async def update_use_case(workspace_id: UUID, use_case_id: UUID, patch: UseCasePatch) -> UseCase:
     fields = patch.model_dump(exclude_unset=True)
+    if "metrics" in fields:
+        patch.metrics = metrics.normalize_metrics(patch.metrics)
+    if "gates" in fields:
+        patch.gates = metrics.normalize_gates(patch.gates)
     if fields:
         sets = ", ".join(f"{k} = ${i}" for i, k in enumerate(fields, start=3))
         values = [_dump(getattr(patch, k)) for k in fields]

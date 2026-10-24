@@ -76,8 +76,9 @@ class CallResult:
         return parse_json(self.text)
 
     def output(self) -> dict[str, Any]:
-        """ResultOut.output / OutputView shape."""
-        return {"text": self.text, "json": self.json, "tool_calls": self.tool_calls}
+        """ResultOut.output / OutputView shape, plus finish_reason (truncation_rate)."""
+        return {"text": self.text, "json": self.json, "tool_calls": self.tool_calls,
+                "finish_reason": self.finish_reason}
 
     def timing(self) -> dict[str, float | None]:
         """ResultOut.timing shape."""
