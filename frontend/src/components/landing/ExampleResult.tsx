@@ -193,15 +193,15 @@ export default function ExampleResult() {
   return (
     <section aria-labelledby="example-title" className="border-b border-line/60 py-24 sm:py-32">
       <Container>
-        <SectionHead id="example-title" badge="Example · from our fixtures" tone="front" title="A recommendation you can defend."
+        <SectionHead id="example-title" badge="Example result" tone="front" title="A recommendation you can defend."
           lede="Every pick comes with the numbers behind it: the front it sits on, the intervals it was compared with, and what you save." />
 
         {/* hairline light on the edge, a pool of coral light under it, a spotlight that follows the cursor */}
         <div className="lp-hairline lp-pool mt-16 rounded-xl">
         <div ref={spot} className="lp-spot overflow-hidden rounded-xl border border-line bg-panel">
           <div className="border-b border-line p-6 sm:p-8">
-            <p className="font-mono text-[11px] tracking-[0.08em] text-muted uppercase">Use case: extract invoice fields · 50 cases × 3 repeats</p>
-            <h3 className="title mt-3 max-w-3xl text-2xl leading-tight text-balance sm:text-[32px]">
+            <p className="text-[13px] text-muted">Use case: extract invoice fields · 50 cases × 3 repeats</p>
+            <h3 className="title mt-3 text-2xl leading-tight text-pretty sm:text-[32px]">
               Switch to <span className="text-front">GLM-5.3-Flash</span>: 98% of today's quality at 1/5 of the cost
             </h3>
             <dl ref={figRef} data-inview={figIn} className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-4">

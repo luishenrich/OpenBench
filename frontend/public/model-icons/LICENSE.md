@@ -2,7 +2,8 @@
 
 The SVGs in this folder come from [Lobe Icons](https://github.com/lobehub/lobe-icons) by LobeHub,
 npm package `@lobehub/icons-static-svg@1.95.1`, released under the MIT License.
-The logos themselves are trademarks of their respective owners and are used only to identify the models.
+The logos themselves are trademarks of their respective owners and are used only to identify the models,
+providers and tools (GitHub, Cursor, Claude Code) they stand for.
 
 Changes: renamed to the BIY maker key, `currentColor` replaced by `#ededef` so mono marks show on the
 dark theme, inline `style` dropped, size set to 24.
@@ -36,6 +37,9 @@ dark theme, inline `style` dropped, size set to 24.
 | reka.svg | reka.svg |
 | nebius.svg | nebius.svg |
 | openrouter.svg | openrouter.svg |
+| github.svg | github.svg |
+| cursor.svg | cursor.svg |
+| claudecode.svg | claudecode.svg |
 
 MIT License, Copyright (c) LobeHub.
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated

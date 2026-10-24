@@ -55,3 +55,22 @@ export function useSpotlight<T extends HTMLElement>() {
 
 /** Inline delay for staggered children: style={d(i * 60)}. */
 export const d = (ms: number) => ({ '--d': `${ms}ms` }) as CSSProperties
+
+/** Counts from 0 to `to` once `run` turns true. With reduced motion it shows the final value at once. */
+export function useCountUp(to: number, run: boolean, ms = 1400) {
+  const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const [v, setV] = useState(reduce ? to : 0)
+  useEffect(() => {
+    if (!run || reduce) return
+    let frame = 0
+    const t0 = performance.now()
+    const tick = (t: number) => {
+      const k = Math.min(1, (t - t0) / ms)
+      setV(to * (1 - Math.pow(1 - k, 3)))
+      if (k < 1) frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [run, reduce, to, ms])
+  return v
+}

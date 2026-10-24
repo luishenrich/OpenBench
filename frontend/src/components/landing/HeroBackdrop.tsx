@@ -9,8 +9,10 @@ const DRAW_MS = 1150
 const nodes: [number, number][] = [[1, 2], [2, 2], [4, 1], [2, 4], [1, 5], [5, 5], [3, 6], [6, 2]]
 const plus: [number, number][] = [[1, 3], [2, 3], [1, 6]]
 // the front: right and up, ending at the pick
-const path: [number, number][] = [[10, 8], [12, 8], [12, 7], [13, 7], [13, 6], [14, 6], [14, 4], [15, 4], [15, 2]]
-const frame: [number, number][] = [[14, 1], [15, 1], [16, 1], [14, 2], [16, 2], [14, 3], [15, 3], [16, 3], [16, 5], [16, 6], [16, 7], [15, 8], [14, 8], [13, 8]]
+// The front sits one step further right than the dashboard Backdrop, so the one-line-wider headline clears it.
+const DX = 1
+const path: [number, number][] = ([[10, 8], [12, 8], [12, 7], [13, 7], [13, 6], [14, 6], [14, 4], [15, 4], [15, 2]] as [number, number][]).map(([x, y]) => [x + DX, y])
+const frame: [number, number][] = ([[14, 1], [15, 1], [16, 1], [14, 2], [16, 2], [14, 3], [15, 3], [16, 3], [16, 5], [16, 6], [16, 7], [15, 8], [14, 8], [13, 8]] as [number, number][]).map(([x, y]) => [x + DX, y])
 const PICK = path[path.length - 1]
 
 // Where along the front each vertex sits (0..1), so its marker pops as the line reaches it.
@@ -50,7 +52,7 @@ export default function HeroBackdrop() {
       </defs>
 
       {/* a faint coral wash behind the staircase */}
-      <ellipse className="lp-light" cx={12.8 * STEP} cy={5 * STEP} rx={5 * STEP} ry={4 * STEP} fill="url(#lp-wash)" />
+      <ellipse className="lp-light" cx={(12.8 + DX) * STEP} cy={5 * STEP} rx={5 * STEP} ry={4 * STEP} fill="url(#lp-wash)" />
 
       <g mask="url(#lp-mask)">
         <rect className="lp-grid" width="100%" height="100%" fill="url(#lp-grid)" />
