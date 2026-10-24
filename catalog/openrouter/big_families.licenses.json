@@ -1,0 +1,466 @@
+[
+  {
+    "id": "nvidia/nemotron-3.5-super-vl",
+    "hf_repo": "nvidia/NVIDIA-Nemotron-3.5-Super-VL",
+    "license": null,
+    "gated": null,
+    "open_weight": false,
+    "note": "HF API returned HTTP 401 (private/nonexistent for unauthenticated access); weights not public, dropped, not probed"
+  },
+  {
+    "id": "qwen/qwen3.8-flash",
+    "hf_repo": "Qwen/Qwen3.8-Flash-Next",
+    "license": "other (qwen-community-1.0)",
+    "gated": false,
+    "open_weight": true,
+    "note": "HF repo is Qwen/Qwen3.8-Flash-Next; custom qwen-community-1.0 license."
+  },
+  {
+    "id": "deepseek/deepseek-v4-flash-vision-exp",
+    "hf_repo": "deepseek-ai/DeepSeek-V4-Flash-Vision-Exp",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": "Experimental; HF repo public (MIT) and OpenRouter still serves it via DeepInfra (fp8) as of probe date, despite DeepSeek docs saying it was retired. Flag as possibly short-lived."
+  },
+  {
+    "id": "qwen/qwen3.8-2.4t-a95b",
+    "hf_repo": "Qwen/Qwen3.8-2.4T-A95B",
+    "license": "other (qwen3.8-max)",
+    "gated": false,
+    "open_weight": true,
+    "note": "Qwen flagship; weights public. License qwen3.8-max (custom, read before commercial use)."
+  },
+  {
+    "id": "nvidia/nemotron-3.5-lightning",
+    "hf_repo": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16",
+    "license": "other (openmdw-1.1)",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "nvidia/nemotron-3.5-content-safety",
+    "hf_repo": "nvidia/Nemotron-3.5-Content-Safety",
+    "license": "other (openmdw-license-agreement)",
+    "gated": false,
+    "open_weight": true,
+    "note": "Safety classifier, not a general chat model; answers \"User Safety: safe\" style outputs. Probably exclude from general benchmarks."
+  },
+  {
+    "id": "nvidia/nemotron-3-ultra-550b-a55b",
+    "hf_repo": "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
+    "license": "other (openmdw-1.1)",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "hf_repo": "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16",
+    "license": "other (nvidia-open-model-agreement)",
+    "gated": false,
+    "open_weight": true,
+    "note": "Only a :free variant exists on OpenRouter; probe failed (account free-model data policy excludes the endpoint). Not benchmarkable with current account settings."
+  },
+  {
+    "id": "qwen/qwen3.6-35b-a3b",
+    "hf_repo": "Qwen/Qwen3.6-35B-A3B",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3.6-27b",
+    "hf_repo": "Qwen/Qwen3.6-27B",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "deepseek/deepseek-v4-flash",
+    "hf_repo": "deepseek-ai/DeepSeek-V4-Flash",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "minimax/minimax-m2.7",
+    "hf_repo": "MiniMaxAI/MiniMax-M2.7",
+    "license": "other (other)",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "nvidia/nemotron-3-super-120b-a12b",
+    "hf_repo": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8",
+    "license": "other (nvidia-nemotron-open-model-license)",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3.5-9b",
+    "hf_repo": "Qwen/Qwen3.5-9B",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3.5-35b-a3b",
+    "hf_repo": "Qwen/Qwen3.5-35B-A3B",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3.5-27b",
+    "hf_repo": "Qwen/Qwen3.5-27B",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3.5-122b-a10b",
+    "hf_repo": "Qwen/Qwen3.5-122B-A10B",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "minimax/minimax-m2.5",
+    "hf_repo": "MiniMaxAI/MiniMax-M2.5",
+    "license": "other (modified-mit)",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "z-ai/glm-5",
+    "hf_repo": "zai-org/GLM-5",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3-coder-next",
+    "hf_repo": "Qwen/Qwen3-Coder-Next",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "moonshotai/kimi-k2.5",
+    "hf_repo": "moonshotai/Kimi-K2.5",
+    "license": "other (modified-mit)",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "z-ai/glm-4.7-flash",
+    "hf_repo": "zai-org/GLM-4.7-Flash",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "minimax/minimax-m2.1",
+    "hf_repo": "MiniMaxAI/MiniMax-M2.1",
+    "license": "other (modified-mit)",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "z-ai/glm-4.7",
+    "hf_repo": "zai-org/GLM-4.7",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "nvidia/nemotron-3-nano-30b-a3b",
+    "hf_repo": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
+    "license": "other (nvidia-nemotron-open-model-license)",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "z-ai/glm-4.6v",
+    "hf_repo": "zai-org/GLM-4.6V",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "deepseek/deepseek-v3.2",
+    "hf_repo": "deepseek-ai/DeepSeek-V3.2",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "moonshotai/kimi-k2-thinking",
+    "hf_repo": "moonshotai/Kimi-K2-Thinking",
+    "license": "other (modified-mit)",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "minimax/minimax-m2",
+    "hf_repo": "MiniMaxAI/MiniMax-M2",
+    "license": "other (modified-mit)",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3-vl-8b-instruct",
+    "hf_repo": "Qwen/Qwen3-VL-8B-Instruct",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3-vl-30b-a3b-thinking",
+    "hf_repo": "Qwen/Qwen3-VL-30B-A3B-Thinking",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3-vl-30b-a3b-instruct",
+    "hf_repo": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "z-ai/glm-4.6",
+    "hf_repo": "zai-org/GLM-4.6",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "deepseek/deepseek-v3.2-exp",
+    "hf_repo": "deepseek-ai/DeepSeek-V3.2-Exp",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3-vl-235b-a22b-instruct",
+    "hf_repo": "Qwen/Qwen3-VL-235B-A22B-Instruct",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "deepseek/deepseek-v3.1-terminus",
+    "hf_repo": "deepseek-ai/DeepSeek-V3.1-Terminus",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3-next-80b-a3b-thinking",
+    "hf_repo": "Qwen/Qwen3-Next-80B-A3B-Thinking",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "Weights public, but OpenRouter route returns 404 Provider returned error (reproduced twice); no working endpoint."
+  },
+  {
+    "id": "qwen/qwen3-next-80b-a3b-instruct",
+    "hf_repo": "Qwen/Qwen3-Next-80B-A3B-Instruct",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "moonshotai/kimi-k2-0905",
+    "hf_repo": "moonshotai/Kimi-K2-Instruct-0905",
+    "license": "other (modified-mit)",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "deepseek/deepseek-chat-v3.1",
+    "hf_repo": "deepseek-ai/DeepSeek-V3.1",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "z-ai/glm-4.5v",
+    "hf_repo": "zai-org/GLM-4.5V",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3-coder-30b-a3b-instruct",
+    "hf_repo": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "z-ai/glm-4.5",
+    "hf_repo": "zai-org/GLM-4.5",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": "OpenRouter expiration_date 2026-12-31."
+  },
+  {
+    "id": "z-ai/glm-4.5-air",
+    "hf_repo": "zai-org/GLM-4.5-Air",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3-235b-a22b-thinking-2507",
+    "hf_repo": "Qwen/Qwen3-235B-A22B-Thinking-2507",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3-coder",
+    "hf_repo": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "moonshotai/kimi-k2",
+    "hf_repo": "moonshotai/Kimi-K2-Instruct",
+    "license": "other (modified-mit)",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "deepseek/deepseek-r1-0528",
+    "hf_repo": "deepseek-ai/DeepSeek-R1-0528",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3-30b-a3b",
+    "hf_repo": "Qwen/Qwen3-30B-A3B",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3-14b",
+    "hf_repo": "Qwen/Qwen3-14B",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen3-32b",
+    "hf_repo": "Qwen/Qwen3-32B",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "deepseek/deepseek-chat-v3-0324",
+    "hf_repo": "deepseek-ai/DeepSeek-V3-0324",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen2.5-vl-72b-instruct",
+    "hf_repo": "Qwen/Qwen2.5-VL-72B-Instruct",
+    "license": "other (qwen)",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "minimax/minimax-01",
+    "hf_repo": "MiniMaxAI/MiniMax-Text-01",
+    "license": "MiniMax Model Agreement (LICENSE-MODEL); code MIT",
+    "gated": false,
+    "open_weight": true,
+    "note": "HF API reports no license tag; README badges: model agreement + MIT code"
+  },
+  {
+    "id": "deepseek/deepseek-chat",
+    "hf_repo": "deepseek-ai/DeepSeek-V3",
+    "license": "DeepSeek Model License (Model_Agreement); code MIT",
+    "gated": false,
+    "open_weight": true,
+    "note": "HF API reports no license tag; README badges: code MIT, model under DeepSeek Model Agreement (commercial use allowed)"
+  },
+  {
+    "id": "qwen/qwen-2.5-coder-32b-instruct",
+    "hf_repo": "Qwen/Qwen2.5-Coder-32B-Instruct",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen-2.5-7b-instruct",
+    "hf_repo": "Qwen/Qwen2.5-7B-Instruct",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "qwen/qwen-2.5-72b-instruct",
+    "hf_repo": "Qwen/Qwen2.5-72B-Instruct",
+    "license": "other (qwen)",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  }
+]

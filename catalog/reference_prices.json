@@ -1,0 +1,645 @@
+{
+  "generated_at": "2026-10-24",
+  "note": "Official first-party API prices from the model makers. Reference only; benchmarks score with the price of the endpoint actually called.",
+  "makers": [
+    {
+      "maker": "DeepSeek",
+      "pricing_url": "https://api-docs.deepseek.com/quick_start/pricing",
+      "currency": "USD",
+      "fetched_at": "2026-10-24",
+      "models": [
+        {
+          "maker_model_id": "deepseek-flash",
+          "matches_hf_repo": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+          "usd_per_1m": {
+            "input": 0.3,
+            "output": 1.2,
+            "cached_input": 0.006
+          },
+          "tiers": [
+            {
+              "name": "peak",
+              "usd_per_1m": {
+                "input": 0.3,
+                "output": 1.2,
+                "cached_input": 0.006
+              },
+              "when": "Peak: 01:00-04:00 and 06:00-10:00 UTC Mon-Fri excl. Chinese public holidays; all other hours (weekends, holidays) are off-peak"
+            },
+            {
+              "name": "off-peak",
+              "usd_per_1m": {
+                "input": 0.15,
+                "output": 0.6,
+                "cached_input": 0.003
+              },
+              "when": "Off-peak is exactly half of peak"
+            }
+          ],
+          "notes": "Headline usd_per_1m = PEAK rate (cache miss input). Served model = DeepSeek-V4.1-Flash-1017, 1M context, 384K max output. Legacy names deepseek-v4-flash and deepseek-v4-flash-vision-exp are retired and now served by this model and billed at the Flash price, so there is no separate official price for V4-Flash-0731."
+        },
+        {
+          "maker_model_id": "deepseek-v4-pro",
+          "matches_hf_repo": "deepseek-ai/DeepSeek-V4-Pro-0813",
+          "usd_per_1m": {
+            "input": 1.32,
+            "output": 3.96,
+            "cached_input": 0.044
+          },
+          "tiers": [
+            {
+              "name": "peak",
+              "usd_per_1m": {
+                "input": 1.32,
+                "output": 3.96,
+                "cached_input": 0.044
+              },
+              "when": "Peak: 01:00-04:00 and 06:00-10:00 UTC Mon-Fri excl. Chinese public holidays; all other hours (weekends, holidays) are off-peak"
+            },
+            {
+              "name": "off-peak",
+              "usd_per_1m": {
+                "input": 0.66,
+                "output": 1.98,
+                "cached_input": 0.022
+              },
+              "when": "Off-peak is exactly half of peak"
+            }
+          ],
+          "notes": "Headline usd_per_1m = PEAK rate. Served model = DeepSeek-V4-Pro-0813, 1M context, 384K max output, no vision."
+        }
+      ]
+    },
+    {
+      "maker": "Moonshot AI (Kimi)",
+      "pricing_url": "https://platform.kimi.ai/docs/pricing/chat",
+      "currency": "USD",
+      "fetched_at": "2026-10-24",
+      "models": [
+        {
+          "maker_model_id": "kimi-k3",
+          "matches_hf_repo": "moonshotai/Kimi-K3",
+          "usd_per_1m": {
+            "input": 3.0,
+            "output": 15.0,
+            "cached_input": 0.3
+          },
+          "notes": "1,048,576 context. K3 series also bills cache writes: 5m TTL $3.00, 1h TTL $6.00 per 1M; cache hits billed at cached-input price only. platform.moonshot.ai redirects (301) to platform.kimi.ai."
+        },
+        {
+          "maker_model_id": "kimi-k3.1-pro",
+          "matches_hf_repo": null,
+          "usd_per_1m": {
+            "input": 2.0,
+            "output": 10.0,
+            "cached_input": 0.2
+          },
+          "notes": "Not in the requested list; shown for completeness. Open-weight status not verified, so no HF match. 5m cache write $2.00, 1h $4.00. Has a -highspeed variant at $4.00 in / $20.00 out / $0.20 cached."
+        },
+        {
+          "maker_model_id": "kimi-k2.7-code",
+          "matches_hf_repo": "moonshotai/Kimi-K2.7-Code",
+          "usd_per_1m": {
+            "input": 0.95,
+            "output": 4.0,
+            "cached_input": 0.19
+          },
+          "tiers": [
+            {
+              "name": "highspeed (kimi-k2.7-code-highspeed)",
+              "usd_per_1m": {
+                "input": 1.9,
+                "output": 8.0,
+                "cached_input": 0.38
+              },
+              "when": "Separate model id, 2x price, faster serving; same weights assumed"
+            }
+          ],
+          "notes": "262,144 context. K2 series closed to new users from 2026-10-31 and retired by end of Dec 2026."
+        },
+        {
+          "maker_model_id": "kimi-k2.6",
+          "matches_hf_repo": "moonshotai/Kimi-K2.6",
+          "usd_per_1m": {
+            "input": 0.95,
+            "output": 4.0,
+            "cached_input": 0.16
+          },
+          "notes": "262,144 context. Same K2 retirement schedule as above."
+        }
+      ],
+      "unlisted": "kimi-k2.5 is no longer on Moonshot's official pricing page (only aggregators/resellers list it), so it is omitted."
+    },
+    {
+      "maker": "Z.ai (Zhipu)",
+      "pricing_url": "https://docs.z.ai/guides/overview/pricing",
+      "currency": "USD",
+      "fetched_at": "2026-10-24",
+      "models": [
+        {
+          "maker_model_id": "glm-5.3",
+          "matches_hf_repo": "zai-org/GLM-5.3",
+          "usd_per_1m": {
+            "input": 1.4,
+            "output": 4.4,
+            "cached_input": 0.26
+          },
+          "notes": "Flat rate, no context tiers, no batch or off-peak discount listed. Cached input storage is 'Limited-time Free'."
+        },
+        {
+          "maker_model_id": "glm-5.3-flash",
+          "matches_hf_repo": "zai-org/GLM-5.3-Flash",
+          "usd_per_1m": {
+            "input": 0.15,
+            "output": 0.5,
+            "cached_input": 0.03
+          },
+          "notes": "Flat rate, no context tiers, no batch or off-peak discount listed. Cached input storage is 'Limited-time Free'. Higher tier GLM-5.3-FlashX / FlashX-Legal at $0.37 / $1.25 / $0.075 is a different (not open-weight-matched) model."
+        },
+        {
+          "maker_model_id": "glm-5.2",
+          "matches_hf_repo": "zai-org/GLM-5.2",
+          "usd_per_1m": {
+            "input": 1.4,
+            "output": 4.4,
+            "cached_input": 0.26
+          },
+          "notes": "Flat rate, no context tiers, no batch or off-peak discount listed. Cached input storage is 'Limited-time Free'."
+        },
+        {
+          "maker_model_id": "glm-5.1",
+          "matches_hf_repo": "zai-org/GLM-5.1",
+          "usd_per_1m": {
+            "input": 1.4,
+            "output": 4.4,
+            "cached_input": 0.26
+          },
+          "notes": "Flat rate, no context tiers, no batch or off-peak discount listed. Cached input storage is 'Limited-time Free'."
+        },
+        {
+          "maker_model_id": "glm-5",
+          "matches_hf_repo": "zai-org/GLM-5",
+          "usd_per_1m": {
+            "input": 1.0,
+            "output": 3.2,
+            "cached_input": 0.2
+          },
+          "notes": "Flat rate, no context tiers, no batch or off-peak discount listed. Cached input storage is 'Limited-time Free'."
+        }
+      ]
+    },
+    {
+      "maker": "Alibaba Qwen (Model Studio, International)",
+      "pricing_url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "currency": "USD",
+      "fetched_at": "2026-10-24",
+      "models": [
+        {
+          "maker_model_id": "qwen3.8-27b",
+          "matches_hf_repo": "Qwen/Qwen3.8-27B",
+          "usd_per_1m": {
+            "input": 0.5,
+            "output": 3.0,
+            "cached_input": null
+          },
+          "notes": "Alibaba Cloud Model Studio, International (Singapore) deployment scope. Cached input is a percentage of the input price (implicit cache ~20%, explicit cache hit ~10%, varies by model/region), not a fixed list price, so cached_input is null. Batch inference is 50% off where supported. Hosted version of the open weights (1M context, built-in tools). Single tier 0<tokens<=1M."
+        },
+        {
+          "maker_model_id": "qwen3.8-2.4t-a95b",
+          "matches_hf_repo": "Qwen/Qwen3.8-2.4T-A95B",
+          "usd_per_1m": {
+            "input": 2.0,
+            "output": 6.0,
+            "cached_input": null
+          },
+          "notes": "Alibaba Cloud Model Studio, International (Singapore) deployment scope. Cached input is a percentage of the input price (implicit cache ~20%, explicit cache hit ~10%, varies by model/region), not a fixed list price, so cached_input is null. Batch inference is 50% off where supported. Open weights listed in the 'open source' section. Qwen3.8-Max (qwen3.8-max, same $2/$6) is the official hosted version with extra features (vision input, built-in tools)."
+        },
+        {
+          "maker_model_id": "qwen3.6-35b-a3b",
+          "matches_hf_repo": "Qwen/Qwen3.6-35B-A3B",
+          "usd_per_1m": {
+            "input": 0.375,
+            "output": 2.25,
+            "cached_input": null
+          },
+          "notes": "Alibaba Cloud Model Studio, International (Singapore) deployment scope. Cached input is a percentage of the input price (implicit cache ~20%, explicit cache hit ~10%, varies by model/region), not a fixed list price, so cached_input is null. Batch inference is 50% off where supported. Same price non-thinking and thinking. Tier 0<tokens<=256K."
+        },
+        {
+          "maker_model_id": "qwen3.6-27b",
+          "matches_hf_repo": "Qwen/Qwen3.6-27B",
+          "usd_per_1m": {
+            "input": 0.6,
+            "output": 3.6,
+            "cached_input": null
+          },
+          "notes": "Alibaba Cloud Model Studio, International (Singapore) deployment scope. Cached input is a percentage of the input price (implicit cache ~20%, explicit cache hit ~10%, varies by model/region), not a fixed list price, so cached_input is null. Batch inference is 50% off where supported. Tier 0<tokens<=256K."
+        },
+        {
+          "maker_model_id": "qwen3.5-397b-a17b",
+          "matches_hf_repo": "Qwen/Qwen3.5-397B-A17B",
+          "usd_per_1m": {
+            "input": 0.6,
+            "output": 3.6,
+            "cached_input": null
+          },
+          "notes": "Alibaba Cloud Model Studio, International (Singapore) deployment scope. Cached input is a percentage of the input price (implicit cache ~20%, explicit cache hit ~10%, varies by model/region), not a fixed list price, so cached_input is null. Batch inference is 50% off where supported. Tier 0<tokens<=256K."
+        },
+        {
+          "maker_model_id": "qwen3.5-122b-a10b",
+          "matches_hf_repo": "Qwen/Qwen3.5-122B-A10B",
+          "usd_per_1m": {
+            "input": 0.4,
+            "output": 3.2,
+            "cached_input": null
+          },
+          "notes": "Alibaba Cloud Model Studio, International (Singapore) deployment scope. Cached input is a percentage of the input price (implicit cache ~20%, explicit cache hit ~10%, varies by model/region), not a fixed list price, so cached_input is null. Batch inference is 50% off where supported. Tier 0<tokens<=256K. HF repo id inferred from naming."
+        },
+        {
+          "maker_model_id": "qwen3.5-27b",
+          "matches_hf_repo": "Qwen/Qwen3.5-27B",
+          "usd_per_1m": {
+            "input": 0.3,
+            "output": 2.4,
+            "cached_input": null
+          },
+          "notes": "Alibaba Cloud Model Studio, International (Singapore) deployment scope. Cached input is a percentage of the input price (implicit cache ~20%, explicit cache hit ~10%, varies by model/region), not a fixed list price, so cached_input is null. Batch inference is 50% off where supported. Tier 0<tokens<=256K. HF repo id inferred from naming."
+        },
+        {
+          "maker_model_id": "qwen3.5-35b-a3b",
+          "matches_hf_repo": "Qwen/Qwen3.5-35B-A3B",
+          "usd_per_1m": {
+            "input": 0.25,
+            "output": 2.0,
+            "cached_input": null
+          },
+          "notes": "Alibaba Cloud Model Studio, International (Singapore) deployment scope. Cached input is a percentage of the input price (implicit cache ~20%, explicit cache hit ~10%, varies by model/region), not a fixed list price, so cached_input is null. Batch inference is 50% off where supported. Tier 0<tokens<=256K. HF repo id inferred from naming."
+        },
+        {
+          "maker_model_id": "qwen3.8-flash",
+          "matches_hf_repo": null,
+          "usd_per_1m": {
+            "input": 0.15,
+            "output": 0.47,
+            "cached_input": null
+          },
+          "notes": "Alibaba Cloud Model Studio, International (Singapore) deployment scope. Cached input is a percentage of the input price (implicit cache ~20%, explicit cache hit ~10%, varies by model/region), not a fixed list price, so cached_input is null. Batch inference is 50% off where supported. Closed hosted 'Flash' variant; not confirmed to equal any open repo (Qwen/Qwen3.8-Flash-Next exists on HF but mapping unverified)."
+        },
+        {
+          "maker_model_id": "qwen3.8-max",
+          "matches_hf_repo": null,
+          "usd_per_1m": {
+            "input": 2.0,
+            "output": 6.0,
+            "cached_input": null
+          },
+          "notes": "Alibaba Cloud Model Studio, International (Singapore) deployment scope. Cached input is a percentage of the input price (implicit cache ~20%, explicit cache hit ~10%, varies by model/region), not a fixed list price, so cached_input is null. Batch inference is 50% off where supported. Closed hosted Max variant (official version of Qwen3.8-2.4T-A95B with extra features); see qwen3.8-2.4t-a95b for the open-weight row."
+        },
+        {
+          "maker_model_id": "qwen3.6-plus",
+          "matches_hf_repo": null,
+          "usd_per_1m": {
+            "input": 0.5,
+            "output": 3.0,
+            "cached_input": null
+          },
+          "notes": "Alibaba Cloud Model Studio, International (Singapore) deployment scope. Cached input is a percentage of the input price (implicit cache ~20%, explicit cache hit ~10%, varies by model/region), not a fixed list price, so cached_input is null. Batch inference is 50% off where supported. Closed 'Plus' API model; not the open 3.6 weights. 0<tokens<=256K."
+        },
+        {
+          "maker_model_id": "qwen3.5-plus",
+          "matches_hf_repo": null,
+          "usd_per_1m": {
+            "input": 0.4,
+            "output": 2.4,
+            "cached_input": null
+          },
+          "notes": "Alibaba Cloud Model Studio, International (Singapore) deployment scope. Cached input is a percentage of the input price (implicit cache ~20%, explicit cache hit ~10%, varies by model/region), not a fixed list price, so cached_input is null. Batch inference is 50% off where supported. Closed 'Plus' API model; not guaranteed identical to the open Qwen3.5-397B-A17B. 0<tokens<=256K."
+        }
+      ]
+    },
+    {
+      "maker": "MiniMax",
+      "pricing_url": "https://platform.minimax.io/docs/pricing/overview",
+      "currency": "USD",
+      "fetched_at": "2026-10-24",
+      "models": [
+        {
+          "maker_model_id": "MiniMax-M3",
+          "matches_hf_repo": "MiniMaxAI/MiniMax-M3",
+          "usd_per_1m": {
+            "input": 0.3,
+            "output": 1.2,
+            "cached_input": 0.06
+          },
+          "tiers": [
+            {
+              "name": "standard >512k input",
+              "usd_per_1m": {
+                "input": 0.6,
+                "output": 2.4,
+                "cached_input": 0.12
+              },
+              "when": "Input exceeds 512k tokens (price doubles)"
+            },
+            {
+              "name": "priority <=512k",
+              "usd_per_1m": {
+                "input": 0.45,
+                "output": 1.8,
+                "cached_input": 0.09
+              },
+              "when": "service_tier=priority, 1.5x standard"
+            },
+            {
+              "name": "priority >512k",
+              "usd_per_1m": {
+                "input": 0.9,
+                "output": 3.6,
+                "cached_input": 0.18
+              },
+              "when": "priority and input >512k"
+            }
+          ],
+          "notes": "Pay-as-you-go. MiniMax lists the M3 price as a permanent 50% discount. Standard service tier, input <=512k tokens."
+        },
+        {
+          "maker_model_id": "MiniMax-M3.1-Flash",
+          "matches_hf_repo": "MiniMaxAI/MiniMax-M3.1-Flash",
+          "usd_per_1m": {
+            "input": 0.15,
+            "output": 0.6,
+            "cached_input": 0.015
+          },
+          "notes": "Pay-as-you-go. MiniMax lists the M3 price as a permanent 50% discount."
+        }
+      ],
+      "unlisted": "MiniMax-M2.7 is not on MiniMax's official pay-as-you-go page; only resellers/aggregators (Tencent TokenHub, OpenRouter) list it, so it is omitted."
+    },
+    {
+      "maker": "Xiaomi MiMo",
+      "pricing_url": "https://mimo.mi.com/docs/price/pay-as-you-go",
+      "currency": "USD",
+      "fetched_at": "2026-10-24",
+      "models": [
+        {
+          "maker_model_id": "mimo-v2.6-pro",
+          "matches_hf_repo": "XiaomiMiMo/MiMo-V2.6-Pro-RL",
+          "usd_per_1m": {
+            "input": 0.435,
+            "output": 0.87,
+            "cached_input": 0.0036
+          },
+          "tiers": [
+            {
+              "name": "batch",
+              "usd_per_1m": {
+                "input": 0.2175,
+                "output": 0.435,
+                "cached_input": 0.0018
+              },
+              "when": "Batch API, non-real-time"
+            },
+            {
+              "name": "ultraspeed (mimo-v2.6-pro-ultraspeed)",
+              "usd_per_1m": {
+                "input": 4.35,
+                "output": 8.7,
+                "cached_input": 0.036
+              },
+              "when": "Separate model id, ~20x faster output at 10x price"
+            }
+          ],
+          "notes": "Overseas (USD) price list. Batch API is 50% off. Open-weight repos are the -RL checkpoints; the API-to-checkpoint mapping is not stated by Xiaomi, so match is probable not confirmed. CNY list for reference: 3.00 in / 6.00 out / 0.025 cached (USD list used)."
+        },
+        {
+          "maker_model_id": "mimo-v2.6-flash",
+          "matches_hf_repo": "XiaomiMiMo/MiMo-V2.6-Flash-RL",
+          "usd_per_1m": {
+            "input": 0.14,
+            "output": 0.28,
+            "cached_input": 0.0028
+          },
+          "tiers": [
+            {
+              "name": "batch",
+              "usd_per_1m": {
+                "input": 0.07,
+                "output": 0.14,
+                "cached_input": 0.0014
+              },
+              "when": "Batch API, non-real-time"
+            }
+          ],
+          "notes": "Overseas (USD) price list. Batch API is 50% off. Open-weight repos are the -RL checkpoints; the API-to-checkpoint mapping is not stated by Xiaomi, so match is probable not confirmed."
+        }
+      ]
+    },
+    {
+      "maker": "StepFun",
+      "pricing_url": "https://platform.stepfun.ai/docs/en/guides/pricing/details",
+      "currency": "USD",
+      "fetched_at": "2026-10-24",
+      "models": [
+        {
+          "maker_model_id": "step-5-preview",
+          "matches_hf_repo": "stepfun-ai/Step-5-Preview",
+          "usd_per_1m": {
+            "input": 1.0,
+            "output": 2.7,
+            "cached_input": 0.1
+          },
+          "notes": "Output includes reasoning tokens; cache-miss price includes writing to cache. Official page says cache hit $0.10; several blogs and Tencent's reseller list $0.05 (older value), ignored."
+        },
+        {
+          "maker_model_id": "step-3.7-flash",
+          "matches_hf_repo": "stepfun-ai/Step-3.7-Flash",
+          "usd_per_1m": {
+            "input": 0.2,
+            "output": 1.15,
+            "cached_input": 0.04
+          },
+          "notes": "256k context."
+        },
+        {
+          "maker_model_id": "step-3.5-flash",
+          "matches_hf_repo": "stepfun-ai/Step-3.5-Flash",
+          "usd_per_1m": {
+            "input": 0.1,
+            "output": 0.3,
+            "cached_input": 0.02
+          },
+          "notes": "Not in requested list; HF repo id inferred. step-3.5-flash-2603 has the same price."
+        }
+      ]
+    },
+    {
+      "maker": "Mistral AI",
+      "pricing_url": "https://docs.mistral.ai/inference/pricing",
+      "currency": "USD",
+      "fetched_at": "2026-10-24",
+      "models": [
+        {
+          "maker_model_id": "mistral-small-4",
+          "matches_hf_repo": "mistralai/Mistral-Small-4-119B-2603",
+          "usd_per_1m": {
+            "input": 0.15,
+            "output": 0.6,
+            "cached_input": 0.015
+          },
+          "notes": "Standard tier. Mistral states batch is 50% off and cached input is up to 90% off (listed cached price used)."
+        },
+        {
+          "maker_model_id": "mistral-large-3",
+          "matches_hf_repo": "mistralai/Mistral-Large-3-675B-Instruct-2512",
+          "usd_per_1m": {
+            "input": 0.5,
+            "output": 1.5,
+            "cached_input": 0.05
+          },
+          "notes": "Standard tier. Mistral states batch is 50% off and cached input is up to 90% off (listed cached price used). HF repo id inferred from naming, not individually fetched."
+        },
+        {
+          "maker_model_id": "mistral-large-4",
+          "matches_hf_repo": null,
+          "usd_per_1m": {
+            "input": 1.36,
+            "output": 4.18,
+            "cached_input": 0.14
+          },
+          "notes": "Standard tier. Mistral states batch is 50% off and cached input is up to 90% off (listed cached price used). Newest (v26.10), described as open-weight; HF repo not verified."
+        },
+        {
+          "maker_model_id": "mistral-medium-3.5",
+          "matches_hf_repo": "mistralai/Mistral-Medium-3.5-128B",
+          "usd_per_1m": {
+            "input": 1.5,
+            "output": 7.5,
+            "cached_input": 0.15
+          },
+          "notes": "Standard tier. Mistral states batch is 50% off and cached input is up to 90% off (listed cached price used). Not in requested list (Modified MIT licence)."
+        },
+        {
+          "maker_model_id": "ministral-3-14b",
+          "matches_hf_repo": "mistralai/Ministral-3-14B-Instruct-2512",
+          "usd_per_1m": {
+            "input": 0.2,
+            "output": 0.2,
+            "cached_input": 0.02
+          },
+          "notes": "Standard tier. Mistral states batch is 50% off and cached input is up to 90% off (listed cached price used). HF repo id inferred from naming."
+        },
+        {
+          "maker_model_id": "ministral-3-8b",
+          "matches_hf_repo": "mistralai/Ministral-3-8B-Instruct-2512",
+          "usd_per_1m": {
+            "input": 0.15,
+            "output": 0.15,
+            "cached_input": 0.015
+          },
+          "notes": "Standard tier. Mistral states batch is 50% off and cached input is up to 90% off (listed cached price used). HF repo id inferred from naming."
+        },
+        {
+          "maker_model_id": "ministral-3-3b",
+          "matches_hf_repo": "mistralai/Ministral-3-3B-Instruct-2512",
+          "usd_per_1m": {
+            "input": 0.1,
+            "output": 0.1,
+            "cached_input": 0.01
+          },
+          "notes": "Standard tier. Mistral states batch is 50% off and cached input is up to 90% off (listed cached price used). HF repo id inferred from naming."
+        }
+      ],
+      "unlisted": "Devstral 2 (devstral-2512) was retired on 2026-07-30 and has no current price. Mistral also resells Z.ai GLM-5.3 / 5.3-Flash, which is third-party, not first-party, and is excluded."
+    },
+    {
+      "maker": "Meta (Meta Model API)",
+      "pricing_url": "https://dev.meta.ai/resources/blog/build-with-muse-spark",
+      "currency": "USD",
+      "fetched_at": "2026-10-24",
+      "models": [
+        {
+          "maker_model_id": "muse-spark-1.1",
+          "matches_hf_repo": null,
+          "usd_per_1m": {
+            "input": 1.25,
+            "output": 4.25,
+            "cached_input": 0.15
+          },
+          "notes": "Pricing graphic on Meta's official developer blog (US public preview). Output includes reasoning tokens. Web search grounding $2.50 per 1,000 queries. This API model is the closed Muse Spark 1.1, NOT the Muse Spark Open weights (meta-models/Muse-Spark-Open-816B-A42B, released 2026-10-15), so no weight match, but Nebius's muse-spark-open charges the identical 1.25/4.25/0.15."
+        }
+      ]
+    },
+    {
+      "maker": "Tencent Hunyuan (Tencent Cloud TokenHub)",
+      "pricing_url": "https://www.tencentcloud.com/document/product/1300/78937",
+      "currency": "USD",
+      "fetched_at": "2026-10-24",
+      "models": [
+        {
+          "maker_model_id": "Hy3",
+          "matches_hf_repo": "tencent/Hy3",
+          "usd_per_1m": {
+            "input": 0.132,
+            "output": 0.528,
+            "cached_input": 0.033
+          },
+          "notes": "Singapore region list price on Tencent Cloud's TokenHub (Tencent's own API gateway). 256K context. Cache price column labelled 'Cache'; Guangzhou/Silicon Valley regions are priced slightly differently."
+        },
+        {
+          "maker_model_id": "Hy4 preview",
+          "matches_hf_repo": null,
+          "usd_per_1m": {
+            "input": 0.834,
+            "output": 2.501,
+            "cached_input": 0.042
+          },
+          "notes": "770B/49B MoE, 1M context. Open-weight status not verified, so no HF match."
+        }
+      ]
+    },
+    {
+      "maker": "Meituan LongCat",
+      "pricing_url": "https://longcat.chat/platform/docs/pricing/long-cat-2.0",
+      "currency": "USD",
+      "fetched_at": "2026-10-24",
+      "models": [
+        {
+          "maker_model_id": "LongCat-2.0",
+          "matches_hf_repo": "meituan-longcat/LongCat-2.0",
+          "usd_per_1m": {
+            "input": 0.75,
+            "output": 2.95,
+            "cached_input": 0.015
+          },
+          "tiers": [
+            {
+              "name": "promo (limited-time)",
+              "usd_per_1m": {
+                "input": 0.3,
+                "output": 1.2,
+                "cached_input": 0.006
+              },
+              "when": "Currently charged; page says 'limited-time discount'"
+            }
+          ],
+          "notes": "Headline = standard list price. A limited-time promo (no end date stated) applies: $0.30 in / $1.20 out / $0.006 cached. CNY list: 5 in / 20 out / 0.10 cached (USD list used). Weights are MIT-licensed on HF."
+        }
+      ]
+    },
+    {
+      "maker": "Google (Gemini API / AI Studio)",
+      "pricing_url": "https://ai.google.dev/gemini-api/docs/pricing",
+      "currency": "USD",
+      "fetched_at": "2026-10-24",
+      "models": [],
+      "unlisted": "Gemma 4: free tier only; paid tier 'Not available' for input, output and caching. No per-token price exists, so no reference price. Vertex AI / Gemini Enterprise Agent Platform pricing was not checked."
+    },
+    {
+      "maker": "NVIDIA (build.nvidia.com NIM)",
+      "pricing_url": "https://build.nvidia.com/models",
+      "currency": "USD",
+      "fetched_at": "2026-10-24",
+      "models": [],
+      "unlisted": "No official per-token price found: hosted NIM APIs on build.nvidia.com are a rate-limited trial (e.g. 40 RPM caps), with production use via self-hosted NIM. Per-token numbers only appear on aggregators (CostGoat, OpenRouter), which were not used."
+    }
+  ]
+}

@@ -1,0 +1,4175 @@
+{
+  "provider": "openrouter",
+  "base_url": "https://openrouter.ai/api/v1",
+  "key_env": "OPENROUTER_API_KEY",
+  "generated_at": "2026-10-24T10:12:29+00:00",
+  "models": [
+    {
+      "id": "cohere/command-a",
+      "provider": "openrouter",
+      "name": "Cohere: Command A",
+      "family": "cohere",
+      "description": "Command A is an open-weights 111B parameter model with a 256k context window focused on delivering great performance across agentic, multilingual, and coding use cases. Compared to other leading proprietary...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "frequency_penalty",
+          "max_tokens",
+          "presence_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": false,
+        "tools_auto": false,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 256000,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 2.5,
+          "output": 10.0,
+          "cached_input": null
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "CohereForAI/c4ai-command-a-03-2025",
+      "endpoints": [
+        {
+          "provider": "Cohere",
+          "tag": "cohere",
+          "quantization": "unknown",
+          "context_length": 256000,
+          "max_completion_tokens": 8192,
+          "usd_per_1m": {
+            "input": 2.5,
+            "output": 10.0,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "top_k",
+            "seed",
+            "structured_outputs",
+            "response_format"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "Cohere",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 4770,
+        "e2e_ms": 6919,
+        "text_call_cost_usd": 2.75e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 4770,
+            "e2e_ms": 6919,
+            "usage": {
+              "prompt_tokens": 7,
+              "completion_tokens": 1,
+              "total_tokens": 8,
+              "cost": 2.75e-05,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 2.75e-05,
+                "upstream_inference_prompt_cost": 1.75e-05,
+                "upstream_inference_completions_cost": 1e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Cohere",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support tool use. Try disabling \"get_weather\". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection"
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "ibm-granite/granite-4.2-8b",
+      "provider": "openrouter",
+      "name": "IBM: Granite 4.2 8B",
+      "family": "ibm-granite",
+      "description": "Granite 4.2 8B is a dense reasoning model from IBM. It is suited for mathematics, code generation, multilingual dialogue, and agentic workflows that need multi-step reasoning. It supports full, low-effort,...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logit_bias",
+          "logprobs",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "reasoning_effort",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 131072,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.06,
+          "output": 0.25,
+          "cached_input": 0.015
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "ibm-granite/granite-4.2-8b",
+      "endpoints": [
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/bf16",
+          "quantization": "bf16",
+          "context_length": 131072,
+          "max_completion_tokens": 117964,
+          "usd_per_1m": {
+            "input": 0.06,
+            "output": 0.25,
+            "cached_input": 0.015
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "logit_bias",
+            "tools",
+            "response_format",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "CoreWeave",
+          "tag": "coreweave/bf16",
+          "quantization": "bf16",
+          "context_length": 131072,
+          "max_completion_tokens": 117964,
+          "usd_per_1m": {
+            "input": 0.1,
+            "output": 0.15,
+            "cached_input": 0.05
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "top_k",
+            "repetition_penalty",
+            "frequency_penalty",
+            "presence_penalty",
+            "stop",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "DeepInfra",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 1480,
+        "e2e_ms": 3885,
+        "text_call_cost_usd": 1.407e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 1480,
+            "e2e_ms": 3885,
+            "usage": {
+              "prompt_tokens": 22,
+              "completion_tokens": 51,
+              "total_tokens": 73,
+              "cost": 1.407e-05,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 1.407e-05,
+                "upstream_inference_prompt_cost": 1.32e-06,
+                "upstream_inference_completions_cost": 1.275e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 50,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "DeepInfra",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "microsoft/phi-4",
+      "provider": "openrouter",
+      "name": "Microsoft: Phi 4",
+      "family": "microsoft",
+      "description": "[Microsoft Research](/microsoft) Phi-4 is designed to perform well in complex reasoning tasks and can operate efficiently in situations with limited memory or where quick responses are needed. At 14 billion...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "frequency_penalty",
+          "logit_bias",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": false,
+        "tools_auto": false,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 16384,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.07,
+          "output": 0.14,
+          "cached_input": null
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "microsoft/phi-4",
+      "endpoints": [
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/bf16/flex",
+          "quantization": "bf16",
+          "context_length": 16384,
+          "max_completion_tokens": 14745,
+          "usd_per_1m": {
+            "input": 0.056,
+            "output": 0.112,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "logit_bias",
+            "response_format",
+            "structured_outputs"
+          ],
+          "uptime_30m": null
+        },
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/bf16",
+          "quantization": "bf16",
+          "context_length": 16384,
+          "max_completion_tokens": 14745,
+          "usd_per_1m": {
+            "input": 0.07,
+            "output": 0.14,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "logit_bias",
+            "structured_outputs",
+            "response_format"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "DeepInfra",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 352,
+        "e2e_ms": 366,
+        "text_call_cost_usd": 1.4e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "Pong",
+            "ttft_ms": 352,
+            "e2e_ms": 366,
+            "usage": {
+              "prompt_tokens": 14,
+              "completion_tokens": 3,
+              "total_tokens": 17,
+              "cost": 1.4e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 1.4e-06,
+                "upstream_inference_prompt_cost": 9.8e-07,
+                "upstream_inference_completions_cost": 4.2e-07
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "DeepInfra",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support tool use. Try disabling \"get_weather\". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection"
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "mistralai/devstral-2512",
+      "provider": "openrouter",
+      "name": "Mistral: Devstral 2 2512",
+      "family": "mistralai",
+      "description": "Devstral 2 is a state-of-the-art open-source model by Mistral AI specializing in agentic coding. It is a 123B-parameter dense transformer model supporting a 256K context window. Devstral 2 supports exploring...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+file->text",
+        "features": [
+          "frequency_penalty",
+          "max_tokens",
+          "presence_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.4,
+          "output": 2.0,
+          "cached_input": 0.04
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "mistralai/Devstral-2-123B-Instruct-2512",
+      "endpoints": [
+        {
+          "provider": "Mistral",
+          "tag": "mistral/eu",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 0.4,
+            "output": 2.0,
+            "cached_input": 0.04
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": null
+        }
+      ],
+      "served_by": "Mistral",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 648,
+        "e2e_ms": 1024,
+        "text_call_cost_usd": 1.52e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 648,
+            "e2e_ms": 1024,
+            "usage": {
+              "prompt_tokens": 23,
+              "completion_tokens": 3,
+              "total_tokens": 26,
+              "cost": 1.52e-05,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 1.52e-05,
+                "upstream_inference_prompt_cost": 9.2e-06,
+                "upstream_inference_completions_cost": 6e-06
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Mistral",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "mistralai/ministral-8b-2512",
+      "provider": "openrouter",
+      "name": "Mistral: Ministral 3 8B 2512",
+      "family": "mistralai",
+      "description": "A balanced model in the Ministral 3 family, Ministral 3 8B is a powerful, efficient tiny language model with vision capabilities.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "frequency_penalty",
+          "max_tokens",
+          "presence_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.15,
+          "output": 0.15,
+          "cached_input": 0.015
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "mistralai/Ministral-3-8B-Instruct-2512",
+      "endpoints": [
+        {
+          "provider": "Mistral",
+          "tag": "mistral/zdr",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 0.15,
+            "output": 0.15,
+            "cached_input": 0.015
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Mistral",
+          "tag": "mistral",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 0.15,
+            "output": 0.15,
+            "cached_input": 0.015
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Mistral",
+          "tag": "mistral/eu",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 0.165,
+            "output": 0.165,
+            "cached_input": 0.0165
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": null
+        }
+      ],
+      "served_by": "Mistral",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 239,
+        "e2e_ms": 336,
+        "text_call_cost_usd": 2.1e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "Pong",
+            "ttft_ms": 239,
+            "e2e_ms": 336,
+            "usage": {
+              "prompt_tokens": 11,
+              "completion_tokens": 3,
+              "total_tokens": 14,
+              "cost": 2.1e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 2.1e-06,
+                "upstream_inference_prompt_cost": 1.65e-06,
+                "upstream_inference_completions_cost": 4.5e-07
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Mistral",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "wrong_answer",
+            "answer": "the color of the left half is blue,\nand the right half is gold."
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "mistralai/mistral-large-2512",
+      "provider": "openrouter",
+      "name": "Mistral: Mistral Large 3 2512",
+      "family": "mistralai",
+      "description": "Mistral Large 3 2512 is Mistral’s most capable model to date, featuring a sparse mixture-of-experts architecture with 41B active parameters (675B total), and released under the Apache 2.0 license.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image+file->text",
+        "features": [
+          "frequency_penalty",
+          "max_tokens",
+          "presence_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": false,
+        "vision": false,
+        "tools": false,
+        "tools_auto": false,
+        "json_schema": false,
+        "reasoning": false
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.5,
+          "output": 1.5,
+          "cached_input": 0.05
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:14:36+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "",
+      "endpoints": [
+        {
+          "provider": "Mistral",
+          "tag": "mistral/zdr",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 0.5,
+            "output": 1.5,
+            "cached_input": 0.05
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Mistral",
+          "tag": "mistral/eu",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 0.55,
+            "output": 1.65,
+            "cached_input": 0.055
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:14:36+00:00",
+        "ttft_ms": null,
+        "e2e_ms": null,
+        "text_call_cost_usd": null,
+        "results": {
+          "text": {
+            "status": "fail",
+            "error": "HTTP 429: Provider returned error"
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 429: Provider returned error"
+          },
+          "tools": {
+            "status": "rejected",
+            "error": "HTTP 429: Provider returned error"
+          },
+          "json_schema": {
+            "status": "rejected",
+            "error": "HTTP 429: Provider returned error"
+          }
+        }
+      },
+      "available": false
+    },
+    {
+      "id": "openai/gpt-oss-20b",
+      "provider": "openrouter",
+      "name": "OpenAI: gpt-oss-20b",
+      "family": "openai",
+      "description": "gpt-oss-20b is an open-weight 21B parameter model released by OpenAI under the Apache 2.0 license. It uses a Mixture-of-Experts (MoE) architecture with 3.6B active parameters per forward pass, optimized for...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logit_bias",
+          "logprobs",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "reasoning_effort",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 131072,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.018,
+          "output": 0.09,
+          "cached_input": 0.009
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "openai/gpt-oss-20b",
+      "endpoints": [
+        {
+          "provider": "Darkbloom",
+          "tag": "darkbloom/fp8",
+          "quantization": "fp8",
+          "context_length": 131072,
+          "max_completion_tokens": 32768,
+          "usd_per_1m": {
+            "input": 0.018,
+            "output": 0.09,
+            "cached_input": 0.009
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "temperature",
+            "top_p",
+            "top_k",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "stop",
+            "seed",
+            "max_tokens",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "AkashML",
+          "tag": "akashml/fp4",
+          "quantization": "fp4",
+          "context_length": 131072,
+          "max_completion_tokens": 117964,
+          "usd_per_1m": {
+            "input": 0.02,
+            "output": 0.1,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "temperature",
+            "top_p",
+            "top_k",
+            "stop",
+            "seed",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "max_tokens",
+            "structured_outputs",
+            "response_format",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "DekaLLM",
+          "tag": "dekallm/bf16",
+          "quantization": "bf16",
+          "context_length": 131072,
+          "max_completion_tokens": 117964,
+          "usd_per_1m": {
+            "input": 0.029,
+            "output": 0.14,
+            "cached_input": 0.029
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "frequency_penalty",
+            "logit_bias",
+            "max_tokens",
+            "presence_penalty",
+            "seed",
+            "stop",
+            "temperature",
+            "top_p",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "CoreWeave",
+          "tag": "coreweave/fp4",
+          "quantization": "fp4",
+          "context_length": 131072,
+          "max_completion_tokens": 117964,
+          "usd_per_1m": {
+            "input": 0.03,
+            "output": 0.13,
+            "cached_input": 0.03
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "structured_outputs",
+            "response_format",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "top_k",
+            "repetition_penalty",
+            "frequency_penalty",
+            "presence_penalty",
+            "stop",
+            "seed",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/bf16",
+          "quantization": "bf16",
+          "context_length": 131072,
+          "max_completion_tokens": 117964,
+          "usd_per_1m": {
+            "input": 0.03,
+            "output": 0.14,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "tools",
+            "tool_choice",
+            "structured_outputs",
+            "logit_bias",
+            "response_format",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Parasail",
+          "tag": "parasail/fp4",
+          "quantization": "fp4",
+          "context_length": 131072,
+          "max_completion_tokens": 117964,
+          "usd_per_1m": {
+            "input": 0.03,
+            "output": 0.15,
+            "cached_input": 0.02
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "seed",
+            "stop",
+            "top_k",
+            "logit_bias",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "SiliconFlow",
+          "tag": "siliconflow/fp8",
+          "quantization": "fp8",
+          "context_length": 131072,
+          "max_completion_tokens": 8192,
+          "usd_per_1m": {
+            "input": 0.04,
+            "output": 0.18,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "structured_outputs",
+            "response_format",
+            "temperature",
+            "top_p",
+            "top_k",
+            "frequency_penalty",
+            "max_tokens",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 68.96551724137932
+        },
+        {
+          "provider": "Amazon Bedrock",
+          "tag": "amazon-bedrock/eu-west-1",
+          "quantization": "unknown",
+          "context_length": 131072,
+          "max_completion_tokens": 117964,
+          "usd_per_1m": {
+            "input": 0.07,
+            "output": 0.15,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "top_k",
+            "stop",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": null
+        },
+        {
+          "provider": "Amazon Bedrock",
+          "tag": "amazon-bedrock",
+          "quantization": "unknown",
+          "context_length": 131072,
+          "max_completion_tokens": 117964,
+          "usd_per_1m": {
+            "input": 0.07,
+            "output": 0.15,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "top_k",
+            "stop",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Google",
+          "tag": "google-vertex/us-central1",
+          "quantization": "unknown",
+          "context_length": 131072,
+          "max_completion_tokens": 32768,
+          "usd_per_1m": {
+            "input": 0.07,
+            "output": 0.25,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "structured_outputs",
+            "response_format",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "seed",
+            "repetition_penalty",
+            "top_k",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 0
+        },
+        {
+          "provider": "Groq",
+          "tag": "groq",
+          "quantization": "unknown",
+          "context_length": 131072,
+          "max_completion_tokens": 65536,
+          "usd_per_1m": {
+            "input": 0.075,
+            "output": 0.3,
+            "cached_input": 0.0375
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "seed",
+            "response_format",
+            "tools",
+            "tool_choice",
+            "structured_outputs",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "Parasail",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 1562,
+        "e2e_ms": 1701,
+        "text_call_cost_usd": 6.68e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 1562,
+            "e2e_ms": 1701,
+            "usage": {
+              "prompt_tokens": 74,
+              "completion_tokens": 34,
+              "total_tokens": 108,
+              "cost": 6.68e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 64,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 6.68e-06,
+                "upstream_inference_prompt_cost": 1.58e-06,
+                "upstream_inference_completions_cost": 5.1e-06
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 23,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Parasail",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "openai/gpt-oss-safeguard-20b",
+      "provider": "openrouter",
+      "name": "OpenAI: gpt-oss-safeguard-20b",
+      "family": "openai",
+      "description": "gpt-oss-safeguard-20b is a safety reasoning model from OpenAI built upon gpt-oss-20b. This open-weight, 21B-parameter Mixture-of-Experts (MoE) model offers lower latency for safety tasks like content classification, LLM filtering, and trust...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "include_reasoning",
+          "max_tokens",
+          "reasoning",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 131072,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.075,
+          "output": 0.3,
+          "cached_input": 0.0375
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "openai/gpt-oss-safeguard-20b",
+      "endpoints": [
+        {
+          "provider": "Groq",
+          "tag": "groq",
+          "quantization": "unknown",
+          "context_length": 131072,
+          "max_completion_tokens": 65536,
+          "usd_per_1m": {
+            "input": 0.075,
+            "output": 0.3,
+            "cached_input": 0.0375
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "seed",
+            "response_format",
+            "tools",
+            "tool_choice",
+            "structured_outputs"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "Groq",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 319,
+        "e2e_ms": 396,
+        "text_call_cost_usd": 2.505e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 319,
+            "e2e_ms": 396,
+            "usage": {
+              "prompt_tokens": 78,
+              "completion_tokens": 64,
+              "total_tokens": 142,
+              "cost": 2.505e-05,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 2.505e-05,
+                "upstream_inference_prompt_cost": 5.85e-06,
+                "upstream_inference_completions_cost": 1.92e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 54,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Groq",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "cohere/command-a-plus",
+      "provider": "openrouter",
+      "name": "Cohere: Command A+",
+      "family": "cohere",
+      "description": "Command A+ is Cohere's flagship model for enterprise agentic workflows. It accepts text and image inputs with a 192K context window, supports native tool calling with strict tool schemas, structured...",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "max_tokens",
+          "presence_penalty",
+          "reasoning",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tools",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": false,
+        "tools_auto": false,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 192000,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.3,
+          "output": 1.5,
+          "cached_input": 0.15
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": null,
+      "endpoints": [
+        {
+          "provider": "Cohere",
+          "tag": "cohere",
+          "quantization": "unknown",
+          "context_length": 192000,
+          "max_completion_tokens": 64000,
+          "usd_per_1m": {
+            "input": 0.3,
+            "output": 1.5,
+            "cached_input": 0.15
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "top_k",
+            "seed",
+            "structured_outputs",
+            "response_format",
+            "tools"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "Cohere",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 1382,
+        "e2e_ms": 2095,
+        "text_call_cost_usd": 0.0001101,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 1382,
+            "e2e_ms": 2095,
+            "usage": {
+              "prompt_tokens": 7,
+              "completion_tokens": 72,
+              "total_tokens": 79,
+              "cost": 0.0001101,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0001101,
+                "upstream_inference_prompt_cost": 2.1e-06,
+                "upstream_inference_completions_cost": 0.000108
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 80,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Cohere",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that can handle the requested parameters. To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection"
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "google/gemma-4-26b-a4b-it",
+      "provider": "openrouter",
+      "name": "Google: Gemma 4 26B A4B ",
+      "family": "google",
+      "description": "Gemma 4 26B A4B IT is an instruction-tuned Mixture-of-Experts (MoE) model from Google DeepMind. Despite 25.2B total parameters, only 3.8B activate per token during inference — delivering near-31B quality at...",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image+video->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logit_bias",
+          "logprobs",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.0675,
+          "output": 0.225,
+          "cached_input": 0.0375
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "google/gemma-4-26B-A4B-it",
+      "endpoints": [
+        {
+          "provider": "Darkbloom",
+          "tag": "darkbloom",
+          "quantization": "unknown",
+          "context_length": 131072,
+          "max_completion_tokens": 32768,
+          "usd_per_1m": {
+            "input": 0.042,
+            "output": 0.22,
+            "cached_input": 0.021
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "temperature",
+            "top_p",
+            "top_k",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "stop",
+            "seed",
+            "max_tokens",
+            "response_format",
+            "structured_outputs",
+            "logprobs",
+            "top_logprobs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "DekaLLM",
+          "tag": "dekallm/bf16",
+          "quantization": "bf16",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.06,
+            "output": 0.33,
+            "cached_input": 0.04
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "frequency_penalty",
+            "logit_bias",
+            "max_tokens",
+            "presence_penalty",
+            "seed",
+            "stop",
+            "temperature",
+            "top_p",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs",
+            "response_format"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "NextBit",
+          "tag": "nextbit/bf16",
+          "quantization": "bf16",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.0675,
+            "output": 0.225,
+            "cached_input": 0.0375
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "response_format",
+            "structured_outputs",
+            "repetition_penalty",
+            "seed",
+            "logprobs",
+            "top_logprobs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Makora",
+          "tag": "makora",
+          "quantization": "unknown",
+          "context_length": 256000,
+          "max_completion_tokens": 128000,
+          "usd_per_1m": {
+            "input": 0.07,
+            "output": 0.24,
+            "cached_input": 0.046
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "temperature",
+            "top_p",
+            "top_k",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "stop",
+            "max_tokens",
+            "seed",
+            "response_format",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs",
+            "structured_outputs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/fp8",
+          "quantization": "fp8",
+          "context_length": 262144,
+          "max_completion_tokens": 16384,
+          "usd_per_1m": {
+            "input": 0.07,
+            "output": 0.34,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "tool_choice",
+            "tools",
+            "structured_outputs",
+            "response_format",
+            "logit_bias"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Io Net",
+          "tag": "io-net/bf16",
+          "quantization": "bf16",
+          "context_length": 262142,
+          "max_completion_tokens": 235927,
+          "usd_per_1m": {
+            "input": 0.09,
+            "output": 0.31,
+            "cached_input": 0.041
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "tools",
+            "logprobs",
+            "top_logprobs",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "CoreWeave",
+          "tag": "coreweave/bf16",
+          "quantization": "bf16",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.1,
+            "output": 0.3,
+            "cached_input": 0.05
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "top_k",
+            "repetition_penalty",
+            "frequency_penalty",
+            "presence_penalty",
+            "stop",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "logprobs",
+            "top_logprobs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Cloudflare",
+          "tag": "cloudflare",
+          "quantization": "unknown",
+          "context_length": 256000,
+          "max_completion_tokens": 230400,
+          "usd_per_1m": {
+            "input": 0.1,
+            "output": 0.3,
+            "cached_input": 0.05
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "top_k",
+            "seed",
+            "repetition_penalty",
+            "frequency_penalty",
+            "presence_penalty",
+            "min_p",
+            "stop",
+            "logit_bias",
+            "response_format",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Venice",
+          "tag": "venice/bf16",
+          "quantization": "bf16",
+          "context_length": 256000,
+          "max_completion_tokens": 8192,
+          "usd_per_1m": {
+            "input": 0.13,
+            "output": 0.4,
+            "cached_input": 0.05
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "top_k",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Parasail",
+          "tag": "parasail/bf16",
+          "quantization": "bf16",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.13,
+            "output": 0.4,
+            "cached_input": 0.05
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "seed",
+            "stop",
+            "top_k",
+            "logit_bias",
+            "structured_outputs",
+            "response_format",
+            "logprobs",
+            "top_logprobs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Novita",
+          "tag": "novita/bf16",
+          "quantization": "bf16",
+          "context_length": 262144,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 0.13,
+            "output": 0.4,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "repetition_penalty",
+            "tools",
+            "tool_choice",
+            "response_format",
+            "logprobs",
+            "top_logprobs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "SiliconFlow",
+          "tag": "siliconflow/fp8",
+          "quantization": "fp8",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.14,
+            "output": 0.4,
+            "cached_input": 0.05
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "temperature",
+            "top_p",
+            "top_k",
+            "frequency_penalty",
+            "max_tokens",
+            "response_format",
+            "structured_outputs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Google",
+          "tag": "google-vertex/global",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.15,
+            "output": 0.6,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "seed",
+            "response_format",
+            "top_k",
+            "repetition_penalty",
+            "frequency_penalty",
+            "presence_penalty",
+            "stop",
+            "tools",
+            "tool_choice",
+            "structured_outputs",
+            "logprobs",
+            "top_logprobs"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "Darkbloom",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 556,
+        "e2e_ms": 608,
+        "text_call_cost_usd": 1.28e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 556,
+            "e2e_ms": 608,
+            "usage": {
+              "prompt_tokens": 20,
+              "completion_tokens": 2,
+              "total_tokens": 22,
+              "cost": 1.28e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 1.28e-06,
+                "upstream_inference_prompt_cost": 8.4e-07,
+                "upstream_inference_completions_cost": 4.4e-07
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Darkbloom",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "google/gemma-4-31b-it",
+      "provider": "openrouter",
+      "name": "Google: Gemma 4 31B",
+      "family": "google",
+      "description": "Gemma 4 31B Instruct is Google DeepMind's 30.7B dense multimodal model supporting text and image input with text output. Features a 256K token context window, configurable thinking/reasoning mode, native function...",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image+video->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logit_bias",
+          "logprobs",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.2,
+          "output": 0.4,
+          "cached_input": null
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "google/gemma-4-31B-it",
+      "endpoints": [
+        {
+          "provider": "CoreWeave",
+          "tag": "coreweave/fp4",
+          "quantization": "fp4",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.1,
+            "output": 0.34,
+            "cached_input": 0.1
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "top_k",
+            "repetition_penalty",
+            "frequency_penalty",
+            "presence_penalty",
+            "stop",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "logprobs",
+            "top_logprobs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Venice",
+          "tag": "venice/fp4",
+          "quantization": "fp4",
+          "context_length": 256000,
+          "max_completion_tokens": 8192,
+          "usd_per_1m": {
+            "input": 0.12,
+            "output": 0.36,
+            "cached_input": 0.09
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "top_k",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Chutes",
+          "tag": "chutes/fp4",
+          "quantization": "fp4",
+          "context_length": 131072,
+          "max_completion_tokens": 65536,
+          "usd_per_1m": {
+            "input": 0.12,
+            "output": 0.37,
+            "cached_input": 0.012
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "repetition_penalty",
+            "response_format",
+            "tools",
+            "tool_choice",
+            "structured_outputs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/turbo",
+          "quantization": "fp4",
+          "context_length": 262144,
+          "max_completion_tokens": 16384,
+          "usd_per_1m": {
+            "input": 0.135,
+            "output": 0.51,
+            "cached_input": 0.075
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "structured_outputs",
+            "logit_bias",
+            "response_format",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Crusoe",
+          "tag": "crusoe/bf16",
+          "quantization": "bf16",
+          "context_length": 262144,
+          "max_completion_tokens": 262141,
+          "usd_per_1m": {
+            "input": 0.14,
+            "output": 0.4,
+            "cached_input": 0.14
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "min_p",
+            "repetition_penalty",
+            "top_k",
+            "logit_bias",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Friendli",
+          "tag": "friendli",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 8192,
+          "usd_per_1m": {
+            "input": 0.14,
+            "output": 0.4,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "min_p",
+            "repetition_penalty",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Novita",
+          "tag": "novita/bf16",
+          "quantization": "bf16",
+          "context_length": 262144,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 0.14,
+            "output": 0.4,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "repetition_penalty",
+            "tools",
+            "tool_choice",
+            "response_format",
+            "logprobs",
+            "top_logprobs",
+            "structured_outputs"
+          ],
+          "uptime_30m": 80
+        },
+        {
+          "provider": "Parasail",
+          "tag": "parasail/fp8",
+          "quantization": "fp8",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.15,
+            "output": 0.4,
+            "cached_input": 0.06
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "seed",
+            "stop",
+            "top_k",
+            "logit_bias",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/fp8/flex",
+          "quantization": "fp8",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.16,
+            "output": 0.32,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "logit_bias",
+            "response_format",
+            "structured_outputs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/fp8",
+          "quantization": "fp8",
+          "context_length": 262144,
+          "max_completion_tokens": 16384,
+          "usd_per_1m": {
+            "input": 0.2,
+            "output": 0.4,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "tool_choice",
+            "tools",
+            "response_format",
+            "structured_outputs",
+            "logit_bias"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/fp8/priority",
+          "quantization": "fp8",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.3,
+            "output": 0.6,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "logit_bias",
+            "response_format",
+            "structured_outputs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Io Net",
+          "tag": "io-net",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 16384,
+          "usd_per_1m": {
+            "input": 0.361,
+            "output": 1.0925,
+            "cached_input": 0.1805
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "response_format",
+            "logprobs",
+            "top_logprobs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "SambaNova",
+          "tag": "sambanova",
+          "quantization": "unknown",
+          "context_length": 131072,
+          "max_completion_tokens": 117964,
+          "usd_per_1m": {
+            "input": 0.38,
+            "output": 1.15,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "top_k",
+            "stop",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "ModelRun",
+          "tag": "modelrun/fp4",
+          "quantization": "fp4",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.75,
+            "output": 1.0,
+            "cached_input": 0.2
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "presence_penalty",
+            "repetition_penalty",
+            "frequency_penalty",
+            "top_p",
+            "top_k",
+            "stop",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "SiliconFlow",
+          "tag": "siliconflow/fp8",
+          "quantization": "fp8",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.75,
+            "output": 1.0,
+            "cached_input": 0.25
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "temperature",
+            "top_p",
+            "top_k",
+            "frequency_penalty",
+            "max_tokens",
+            "response_format",
+            "structured_outputs",
+            "tool_choice",
+            "tools"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "DeepInfra",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 489,
+        "e2e_ms": 528,
+        "text_call_cost_usd": 4.8e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 489,
+            "e2e_ms": 528,
+            "usage": {
+              "prompt_tokens": 20,
+              "completion_tokens": 2,
+              "total_tokens": 22,
+              "cost": 4.8e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 4.8e-06,
+                "upstream_inference_prompt_cost": 4e-06,
+                "upstream_inference_completions_cost": 8e-07
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "DeepInfra",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "meta-llama/llama-4-maverick",
+      "provider": "openrouter",
+      "name": "Meta: Llama 4 Maverick",
+      "family": "meta-llama",
+      "description": "Llama 4 Maverick 17B Instruct (128E) is a high-capacity multimodal language model from Meta, built on a mixture-of-experts (MoE) architecture with 128 experts and 17 billion active parameters per forward...",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "frequency_penalty",
+          "logit_bias",
+          "logprobs",
+          "max_tokens",
+          "presence_penalty",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 524288,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.1875,
+          "output": 0.6525,
+          "cached_input": 0.05
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+      "endpoints": [
+        {
+          "provider": "DigitalOcean",
+          "tag": "digitalocean",
+          "quantization": "unknown",
+          "context_length": 128000,
+          "max_completion_tokens": 16384,
+          "usd_per_1m": {
+            "input": 0.1875,
+            "output": 0.6525,
+            "cached_input": 0.05
+          },
+          "supported_parameters": [
+            "temperature",
+            "top_p",
+            "max_tokens",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs"
+          ],
+          "uptime_30m": 96.66666666666667
+        },
+        {
+          "provider": "Parasail",
+          "tag": "parasail/fp8",
+          "quantization": "fp8",
+          "context_length": 524288,
+          "max_completion_tokens": 32768,
+          "usd_per_1m": {
+            "input": 0.35,
+            "output": 1.0,
+            "cached_input": 0.17
+          },
+          "supported_parameters": [
+            "structured_outputs",
+            "response_format",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "seed",
+            "stop",
+            "top_k",
+            "logit_bias",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Google",
+          "tag": "google-vertex/us-east5",
+          "quantization": "unknown",
+          "context_length": 524288,
+          "max_completion_tokens": 8192,
+          "usd_per_1m": {
+            "input": 0.35,
+            "output": 1.15,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "structured_outputs",
+            "response_format",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "seed",
+            "top_k",
+            "frequency_penalty",
+            "presence_penalty",
+            "stop",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": null
+        }
+      ],
+      "served_by": "DigitalOcean",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 784,
+        "e2e_ms": 996,
+        "text_call_cost_usd": 4.4925e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 784,
+            "e2e_ms": 996,
+            "usage": {
+              "prompt_tokens": 17,
+              "completion_tokens": 2,
+              "total_tokens": 19,
+              "cost": 4.4925e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 4.4925e-06,
+                "upstream_inference_prompt_cost": 3.1875e-06,
+                "upstream_inference_completions_cost": 1.305e-06
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "DigitalOcean",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "meta-llama/llama-4-scout",
+      "provider": "openrouter",
+      "name": "Meta: Llama 4 Scout",
+      "family": "meta-llama",
+      "description": "Llama 4 Scout 17B Instruct (16E) is a mixture-of-experts (MoE) language model developed by Meta, activating 17 billion parameters out of a total of 109B. It supports native multimodal input...",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "frequency_penalty",
+          "logit_bias",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 1310720,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.1,
+          "output": 0.3,
+          "cached_input": null
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+      "endpoints": [
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/fp8/flex",
+          "quantization": "fp8",
+          "context_length": 327680,
+          "max_completion_tokens": 294912,
+          "usd_per_1m": {
+            "input": 0.08,
+            "output": 0.24,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "logit_bias",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 0
+        },
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/fp8",
+          "quantization": "fp8",
+          "context_length": 327680,
+          "max_completion_tokens": 16384,
+          "usd_per_1m": {
+            "input": 0.1,
+            "output": 0.3,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "logit_bias",
+            "structured_outputs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/fp8/priority",
+          "quantization": "fp8",
+          "context_length": 327680,
+          "max_completion_tokens": 294912,
+          "usd_per_1m": {
+            "input": 0.15,
+            "output": 0.45,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "logit_bias",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Google",
+          "tag": "google-vertex/us-east5",
+          "quantization": "unknown",
+          "context_length": 1310720,
+          "max_completion_tokens": 8192,
+          "usd_per_1m": {
+            "input": 0.25,
+            "output": 0.7,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "structured_outputs",
+            "response_format",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "seed",
+            "top_k",
+            "frequency_penalty",
+            "presence_penalty",
+            "stop",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": null
+        }
+      ],
+      "served_by": "DeepInfra",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 603,
+        "e2e_ms": 614,
+        "text_call_cost_usd": 3.45e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 603,
+            "e2e_ms": 614,
+            "usage": {
+              "prompt_tokens": 17,
+              "completion_tokens": 2,
+              "total_tokens": 19,
+              "cost": 3.45e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 3.45e-06,
+                "upstream_inference_prompt_cost": 2.55e-06,
+                "upstream_inference_completions_cost": 9e-07
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "DeepInfra",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow."
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "meta/muse-glimmer-30b",
+      "provider": "openrouter",
+      "name": "Meta: Muse Glimmer 30B",
+      "family": "meta",
+      "description": "Muse Glimmer 30B is a dense, open-weight multimodal model from Meta Superintelligence Labs, distilled from Muse Spark and optimized for autonomous agents on consumer hardware. It is suited for long-horizon...",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logit_bias",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "reasoning_effort",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 131072,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.3,
+          "output": 1.2,
+          "cached_input": 0.04
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "meta-models/Muse-Glimmer-30B",
+      "endpoints": [
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/bf16",
+          "quantization": "bf16",
+          "context_length": 131072,
+          "max_completion_tokens": 16384,
+          "usd_per_1m": {
+            "input": 0.3,
+            "output": 1.2,
+            "cached_input": 0.04
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "response_format",
+            "logit_bias",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Together",
+          "tag": "together",
+          "quantization": "unknown",
+          "context_length": 131072,
+          "max_completion_tokens": 117964,
+          "usd_per_1m": {
+            "input": 0.35,
+            "output": 1.5,
+            "cached_input": 0.04
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "top_k",
+            "repetition_penalty",
+            "logit_bias",
+            "min_p",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 3.3333333333333335
+        }
+      ],
+      "served_by": "DeepInfra",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 820,
+        "e2e_ms": 1802,
+        "text_call_cost_usd": 0.0001653,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 820,
+            "e2e_ms": 1802,
+            "usage": {
+              "prompt_tokens": 63,
+              "completion_tokens": 122,
+              "total_tokens": 185,
+              "cost": 0.0001653,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0001653,
+                "upstream_inference_prompt_cost": 1.89e-05,
+                "upstream_inference_completions_cost": 0.0001464
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 130,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "DeepInfra",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "mistralai/ministral-14b-2512",
+      "provider": "openrouter",
+      "name": "Mistral: Ministral 3 14B 2512",
+      "family": "mistralai",
+      "description": "The largest model in the Ministral 3 family, Ministral 3 14B offers frontier capabilities and performance comparable to its larger Mistral Small 3.2 24B counterpart. A powerful and efficient language...",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "frequency_penalty",
+          "max_tokens",
+          "presence_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.2,
+          "output": 0.2,
+          "cached_input": 0.02
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "mistralai/Ministral-3-14B-Instruct-2512",
+      "endpoints": [
+        {
+          "provider": "Mistral",
+          "tag": "mistral/zdr",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 0.2,
+            "output": 0.2,
+            "cached_input": 0.02
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Mistral",
+          "tag": "mistral",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 0.2,
+            "output": 0.2,
+            "cached_input": 0.02
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Mistral",
+          "tag": "mistral/eu",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 0.22,
+            "output": 0.22,
+            "cached_input": 0.022
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": null
+        }
+      ],
+      "served_by": "Mistral",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 228,
+        "e2e_ms": 505,
+        "text_call_cost_usd": 2.8e-06,
+        "results": {
+          "text": {
+            "status": "wrong_answer",
+            "answer": "Ping",
+            "ttft_ms": 228,
+            "e2e_ms": 505,
+            "usage": {
+              "prompt_tokens": 11,
+              "completion_tokens": 3,
+              "total_tokens": 14,
+              "cost": 2.8e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 2.8e-06,
+                "upstream_inference_prompt_cost": 2.2e-06,
+                "upstream_inference_completions_cost": 6e-07
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Mistral",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "the color of the left half is blue,\nand the color of the right half is yellow."
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "mistralai/ministral-3b-2512",
+      "provider": "openrouter",
+      "name": "Mistral: Ministral 3 3B 2512",
+      "family": "mistralai",
+      "description": "The smallest model in the Ministral 3 family, Ministral 3 3B is a powerful, efficient tiny language model with vision capabilities.",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "frequency_penalty",
+          "max_tokens",
+          "presence_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 131072,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.1,
+          "output": 0.1,
+          "cached_input": 0.01
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "mistralai/Ministral-3-3B-Instruct-2512",
+      "endpoints": [
+        {
+          "provider": "Mistral",
+          "tag": "mistral/zdr",
+          "quantization": "unknown",
+          "context_length": 131072,
+          "max_completion_tokens": 104857,
+          "usd_per_1m": {
+            "input": 0.1,
+            "output": 0.1,
+            "cached_input": 0.01
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tool_choice",
+            "tools"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Mistral",
+          "tag": "mistral",
+          "quantization": "unknown",
+          "context_length": 131072,
+          "max_completion_tokens": 104857,
+          "usd_per_1m": {
+            "input": 0.1,
+            "output": 0.1,
+            "cached_input": 0.01
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tool_choice",
+            "tools"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Mistral",
+          "tag": "mistral/eu",
+          "quantization": "unknown",
+          "context_length": 131072,
+          "max_completion_tokens": 104857,
+          "usd_per_1m": {
+            "input": 0.11,
+            "output": 0.11,
+            "cached_input": 0.011
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tool_choice",
+            "tools"
+          ],
+          "uptime_30m": null
+        }
+      ],
+      "served_by": "Mistral",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 310,
+        "e2e_ms": 643,
+        "text_call_cost_usd": 1.5e-06,
+        "results": {
+          "text": {
+            "status": "wrong_answer",
+            "answer": "Understood!",
+            "ttft_ms": 310,
+            "e2e_ms": 643,
+            "usage": {
+              "prompt_tokens": 11,
+              "completion_tokens": 4,
+              "total_tokens": 15,
+              "cost": 1.5e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 1.5e-06,
+                "upstream_inference_prompt_cost": 1.1e-06,
+                "upstream_inference_completions_cost": 4e-07
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Mistral",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "the left half is blue and the right half is yellow."
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "mistralai/mistral-medium-3-5",
+      "provider": "openrouter",
+      "name": "Mistral: Mistral Medium 3.5",
+      "family": "mistralai",
+      "description": "Mistral Medium 3.5 is a dense 128B instruction-following model from Mistral AI. It supports text and image inputs with text output, and is designed for agentic workflows, coding, and complex...",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image+file->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "max_tokens",
+          "presence_penalty",
+          "reasoning",
+          "reasoning_effort",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 1.5,
+          "output": 7.5,
+          "cached_input": null
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": null,
+      "endpoints": [
+        {
+          "provider": "Mistral",
+          "tag": "mistral/zdr",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 1.5,
+            "output": 7.5,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Mistral",
+          "tag": "mistral",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 1.5,
+            "output": 7.5,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Mistral",
+          "tag": "mistral/eu",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 1.65,
+            "output": 8.25,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": null
+        }
+      ],
+      "served_by": "Mistral",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 282,
+        "e2e_ms": 305,
+        "text_call_cost_usd": 5.7e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 282,
+            "e2e_ms": 305,
+            "usage": {
+              "prompt_tokens": 23,
+              "completion_tokens": 3,
+              "total_tokens": 26,
+              "cost": 5.7e-05,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 5.7e-05,
+                "upstream_inference_prompt_cost": 3.45e-05,
+                "upstream_inference_completions_cost": 2.25e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Mistral",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "the left half of the image is blue, and the right half is yellow. therefore, the colors of the left and right halves, in that order, are \"blue yellow.\""
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "mistralai/mistral-small-2603",
+      "provider": "openrouter",
+      "name": "Mistral: Mistral Small 4",
+      "family": "mistralai",
+      "description": "Mistral Small 4 is the next major release in the Mistral Small family, unifying the capabilities of several flagship Mistral models into a single system. It combines strong reasoning from...",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "max_tokens",
+          "presence_penalty",
+          "reasoning",
+          "reasoning_effort",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.15,
+          "output": 0.6,
+          "cached_input": 0.015
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:29+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "mistralai/Mistral-Small-4-119B-2603",
+      "endpoints": [
+        {
+          "provider": "Mistral",
+          "tag": "mistral/zdr",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 0.15,
+            "output": 0.6,
+            "cached_input": 0.015
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Mistral",
+          "tag": "mistral",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 0.15,
+            "output": 0.6,
+            "cached_input": 0.015
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Mistral",
+          "tag": "mistral/eu",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 0.165,
+            "output": 0.66,
+            "cached_input": 0.0165
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Mistral",
+          "tag": "mistral/us",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 0.165,
+            "output": 0.66,
+            "cached_input": 0.0165
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": null
+        }
+      ],
+      "served_by": "Mistral",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:29+00:00",
+        "ttft_ms": 726,
+        "e2e_ms": 770,
+        "text_call_cost_usd": 5.25e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "Pong",
+            "ttft_ms": 726,
+            "e2e_ms": 770,
+            "usage": {
+              "prompt_tokens": 23,
+              "completion_tokens": 3,
+              "total_tokens": 26,
+              "cost": 5.25e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 5.25e-06,
+                "upstream_inference_prompt_cost": 3.45e-06,
+                "upstream_inference_completions_cost": 1.8e-06
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Mistral",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "the image consists of two distinct colored halves. the left half is a solid blue color, while the right half is a solid yellow color.\n\nthe color of the left half is blue and the color of the right hal"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    }
+  ]
+}

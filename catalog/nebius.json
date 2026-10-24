@@ -1,0 +1,2807 @@
+{
+  "provider": "nebius",
+  "base_url": "https://api.tokenfactory.nebius.com/v1",
+  "key_env": "NEBIUS_API_KEY",
+  "generated_at": "2026-10-24T10:11:57+00:00",
+  "models": [
+    {
+      "id": "Qwen/Qwen3-Embedding-8B",
+      "provider": "nebius",
+      "name": "Qwen3-Embedding-8B",
+      "family": "Qwen",
+      "description": "Qwen embedding model optimized for high-precision dense retrieval with multilingual coverage.",
+      "type": "embedding",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "embedding"
+      ],
+      "claimed": {
+        "modality": "text->embedding",
+        "features": null
+      },
+      "verified": {
+        "embedding": true
+      },
+      "context_length": 40960,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.01,
+          "output": 0.0,
+          "cached_input": null
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 600000.0,
+        "requests_per_minute": 10000.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "eu-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": null,
+        "e2e_ms": null,
+        "text_call_cost_usd": null,
+        "results": {
+          "embedding": {
+            "status": "pass",
+            "dimensions": 4096
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "provider": "nebius",
+      "name": "DeepSeek-V4-Flash-0731",
+      "family": "deepseek-ai",
+      "description": "DeepSeek V4 Flash 0731 is a 1M-context reasoning model designed for coding and agentic workloads.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "json_mode",
+          "structured_outputs",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1024000,
+      "quantization": "fp8",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.14,
+          "output": 0.28,
+          "cached_input": 0.01
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 1000000.0,
+        "requests_per_minute": 3000.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-central1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 376,
+        "e2e_ms": 739,
+        "text_call_cost_usd": 1.428e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 376,
+            "e2e_ms": 739,
+            "usage": {
+              "prompt_tokens": 12,
+              "total_tokens": 57,
+              "completion_tokens": 45,
+              "completion_tokens_details": {
+                "reasoning_tokens": 42
+              },
+              "prompt_tokens_details": null,
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 12,
+              "reasoning_tokens": 42
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V4-Pro",
+      "provider": "nebius",
+      "name": "DeepSeek-V4-Pro",
+      "family": "deepseek-ai",
+      "description": "DeepSeek-V4 is designed for advanced reasoning, coding, and long-horizon agent workflows, with strong performance across knowledge, math, and software engineering benchmarks.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "json_mode",
+          "structured_outputs",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 1048576,
+      "quantization": "fp8",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 1.75,
+          "output": 3.5,
+          "cached_input": null
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 1000000.0,
+        "requests_per_minute": 3000.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "uk-south1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 723,
+        "e2e_ms": 1749,
+        "text_call_cost_usd": 3.15e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "Pong",
+            "ttft_ms": 723,
+            "e2e_ms": 1749,
+            "usage": {
+              "prompt_tokens": 12,
+              "total_tokens": 15,
+              "completion_tokens": 3,
+              "prompt_tokens_details": null,
+              "reasoning_tokens": 0
+            },
+            "served_by": null,
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V4-Pro-0813",
+      "provider": "nebius",
+      "name": "DeepSeek-V4-Pro-0813",
+      "family": "deepseek-ai",
+      "description": "DeepSeek V4 Pro 0813 is DeepSeek's official V4 Pro release for advanced reasoning, coding, tool use, and long-horizon agentic workflows.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 979000,
+      "quantization": "fp8",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 1.32,
+          "output": 3.96,
+          "cached_input": 0.04
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 1000000.0,
+        "requests_per_minute": 1000.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "uk-south1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 357,
+        "e2e_ms": 382,
+        "text_call_cost_usd": 7.92e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 357,
+            "e2e_ms": 382,
+            "usage": {
+              "prompt_tokens": 12,
+              "total_tokens": 28,
+              "completion_tokens": 16,
+              "prompt_tokens_details": null,
+              "reasoning_tokens": 13,
+              "completion_tokens_details": {
+                "reasoning_tokens": 13
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 12
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "NousResearch/Hermes-4-405B",
+      "provider": "nebius",
+      "name": "Hermes-4-405B",
+      "family": "NousResearch",
+      "description": "Hybrid-reasoning model trained on verified CoT traces for strong math, coding, and step-by-step reliability.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "json_mode",
+          "structured_outputs",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 131072,
+      "quantization": "fp8",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 1.0,
+          "output": 3.0,
+          "cached_input": null
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 200000.0,
+        "requests_per_minute": 120.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "eu-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 3077,
+        "e2e_ms": 3080,
+        "text_call_cost_usd": 3.7e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 3077,
+            "e2e_ms": 3080,
+            "usage": {
+              "prompt_tokens": 31,
+              "total_tokens": 33,
+              "completion_tokens": 2,
+              "prompt_tokens_details": {
+                "cached_tokens": 16
+              }
+            },
+            "served_by": null,
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "nvidia/nemotron-3-super-120b-a12b",
+      "provider": "nebius",
+      "name": "Nemotron-3-Super-120b-a12b",
+      "family": "nvidia",
+      "description": "Nemotron 3 Super is a 120B hybrid MoE model optimized for efficient multi-agent AI and complex reasoning tasks.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 262144,
+      "quantization": "fp4",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.3,
+          "output": 0.9,
+          "cached_input": 0.06
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 200000.0,
+        "requests_per_minute": 300.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-central1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 574,
+        "e2e_ms": 869,
+        "text_call_cost_usd": 6.21e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 574,
+            "e2e_ms": 869,
+            "usage": {
+              "prompt_tokens": 24,
+              "total_tokens": 85,
+              "completion_tokens": 61,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "created_cache_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 56
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 24
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "nvidia/Nemotron-3-Ultra-550b-a55b",
+      "provider": "nebius",
+      "name": "Nemotron-3-Ultra-550b-a55b",
+      "family": "nvidia",
+      "description": "Nemotron 3 Ultra is a 550B hybrid MoE model from NVIDIA, optimized for the most demanding multi-agent AI and complex reasoning tasks.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1048576,
+      "quantization": "fp4",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 1.0,
+          "output": 3.0,
+          "cached_input": 0.12
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 200000.0,
+        "requests_per_minute": 300.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-central1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 250,
+        "e2e_ms": 380,
+        "text_call_cost_usd": 9.9e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 250,
+            "e2e_ms": 380,
+            "usage": {
+              "prompt_tokens": 24,
+              "total_tokens": 49,
+              "completion_tokens": 25,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 21
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 24
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "nvidia/Nemotron-3_5-Lightning",
+      "provider": "nebius",
+      "name": "Nemotron-3.5-Lightning",
+      "family": "nvidia",
+      "description": "NVIDIA's 30B-parameter hybrid MoE model with 3B active parameters per token, designed for efficient agentic reasoning, tool use, coding, and long-context workflows.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1048576,
+      "quantization": "bf16",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.06,
+          "output": 0.24,
+          "cached_input": null
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 400000.0,
+        "requests_per_minute": 600.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "eu-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 6790,
+        "e2e_ms": 8164,
+        "text_call_cost_usd": 7.944e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 6790,
+            "e2e_ms": 8164,
+            "usage": {
+              "prompt_tokens": 24,
+              "total_tokens": 349,
+              "completion_tokens": 325,
+              "prompt_tokens_details": null,
+              "completion_tokens_details": {
+                "reasoning_tokens": 321
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 24
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+      "provider": "nebius",
+      "name": "Nemotron-3-Nano-30B-A3B",
+      "family": "nvidia",
+      "description": "Compact MoE model optimized for efficient reasoning, chat, and coding with strong multilingual support and long-context RAG/agent workflows.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 262144,
+      "quantization": "fp8",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.06,
+          "output": 0.24,
+          "cached_input": null
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 800000.0,
+        "requests_per_minute": 100.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "eu-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 170,
+        "e2e_ms": 860,
+        "text_call_cost_usd": 1.608e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 170,
+            "e2e_ms": 860,
+            "usage": {
+              "prompt_tokens": 24,
+              "total_tokens": 85,
+              "completion_tokens": 61
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "openai/gpt-oss-120b",
+      "provider": "nebius",
+      "name": "gpt-oss-120b",
+      "family": "openai",
+      "description": "Open-weight agentic model with configurable reasoning, full CoT visibility, strong tool use, and fine-tuning support.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "json_mode",
+          "structured_outputs",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 131072,
+      "quantization": "fp4",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.15,
+          "output": 0.6,
+          "cached_input": null
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 500000.0,
+        "requests_per_minute": 600.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "eu-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 287,
+        "e2e_ms": 428,
+        "text_call_cost_usd": 4.35e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 287,
+            "e2e_ms": 428,
+            "usage": {
+              "prompt_tokens": 74,
+              "total_tokens": 128,
+              "completion_tokens": 54,
+              "prompt_tokens_details": {
+                "cached_tokens": 64
+              }
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "Qwen/Qwen3-235B-A22B-Instruct-2507",
+      "provider": "nebius",
+      "name": "Qwen3-235B-A22B-Instruct-2507",
+      "family": "Qwen",
+      "description": "Balanced Qwen3 flagship tuned for strong general reasoning, chat quality, and tool use.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "json_mode",
+          "structured_outputs"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 262144,
+      "quantization": "fp8",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.2,
+          "output": 0.6,
+          "cached_input": null
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 400000.0,
+        "requests_per_minute": 600.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "eu-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 365,
+        "e2e_ms": 541,
+        "text_call_cost_usd": 4.2e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 365,
+            "e2e_ms": 541,
+            "usage": {
+              "prompt_tokens": 15,
+              "total_tokens": 17,
+              "completion_tokens": 2
+            },
+            "served_by": null,
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+      "provider": "nebius",
+      "name": "Qwen3-30B-A3B-Instruct-2507",
+      "family": "Qwen",
+      "description": "Versatile 30B instruct model optimized for high-quality chat, reasoning, and coding.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "json_mode",
+          "structured_outputs"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 262144,
+      "quantization": "fp8",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.1,
+          "output": 0.3,
+          "cached_input": null
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 400000.0,
+        "requests_per_minute": 600.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "eu-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 277,
+        "e2e_ms": 277,
+        "text_call_cost_usd": 2.1e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 277,
+            "e2e_ms": 277,
+            "usage": {
+              "prompt_tokens": 15,
+              "total_tokens": 17,
+              "completion_tokens": 2
+            },
+            "served_by": null,
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "Qwen/Qwen3.5-397B-A17B",
+      "provider": "nebius",
+      "name": "Qwen3.5-397B-A17B",
+      "family": "Qwen",
+      "description": "Multimodal model featuring a Hybrid Mixture-of-Experts architecture, designed for state-of-the-art performance across chat, retrieval-augmented generation, vision-language understanding, video understanding, and agentic workflows",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 262144,
+      "quantization": "fp4",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.6,
+          "output": 3.6,
+          "cached_input": 0.12
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 400000.0,
+        "requests_per_minute": 600.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-central1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 223,
+        "e2e_ms": 1992,
+        "text_call_cost_usd": 0.0008922,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 223,
+            "e2e_ms": 1992,
+            "usage": {
+              "prompt_tokens": 17,
+              "total_tokens": 262,
+              "completion_tokens": 245
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "reflection/beam",
+      "provider": "nebius",
+      "name": "Reflection Beam 1.0",
+      "family": "reflection",
+      "description": "Beam is Reflection’s open-weight, instruction-tuned text model for coding, reasoning and agentic tool use. Its mixture-of-experts architecture has 501.3B total parameters and 23.4B active parameters. It supports a 1M-token context window, was developed predominantly for English, and has a knowledge cutoff of June 30, 2026.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1048576,
+      "quantization": "fp4",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.25,
+          "output": 1.0,
+          "cached_input": 0.05
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 10000000000.0,
+        "requests_per_minute": 10000000000.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 196,
+        "e2e_ms": 283,
+        "text_call_cost_usd": 4.825e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 196,
+            "e2e_ms": 283,
+            "usage": {
+              "prompt_tokens": 53,
+              "total_tokens": 88,
+              "completion_tokens": 35,
+              "completion_tokens_details": {
+                "reasoning_tokens": 30
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 53,
+              "reasoning_tokens": 30
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "zai-org/GLM-5.1",
+      "provider": "nebius",
+      "name": "GLM-5.1",
+      "family": "zai-org",
+      "description": "Zhipu AI's latest flagship multimodal model with strong bilingual (Chinese-English) reasoning, long-context understanding, advanced tool use, and agent-oriented capabilities.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "json_mode",
+          "structured_outputs",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 202752,
+      "quantization": "fp8",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 1.4,
+          "output": 4.4,
+          "cached_input": null
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 500000.0,
+        "requests_per_minute": 1000.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "eu-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 171,
+        "e2e_ms": 7891,
+        "text_call_cost_usd": 0.0014908,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 171,
+            "e2e_ms": 7891,
+            "usage": {
+              "prompt_tokens": 12,
+              "total_tokens": 347,
+              "completion_tokens": 335
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "zai-org/GLM-5.2",
+      "provider": "nebius",
+      "name": "GLM-5.2",
+      "family": "zai-org",
+      "description": "Zhipu AI's latest flagship multimodal model with strong bilingual (Chinese-English) reasoning, long-context understanding, advanced tool use, and agent-oriented capabilities.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1048576,
+      "quantization": "fp4",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 1.4,
+          "output": 4.4,
+          "cached_input": 0.14
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 2000000.0,
+        "requests_per_minute": 1000.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "uk-south1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 175,
+        "e2e_ms": 336,
+        "text_call_cost_usd": 9.7e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 175,
+            "e2e_ms": 336,
+            "usage": {
+              "prompt_tokens": 19,
+              "total_tokens": 35,
+              "completion_tokens": 16,
+              "completion_tokens_details": {
+                "reasoning_tokens": 14
+              },
+              "prompt_tokens_details": null,
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 19,
+              "reasoning_tokens": 14
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "zai-org/GLM-5.3",
+      "provider": "nebius",
+      "name": "GLM-5.3",
+      "family": "zai-org",
+      "description": "Z.ai's GLM-5.3 in NVFP4 with DFlash2 speculative decoding: a 750B-parameter mixture-of-experts model for coding, agentic workflows, reasoning, tool use, and long-context tasks over a 1M-token window.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1024000,
+      "quantization": "fp4",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 1.4,
+          "output": 4.4,
+          "cached_input": 0.26
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 2000000.0,
+        "requests_per_minute": 1000.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 231,
+        "e2e_ms": 560,
+        "text_call_cost_usd": 0.0004622,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 231,
+            "e2e_ms": 560,
+            "usage": {
+              "prompt_tokens": 19,
+              "total_tokens": 118,
+              "completion_tokens": 99,
+              "completion_tokens_details": {
+                "reasoning_tokens": 97
+              },
+              "prompt_tokens_details": null,
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 19,
+              "reasoning_tokens": 97
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 400: This model does not support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "provider": "nebius",
+      "name": "DeepSeek V4.1 Flash",
+      "family": "deepseek-ai",
+      "description": "DeepSeek’s multimodal mixture-of-experts model for coding, reasoning, and tasks combining images and text.",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": null
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1048000,
+      "quantization": "fp8",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.3,
+          "output": 1.2,
+          "cached_input": 0.01
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 1000000.0,
+        "requests_per_minute": 3000.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 519,
+        "e2e_ms": 723,
+        "text_call_cost_usd": 3.78e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 519,
+            "e2e_ms": 723,
+            "usage": {
+              "prompt_tokens": 38,
+              "total_tokens": 60,
+              "completion_tokens": 22,
+              "completion_tokens_details": {
+                "reasoning_tokens": 19
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 38,
+              "reasoning_tokens": 19
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "provider": "nebius",
+      "name": "DeepSeek V4.1 Flash 1017",
+      "family": "deepseek-ai",
+      "description": "DeepSeek’s multimodal Flash model for reasoning, coding and tool-driven workflows, with text and image input and text output.",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1048576,
+      "quantization": "fp8",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.3,
+          "output": 1.2,
+          "cached_input": 0.006
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 2000000.0,
+        "requests_per_minute": 1000.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 222,
+        "e2e_ms": 250,
+        "text_call_cost_usd": 2.82e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 222,
+            "e2e_ms": 250,
+            "usage": {
+              "prompt_tokens": 38,
+              "total_tokens": 52,
+              "completion_tokens": 14,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "created_cache_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 10
+              }
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "google/gemma-3-27b-it",
+      "provider": "nebius",
+      "name": "Gemma-3-27b-it",
+      "family": "google",
+      "description": "Google’s mid-size model optimized for high-quality instruction following, coding, and multilingual performance.",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": false,
+        "tools_auto": false,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 110000,
+      "quantization": "fp8",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.1,
+          "output": 0.3,
+          "cached_input": null
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 400000.0,
+        "requests_per_minute": 600.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "eu-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 11031,
+        "e2e_ms": 11032,
+        "text_call_cost_usd": 2.5e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 11031,
+            "e2e_ms": 11032,
+            "usage": {
+              "prompt_tokens": 16,
+              "total_tokens": 19,
+              "completion_tokens": 3
+            },
+            "served_by": null,
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "wrong_answer",
+            "answer": "```tool_code\nfrom weather import get_weather\nprint(get_weather(location='Berlin'))\n```"
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "meta-models/muse-spark-open",
+      "provider": "nebius",
+      "name": "Muse Spark Open",
+      "family": "meta-models",
+      "description": "Meta’s 816B-parameter mixture-of-experts model for coding and agentic workflows, with about 42B active parameters, image and video input, reasoning and tool use.",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1048576,
+      "quantization": "fp4",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 1.25,
+          "output": 4.25,
+          "cached_input": 0.15
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 2000000.0,
+        "requests_per_minute": 3000.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 468,
+        "e2e_ms": 1416,
+        "text_call_cost_usd": 0.0005452,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 468,
+            "e2e_ms": 1416,
+            "usage": {
+              "prompt_tokens": 151,
+              "total_tokens": 268,
+              "completion_tokens": 117,
+              "completion_tokens_details": {
+                "reasoning_tokens": 110
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 128
+              },
+              "prompt_cache_hit_tokens": 128,
+              "prompt_cache_miss_tokens": 23,
+              "reasoning_tokens": 110
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "MiniMaxAI/MiniMax-M3",
+      "provider": "nebius",
+      "name": "MiniMax-M3",
+      "family": "MiniMaxAI",
+      "description": "MiniMax-M3 is a 428B MoE reasoning model with 1M context, served on B200 via vLLM with EAGLE3 speculative decoding.",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1048576,
+      "quantization": "fp4",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.3,
+          "output": 1.2,
+          "cached_input": 0.06
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 400000.0,
+        "requests_per_minute": 600.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-central1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 414,
+        "e2e_ms": 458,
+        "text_call_cost_usd": 8.61e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 414,
+            "e2e_ms": 458,
+            "usage": {
+              "prompt_tokens": 183,
+              "total_tokens": 209,
+              "completion_tokens": 26,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "created_cache_tokens": 128
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 22
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 183
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "MiniMaxAI/MiniMax-M3.1-Flash",
+      "provider": "nebius",
+      "name": "MiniMax-M3.1-Flash",
+      "family": "MiniMaxAI",
+      "description": "MiniMax-M3.1-Flash is a native multimodal mixture-of-experts model for coding, agentic workflows, computer use, and cybersecurity. It supports text, image, and video inputs with a context window of up to 1M tokens.",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1048576,
+      "quantization": "fp4",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.15,
+          "output": 0.6,
+          "cached_input": 0.015
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 2000000.0,
+        "requests_per_minute": 3000.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 319,
+        "e2e_ms": 505,
+        "text_call_cost_usd": 2.067e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 319,
+            "e2e_ms": 505,
+            "usage": {
+              "prompt_tokens": 185,
+              "total_tokens": 202,
+              "completion_tokens": 17,
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 128
+              },
+              "prompt_cache_hit_tokens": 128,
+              "prompt_cache_miss_tokens": 57,
+              "reasoning_tokens": 0
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "moonshotai/Kimi-K2.6",
+      "provider": "nebius",
+      "name": "Kimi-K2.6",
+      "family": "moonshotai",
+      "description": "Kimi K2.6 is an open-source, native multimodal agentic model built through continual pretraining on approximately 15 trillion mixed visual and text tokens atop Kimi-K2-Base",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": false,
+        "reasoning": true
+      },
+      "context_length": 262144,
+      "quantization": "int4",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.95,
+          "output": 4.0,
+          "cached_input": 0.16
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 300000.0,
+        "requests_per_minute": 200.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-central1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 302,
+        "e2e_ms": 783,
+        "text_call_cost_usd": 0.00041825,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 302,
+            "e2e_ms": 783,
+            "usage": {
+              "prompt_tokens": 15,
+              "total_tokens": 116,
+              "completion_tokens": 101
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "wrong_answer",
+            "answer": {
+              "expression": "17 + 25",
+              "result": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "moonshotai/Kimi-K2.7-Code",
+      "provider": "nebius",
+      "name": "Kimi-K2.7-Code",
+      "family": "moonshotai",
+      "description": "Open-source code-focused reasoning model built for long-context software engineering, tool use, and agentic coding workflows.",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 262144,
+      "quantization": "fp4",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.95,
+          "output": 4.0,
+          "cached_input": 0.15
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 300000.0,
+        "requests_per_minute": 200.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-central1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 837,
+        "e2e_ms": 3149,
+        "text_call_cost_usd": 0.00017025,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 837,
+            "e2e_ms": 3149,
+            "usage": {
+              "prompt_tokens": 15,
+              "total_tokens": 54,
+              "completion_tokens": 39,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 38
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 15
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "moonshotai/Kimi-K3",
+      "provider": "nebius",
+      "name": "Kimi-K3",
+      "family": "moonshotai",
+      "description": "Moonshot AI's Kimi K3 frontier open-weights MoE model (NVFP4, 1M context) with DSpark speculative decoding, strong agentic tool use, reasoning, and coding.",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1024000,
+      "quantization": "fp4",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 3.0,
+          "output": 15.0,
+          "cached_input": 0.3
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 2000000.0,
+        "requests_per_minute": 1000.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "eu-west2"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 345,
+        "e2e_ms": 483,
+        "text_call_cost_usd": 0.0008982,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 345,
+            "e2e_ms": 483,
+            "usage": {
+              "prompt_tokens": 92,
+              "total_tokens": 145,
+              "completion_tokens": 53,
+              "prompt_tokens_details": {
+                "cached_tokens": 64
+              },
+              "reasoning_tokens": 41
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "nvidia/Nemotron-3.5-Super-VL",
+      "provider": "nebius",
+      "name": "Nemotron 3.5 Super VL",
+      "family": "nvidia",
+      "description": "NVIDIA's multimodal model for visual understanding, coding, reasoning, and tool use. It processes text, images, and video to generate text responses.",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1048576,
+      "quantization": "bf16",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.3,
+          "output": 0.9,
+          "cached_input": 0.06
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 2000000.0,
+        "requests_per_minute": 300.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 469,
+        "e2e_ms": 602,
+        "text_call_cost_usd": 4.86e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 469,
+            "e2e_ms": 602,
+            "usage": {
+              "prompt_tokens": 24,
+              "total_tokens": 70,
+              "completion_tokens": 46,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "created_cache_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 42
+              }
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "openbmb/MiniCPM-V-4_5",
+      "provider": "nebius",
+      "name": "openbmb/MiniCPM-V-4_5",
+      "family": "openbmb",
+      "description": "MiniCPM-V-4.5 – Compact multimodal model for image, multi-image, high-FPS/long-video, OCR/PDF understanding, with switchable fast/deep thinking.",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "json_mode",
+          "structured_outputs"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": false,
+        "tools_auto": false,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 32000,
+      "quantization": "fp16",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.658,
+          "output": 1.11,
+          "cached_input": null
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 200000.0,
+        "requests_per_minute": 300.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "eu-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 118,
+        "e2e_ms": 127,
+        "text_call_cost_usd": 1.32e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "Pong",
+            "ttft_ms": 118,
+            "e2e_ms": 127,
+            "usage": {
+              "prompt_tokens": 15,
+              "total_tokens": 18,
+              "completion_tokens": 3
+            },
+            "served_by": null,
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "the left half of the image is blue and the right half is yellow."
+          },
+          "tools": {
+            "status": "rejected",
+            "error": "HTTP 400: tool_choice=\"function=ChatCompletionNamedFunction(name='get_weather') type='function'\" requires --tool-call-parser to be set"
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "Qwen/Qwen3.8-27B",
+      "provider": "nebius",
+      "name": "Qwen3.8-27B",
+      "family": "Qwen",
+      "description": "Qwen3.8-27B is Qwen's dense 27B-parameter reasoning model for coding, professional work, research, and long-horizon agentic tasks. This NVFP4 serverless deployment supports tool calling and a native 262K context window.",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 262144,
+      "quantization": "fp4",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.45,
+          "output": 3.0,
+          "cached_input": 0.1
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 1000000.0,
+        "requests_per_minute": 1000.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-central1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 210,
+        "e2e_ms": 318,
+        "text_call_cost_usd": 0.00015555,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 210,
+            "e2e_ms": 318,
+            "usage": {
+              "prompt_tokens": 59,
+              "total_tokens": 102,
+              "completion_tokens": 43,
+              "prompt_tokens_details": null,
+              "reasoning_tokens": 40,
+              "completion_tokens_details": {
+                "reasoning_tokens": 40
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 59
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "zai-org/GLM-5.3-Flash",
+      "provider": "nebius",
+      "name": "GLM-5.3-Flash",
+      "family": "zai-org",
+      "description": "Z.ai's 320B-parameter, 18B-active mixture-of-experts model for coding, agentic workflows, reasoning, tool use, and long-context tasks.",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "tools",
+          "reasoning"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1024000,
+      "quantization": "fp4",
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.15,
+          "output": 0.5,
+          "cached_input": 0.03
+        },
+        "source": "nebius /models API",
+        "fetched_at": "2026-10-24T10:11:57+00:00"
+      },
+      "rate_limits": {
+        "tokens_per_minute": 400000.0,
+        "requests_per_minute": 600.0,
+        "burst_ratio": 1.0
+      },
+      "regions": [
+        "us-north1"
+      ],
+      "hf_repo": null,
+      "endpoints": null,
+      "served_by": null,
+      "probe": {
+        "checked_at": "2026-10-24T10:11:57+00:00",
+        "ttft_ms": 1105,
+        "e2e_ms": 1654,
+        "text_call_cost_usd": 1.685e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 1105,
+            "e2e_ms": 1654,
+            "usage": {
+              "prompt_tokens": 19,
+              "total_tokens": 47,
+              "completion_tokens": 28,
+              "completion_tokens_details": {
+                "reasoning_tokens": 26
+              },
+              "prompt_tokens_details": null,
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 19,
+              "reasoning_tokens": 26
+            },
+            "served_by": null,
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue, yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    }
+  ]
+}

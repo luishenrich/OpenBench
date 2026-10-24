@@ -1,0 +1,154 @@
+[
+  {
+    "id": "google/gemma-4-31b-it",
+    "hf_repo": "google/gemma-4-31B-it",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "google/gemma-4-26b-a4b-it",
+    "hf_repo": "google/gemma-4-26B-A4B-it",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "meta-llama/llama-4-maverick",
+    "hf_repo": "meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+    "license": "other (Llama 4 Community License)",
+    "gated": true,
+    "open_weight": true,
+    "note": "Weights public but manually gated on HF; custom community license (700M MAU clause, attribution, EU restrictions on multimodal)."
+  },
+  {
+    "id": "meta-llama/llama-4-scout",
+    "hf_repo": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+    "license": "other (Llama 4 Community License)",
+    "gated": true,
+    "open_weight": true,
+    "note": "Weights public but manually gated on HF; custom community license."
+  },
+  {
+    "id": "meta/muse-glimmer-30b",
+    "hf_repo": "meta-models/Muse-Glimmer-30B",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "mistralai/mistral-small-2603",
+    "hf_repo": "mistralai/Mistral-Small-4-119B-2603",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "Mistral Small 4 (119B MoE)."
+  },
+  {
+    "id": "mistralai/mistral-large-2512",
+    "hf_repo": "mistralai/Mistral-Large-3-675B-Instruct-2512",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "OpenRouter hugging_face_id is empty but weights are public on HF (Mistral Large 3). Probe: persistent HTTP 429 from Mistral upstream (3 attempts); capabilities unverified."
+  },
+  {
+    "id": "mistralai/mistral-medium-3-5",
+    "hf_repo": "mistralai/Mistral-Medium-3.5-128B",
+    "license": "other (Modified MIT)",
+    "gated": false,
+    "open_weight": true,
+    "note": "OR hugging_face_id null, but weights are public on HF. Modified MIT: free for commercial use except companies above a revenue threshold. Added beyond the starting list."
+  },
+  {
+    "id": "mistralai/devstral-2512",
+    "hf_repo": "mistralai/Devstral-2-123B-Instruct-2512",
+    "license": "other (Modified MIT)",
+    "gated": false,
+    "open_weight": true,
+    "note": "Modified MIT: exceptions for large-revenue companies."
+  },
+  {
+    "id": "mistralai/ministral-14b-2512",
+    "hf_repo": "mistralai/Ministral-3-14B-Instruct-2512",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "mistralai/ministral-8b-2512",
+    "hf_repo": "mistralai/Ministral-3-8B-Instruct-2512",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "mistralai/ministral-3b-2512",
+    "hf_repo": "mistralai/Ministral-3-3B-Instruct-2512",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "microsoft/phi-4",
+    "hf_repo": "microsoft/phi-4",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "openai/gpt-oss-20b",
+    "hf_repo": "openai/gpt-oss-20b",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "openai/gpt-oss-safeguard-20b",
+    "hf_repo": "openai/gpt-oss-safeguard-20b",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "Safety-classification fine-tune of gpt-oss-20b, not a general chat model."
+  },
+  {
+    "id": "ibm-granite/granite-4.2-8b",
+    "hf_repo": "ibm-granite/granite-4.2-8b",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": ""
+  },
+  {
+    "id": "cohere/command-a",
+    "hf_repo": "CohereForAI/c4ai-command-a-03-2025",
+    "license": "cc-by-nc-4.0",
+    "gated": true,
+    "open_weight": true,
+    "note": "NON-COMMERCIAL license (CC-BY-NC 4.0); auto-gated on HF (accept terms). Open weights but not usable commercially."
+  },
+  {
+    "id": "cohere/command-a-plus",
+    "hf_repo": "CohereLabs/command-a-plus-05-2026-bf16",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "OR hugging_face_id null; weights found as CohereLabs/command-a-plus-05-2026-bf16 (also fp8, w4a4). Added beyond the starting list."
+  },
+  {
+    "id": "mistralai/mistral-large-4-0",
+    "hf_repo": null,
+    "license": null,
+    "gated": null,
+    "open_weight": false,
+    "note": "No public HF repo found (author search 'large-4' returns only Mistral-Large-3 NVFP4); not probed, dropped."
+  }
+]

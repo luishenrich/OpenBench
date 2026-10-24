@@ -1,0 +1,3507 @@
+{
+  "provider": "openrouter",
+  "base_url": "https://openrouter.ai/api/v1",
+  "key_env": "OPENROUTER_API_KEY",
+  "generated_at": "2026-10-24T10:12:18+00:00",
+  "models": [
+    {
+      "id": "inclusionai/ling-3.0-flash",
+      "provider": "openrouter",
+      "name": "inclusionAI: Ling 3.0 Flash",
+      "family": "inclusionai",
+      "description": "*Ling-3.0-flash* is a *124B-parameter Mixture-of-Experts (MoE) model*, with approximately *5.1B parameters activated per token*. The model is designed with *token efficiency and production-scale agentic inference* as key priorities, enabling developers...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logit_bias",
+          "logprobs",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": false,
+        "reasoning": true
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.021,
+          "output": 0.063,
+          "cached_input": 0.0042
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "inclusionAI/Ling-3.0-flash",
+      "endpoints": [
+        {
+          "provider": "Novita",
+          "tag": "novita",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 32768,
+          "usd_per_1m": {
+            "input": 0.021,
+            "output": 0.063,
+            "cached_input": 0.0042
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "repetition_penalty",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/bf16",
+          "quantization": "bf16",
+          "context_length": 131072,
+          "max_completion_tokens": 32768,
+          "usd_per_1m": {
+            "input": 0.06,
+            "output": 0.18,
+            "cached_input": 0.012
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "tools",
+            "tool_choice",
+            "logit_bias",
+            "response_format"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "Novita",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 804,
+        "e2e_ms": 1332,
+        "text_call_cost_usd": 6.573e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 804,
+            "e2e_ms": 1332,
+            "usage": {
+              "prompt_tokens": 28,
+              "completion_tokens": 95,
+              "total_tokens": 123,
+              "cost": 6.573e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 6.573e-06,
+                "upstream_inference_prompt_cost": 5.88e-07,
+                "upstream_inference_completions_cost": 5.985e-06
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 76,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Novita",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that can handle the requested parameters. To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection"
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "meituan/longcat-2.0",
+      "provider": "openrouter",
+      "name": "Meituan: LongCat 2.0",
+      "family": "meituan",
+      "description": "LongCat 2.0 is a sparse mixture-of-experts language model from Meituan, with 48B active parameters out of 1.6T total. It is suited for coding, repository-level changes, long-horizon problem solving, and agentic...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logit_bias",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "repetition_penalty",
+          "seed",
+          "stop",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": false,
+        "reasoning": true
+      },
+      "context_length": 1048756,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.3,
+          "output": 1.2,
+          "cached_input": 0.006
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "meituan-longcat/LongCat-2.0",
+      "endpoints": [
+        {
+          "provider": "AtlasCloud",
+          "tag": "atlas-cloud/fp8",
+          "quantization": "fp8",
+          "context_length": 1048756,
+          "max_completion_tokens": 262144,
+          "usd_per_1m": {
+            "input": 0.3,
+            "output": 1.2,
+            "cached_input": 0.006
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "top_k",
+            "min_p",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "seed",
+            "logit_bias",
+            "stop",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "AtlasCloud",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 2106,
+        "e2e_ms": 3101,
+        "text_call_cost_usd": 8.13e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 2106,
+            "e2e_ms": 3101,
+            "usage": {
+              "prompt_tokens": 15,
+              "completion_tokens": 64,
+              "total_tokens": 79,
+              "cost": 8.13e-05,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 8.13e-05,
+                "upstream_inference_prompt_cost": 4.5e-06,
+                "upstream_inference_completions_cost": 7.68e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 59,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "AtlasCloud",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that can handle the requested parameters. To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection"
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "stepfun/step-3.5-flash",
+      "provider": "openrouter",
+      "name": "StepFun: Step 3.5 Flash",
+      "family": "stepfun",
+      "description": "Step 3.5 Flash is StepFun's most capable open-source foundation model. Built on a sparse Mixture of Experts (MoE) architecture, it selectively activates only 11B of its 196B parameters per token....",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "max_tokens",
+          "reasoning",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": false,
+        "reasoning": true
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.1,
+          "output": 0.3,
+          "cached_input": null
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "stepfun-ai/Step-3.5-Flash",
+      "endpoints": [
+        {
+          "provider": "SiliconFlow",
+          "tag": "siliconflow/fp8",
+          "quantization": "fp8",
+          "context_length": 262144,
+          "max_completion_tokens": 65536,
+          "usd_per_1m": {
+            "input": 0.1,
+            "output": 0.3,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "temperature",
+            "top_p",
+            "top_k",
+            "frequency_penalty",
+            "tools",
+            "tool_choice",
+            "max_tokens"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "SiliconFlow",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 931,
+        "e2e_ms": 2397,
+        "text_call_cost_usd": 3.95e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 931,
+            "e2e_ms": 2397,
+            "usage": {
+              "prompt_tokens": 20,
+              "completion_tokens": 125,
+              "total_tokens": 145,
+              "cost": 3.95e-05,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 3.95e-05,
+                "upstream_inference_prompt_cost": 2e-06,
+                "upstream_inference_completions_cost": 3.75e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 133,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "SiliconFlow",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that can handle the requested parameters. To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection"
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "tencent/hunyuan-a13b-instruct",
+      "provider": "openrouter",
+      "name": "Tencent: Hunyuan A13B Instruct",
+      "family": "tencent",
+      "description": "Hunyuan-A13B is a 13B active parameter Mixture-of-Experts (MoE) language model developed by Tencent, with a total parameter count of 80B and support for reasoning via Chain-of-Thought. It offers competitive benchmark...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "max_tokens",
+          "reasoning",
+          "response_format",
+          "structured_outputs",
+          "temperature",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": false,
+        "tools_auto": false,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 131072,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.14,
+          "output": 0.57,
+          "cached_input": null
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "tencent/Hunyuan-A13B-Instruct",
+      "endpoints": [
+        {
+          "provider": "SiliconFlow",
+          "tag": "siliconflow/fp8",
+          "quantization": "fp8",
+          "context_length": 131072,
+          "max_completion_tokens": 117964,
+          "usd_per_1m": {
+            "input": 0.14,
+            "output": 0.57,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "structured_outputs",
+            "response_format",
+            "temperature",
+            "top_p",
+            "top_k",
+            "frequency_penalty",
+            "max_tokens"
+          ],
+          "uptime_30m": null
+        }
+      ],
+      "served_by": "SiliconFlow",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 961,
+        "e2e_ms": 10264,
+        "text_call_cost_usd": 0.00015915,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 961,
+            "e2e_ms": 10264,
+            "usage": {
+              "prompt_tokens": 9,
+              "completion_tokens": 277,
+              "total_tokens": 286,
+              "cost": 0.00015915,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.00015915,
+                "upstream_inference_prompt_cost": 1.26e-06,
+                "upstream_inference_completions_cost": 0.00015789
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 275,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "SiliconFlow",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support tool use. Try disabling \"get_weather\". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection"
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "tencent/hy-mt2-1.8b",
+      "provider": "openrouter",
+      "name": "Tencent: Hy-MT2-1.8B",
+      "family": "tencent",
+      "description": "Hy-MT2-1.8B is a compact 1.8B-parameter translation model from Tencent. It supports 33 language pairs and five Chinese dialect and minority-language pairs, with workflows for structured, delimiter-based, contextual, glossary-based, and style-guided...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "max_completion_tokens",
+          "max_tokens",
+          "stop",
+          "temperature"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": false,
+        "tools_auto": false,
+        "json_schema": false,
+        "reasoning": false
+      },
+      "context_length": 8192,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.044,
+          "output": 0.177,
+          "cached_input": null
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "tencent/Hy-MT2-1.8B",
+      "endpoints": [
+        {
+          "provider": "Tencent",
+          "tag": "tencent/fp8",
+          "quantization": "fp8",
+          "context_length": 8192,
+          "max_completion_tokens": 4096,
+          "usd_per_1m": {
+            "input": 0.044,
+            "output": 0.177,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "temperature",
+            "stop",
+            "max_completion_tokens",
+            "max_tokens"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "Tencent",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 730,
+        "e2e_ms": 750,
+        "text_call_cost_usd": 8.38e-07,
+        "results": {
+          "text": {
+            "status": "wrong_answer",
+            "answer": "yes",
+            "ttft_ms": 730,
+            "e2e_ms": 750,
+            "usage": {
+              "prompt_tokens": 11,
+              "completion_tokens": 2,
+              "total_tokens": 13,
+              "cost": 8.38e-07,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 8.38e-07,
+                "upstream_inference_prompt_cost": 4.84e-07,
+                "upstream_inference_completions_cost": 3.54e-07
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Tencent",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support tool use. Try disabling \"get_weather\". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection"
+          },
+          "json_schema": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that can handle the requested parameters. To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection"
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "tencent/hy-mt2-30b-a3b",
+      "provider": "openrouter",
+      "name": "Tencent: Hy-MT2-30B-A3B",
+      "family": "tencent",
+      "description": "Hy-MT2-30B-A3B is Tencent's flagship translation model in the Hy-MT2 family. It supports 33 language pairs and five Chinese dialect and minority-language pairs, with workflows for structured, delimiter-based, contextual, glossary-based, and...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "max_completion_tokens",
+          "max_tokens",
+          "response_format",
+          "stop",
+          "structured_outputs",
+          "temperature"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": false,
+        "tools_auto": false,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 8192,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.074,
+          "output": 0.295,
+          "cached_input": null
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "tencent/Hy-MT2-30B-A3B",
+      "endpoints": [
+        {
+          "provider": "Tencent",
+          "tag": "tencent/fp8",
+          "quantization": "fp8",
+          "context_length": 8192,
+          "max_completion_tokens": 4096,
+          "usd_per_1m": {
+            "input": 0.074,
+            "output": 0.295,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "temperature",
+            "stop",
+            "max_completion_tokens",
+            "max_tokens",
+            "response_format",
+            "structured_outputs"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "Tencent",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 1015,
+        "e2e_ms": 1059,
+        "text_call_cost_usd": 2.66e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 1015,
+            "e2e_ms": 1059,
+            "usage": {
+              "prompt_tokens": 20,
+              "completion_tokens": 4,
+              "total_tokens": 24,
+              "cost": 2.66e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 2.66e-06,
+                "upstream_inference_prompt_cost": 1.48e-06,
+                "upstream_inference_completions_cost": 1.18e-06
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Tencent",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support tool use. Try disabling \"get_weather\". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection"
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "tencent/hy-mt2-7b",
+      "provider": "openrouter",
+      "name": "Tencent: Hy-MT2-7B",
+      "family": "tencent",
+      "description": "Hy-MT2-7B is a 7B-parameter translation model from Tencent. It supports 33 language pairs and five Chinese dialect and minority-language pairs, with workflows for structured, delimiter-based, contextual, glossary-based, and style-guided translation.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "max_completion_tokens",
+          "max_tokens",
+          "response_format",
+          "stop",
+          "structured_outputs",
+          "temperature"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": false,
+        "tools_auto": false,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 8192,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.074,
+          "output": 0.295,
+          "cached_input": null
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "tencent/Hy-MT2-7B",
+      "endpoints": [
+        {
+          "provider": "Tencent",
+          "tag": "tencent/fp8",
+          "quantization": "fp8",
+          "context_length": 8192,
+          "max_completion_tokens": 4096,
+          "usd_per_1m": {
+            "input": 0.074,
+            "output": 0.295,
+            "cached_input": null
+          },
+          "supported_parameters": [
+            "temperature",
+            "stop",
+            "max_completion_tokens",
+            "max_tokens",
+            "response_format",
+            "structured_outputs"
+          ],
+          "uptime_30m": null
+        }
+      ],
+      "served_by": "Tencent",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 1036,
+        "e2e_ms": 1056,
+        "text_call_cost_usd": 1.256e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 1036,
+            "e2e_ms": 1056,
+            "usage": {
+              "prompt_tokens": 9,
+              "completion_tokens": 2,
+              "total_tokens": 11,
+              "cost": 1.256e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 1.256e-06,
+                "upstream_inference_prompt_cost": 6.66e-07,
+                "upstream_inference_completions_cost": 5.9e-07
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Tencent",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support tool use. Try disabling \"get_weather\". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection"
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "tencent/hy3",
+      "provider": "openrouter",
+      "name": "Tencent: Hy3",
+      "family": "tencent",
+      "description": "Hy3 is a 295B-parameter Mixture-of-Experts model from Tencent (21B active, 192 experts with top-8 routing) built for reasoning, agentic workflows, and real-world production use. It supports a configurable reasoning effort:...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logit_bias",
+          "max_completion_tokens",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "reasoning_effort",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.132,
+          "output": 0.528,
+          "cached_input": 0.033
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "tencent/Hy3",
+      "endpoints": [
+        {
+          "provider": "Tencent",
+          "tag": "tencent/fp8",
+          "quantization": "fp8",
+          "context_length": 262144,
+          "max_completion_tokens": 128000,
+          "usd_per_1m": {
+            "input": 0.132,
+            "output": 0.528,
+            "cached_input": 0.033
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "temperature",
+            "stop",
+            "max_completion_tokens",
+            "max_tokens",
+            "response_format",
+            "tools",
+            "tool_choice",
+            "structured_outputs",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Novita",
+          "tag": "novita",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.14,
+            "output": 0.58,
+            "cached_input": 0.035
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "repetition_penalty",
+            "tools",
+            "tool_choice",
+            "structured_outputs",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "GMICloud",
+          "tag": "gmicloud/bf16",
+          "quantization": "bf16",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.14,
+            "output": 0.58,
+            "cached_input": 0.035
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "seed",
+            "response_format",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Phala",
+          "tag": "phala",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.15,
+            "output": 0.64,
+            "cached_input": 0.04
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "min_p",
+            "repetition_penalty",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "AtlasCloud",
+          "tag": "atlas-cloud/fp8",
+          "quantization": "fp8",
+          "context_length": 262144,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 0.2,
+            "output": 0.8,
+            "cached_input": 0.05
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "top_k",
+            "min_p",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "stop",
+            "seed",
+            "logit_bias",
+            "tools",
+            "tool_choice",
+            "structured_outputs",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "Phala",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 1907,
+        "e2e_ms": 2424,
+        "text_call_cost_usd": 2.924e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 1907,
+            "e2e_ms": 2424,
+            "usage": {
+              "prompt_tokens": 20,
+              "completion_tokens": 41,
+              "total_tokens": 61,
+              "cost": 2.924e-05,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 2.924e-05,
+                "upstream_inference_prompt_cost": 3e-06,
+                "upstream_inference_completions_cost": 2.624e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 37,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Phala",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "tencent/hy3-preview",
+      "provider": "openrouter",
+      "name": "Tencent: Hy3 preview",
+      "family": "tencent",
+      "description": "Hy3 preview is a high-efficiency Mixture-of-Experts model from Tencent designed for agentic workflows and production use. It supports configurable reasoning levels across disabled, low, and high modes, allowing it to...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "include_reasoning",
+          "max_tokens",
+          "reasoning",
+          "reasoning_effort",
+          "seed",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": false,
+        "reasoning": true
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.18,
+          "output": 0.6,
+          "cached_input": 0.06
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "tencent/Hy3-preview",
+      "endpoints": [
+        {
+          "provider": "GMICloud",
+          "tag": "gmicloud/bf16",
+          "quantization": "bf16",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.18,
+            "output": 0.6,
+            "cached_input": 0.06
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "seed",
+            "tool_choice",
+            "tools",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "GMICloud",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 2389,
+        "e2e_ms": 2528,
+        "text_call_cost_usd": 2.88e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 2389,
+            "e2e_ms": 2528,
+            "usage": {
+              "prompt_tokens": 20,
+              "completion_tokens": 42,
+              "total_tokens": 62,
+              "cost": 2.88e-05,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 2.88e-05,
+                "upstream_inference_prompt_cost": 3.6e-06,
+                "upstream_inference_completions_cost": 2.52e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 38,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "GMICloud",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that can handle the requested parameters. To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection"
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "tencent/hy4-preview",
+      "provider": "openrouter",
+      "name": "Tencent: Hy4 preview",
+      "family": "tencent",
+      "description": "Tencent: Hy4 preview is a mixture-of-experts model from Tencent, with 49B active parameters out of 770B total. It is designed for coding agents, complex tool-use workflows, and productivity tasks that...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logit_bias",
+          "logprobs",
+          "max_completion_tokens",
+          "max_tokens",
+          "min_p",
+          "parallel_tool_calls",
+          "presence_penalty",
+          "reasoning",
+          "reasoning_effort",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1048576,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.834,
+          "output": 2.501,
+          "cached_input": 0.042
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "tencent/Hy4-preview",
+      "endpoints": [
+        {
+          "provider": "Cohere",
+          "tag": "cohere",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 0.834,
+            "output": 2.501,
+            "cached_input": 0.042
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "top_k",
+            "seed",
+            "structured_outputs",
+            "response_format",
+            "tools",
+            "tool_choice",
+            "parallel_tool_calls",
+            "logprobs",
+            "top_logprobs",
+            "repetition_penalty",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/fp4",
+          "quantization": "fp4",
+          "context_length": 1048576,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 0.834,
+            "output": 2.501,
+            "cached_input": 0.042
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "logit_bias",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Novita",
+          "tag": "novita/fp8",
+          "quantization": "fp8",
+          "context_length": 1000000,
+          "max_completion_tokens": 64000,
+          "usd_per_1m": {
+            "input": 0.834,
+            "output": 2.501,
+            "cached_input": 0.042
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "repetition_penalty",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "SiliconFlow",
+          "tag": "siliconflow/fp8",
+          "quantization": "fp8",
+          "context_length": 1048576,
+          "max_completion_tokens": 262144,
+          "usd_per_1m": {
+            "input": 0.834,
+            "output": 2.501,
+            "cached_input": 0.042
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "temperature",
+            "top_p",
+            "top_k",
+            "frequency_penalty",
+            "max_tokens",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Tencent",
+          "tag": "tencent/fp8",
+          "quantization": "fp8",
+          "context_length": 1048576,
+          "max_completion_tokens": 64000,
+          "usd_per_1m": {
+            "input": 0.834,
+            "output": 2.501,
+            "cached_input": 0.042
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "temperature",
+            "stop",
+            "max_completion_tokens",
+            "max_tokens",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "Novita",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 2757,
+        "e2e_ms": 4001,
+        "text_call_cost_usd": 0.000206759,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 2757,
+            "e2e_ms": 4001,
+            "usage": {
+              "prompt_tokens": 29,
+              "completion_tokens": 73,
+              "total_tokens": 102,
+              "cost": 0.000206759,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.000206759,
+                "upstream_inference_prompt_cost": 2.4186e-05,
+                "upstream_inference_completions_cost": 0.000182573
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 69,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Novita",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "xiaomi/mimo-v2.5",
+      "provider": "openrouter",
+      "name": "Xiaomi: MiMo-V2.5",
+      "family": "xiaomi",
+      "description": "MiMo-V2.5 is a native omnimodal model by Xiaomi. It delivers Pro-level agentic performance at roughly half the inference cost, while surpassing MiMo-V2-Omni in multimodal perception across image and video understanding...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image+audio+video->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "max_tokens",
+          "presence_penalty",
+          "reasoning",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 1050000,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.119,
+          "output": 0.238,
+          "cached_input": 0.0026
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:14:07+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "XiaomiMiMo/MiMo-V2.5",
+      "endpoints": [
+        {
+          "provider": "GMICloud",
+          "tag": "gmicloud/fp8",
+          "quantization": "fp8",
+          "context_length": 1050000,
+          "max_completion_tokens": 945000,
+          "usd_per_1m": {
+            "input": 0.119,
+            "output": 0.238,
+            "cached_input": 0.0026
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "seed",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 0
+        },
+        {
+          "provider": "Venice",
+          "tag": "venice/fp8",
+          "quantization": "fp8",
+          "context_length": 1000000,
+          "max_completion_tokens": 65536,
+          "usd_per_1m": {
+            "input": 0.4,
+            "output": 2.0,
+            "cached_input": 0.08
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "top_k",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 0
+        }
+      ],
+      "served_by": "GMICloud",
+      "probe": {
+        "checked_at": "2026-10-24T10:14:07+00:00",
+        "ttft_ms": null,
+        "e2e_ms": 10613,
+        "text_call_cost_usd": null,
+        "results": {
+          "text": {
+            "status": "wrong_answer",
+            "answer": "",
+            "ttft_ms": null,
+            "e2e_ms": 10613,
+            "usage": null,
+            "served_by": "GMICloud",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 503: Provider returned error"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "xiaomi/mimo-v2.6-flash",
+      "provider": "openrouter",
+      "name": "Xiaomi: MiMo-V2.6-Flash",
+      "family": "xiaomi",
+      "description": "MiMo-V2.6-Flash is an open-source foundation model developed by Xiaomi. Built on a Mixture-of-Experts architecture with 309B total parameters and 15B activated per token, it employs a hybrid attention mechanism for...",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image+audio+video->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logit_bias",
+          "logprobs",
+          "max_tokens",
+          "min_p",
+          "parallel_tool_calls",
+          "presence_penalty",
+          "reasoning",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1050000,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.14,
+          "output": 0.28,
+          "cached_input": 0.0028
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "XiaomiMiMo/MiMo-V2.6-Flash-RL",
+      "endpoints": [
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/fp8",
+          "quantization": "fp8",
+          "context_length": 1048576,
+          "max_completion_tokens": 943718,
+          "usd_per_1m": {
+            "input": 0.091,
+            "output": 0.182,
+            "cached_input": 0.0018
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "logit_bias",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 16.666666666666664
+        },
+        {
+          "provider": "Io Net",
+          "tag": "io-net/fp8",
+          "quantization": "fp8",
+          "context_length": 1048320,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 0.1,
+            "output": 0.28,
+            "cached_input": 0.003
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "seed",
+            "stop",
+            "top_k",
+            "top_p",
+            "presence_penalty",
+            "frequency_penalty",
+            "repetition_penalty",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs",
+            "response_format",
+            "structured_outputs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Darkbloom",
+          "tag": "darkbloom/fp4",
+          "quantization": "fp4",
+          "context_length": 1048576,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 0.1,
+            "output": 0.28,
+            "cached_input": 0.05
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "temperature",
+            "top_p",
+            "top_k",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "stop",
+            "seed",
+            "max_tokens",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": null
+        },
+        {
+          "provider": "GMICloud",
+          "tag": "gmicloud/bf16",
+          "quantization": "bf16",
+          "context_length": 1050000,
+          "max_completion_tokens": 945000,
+          "usd_per_1m": {
+            "input": 0.119,
+            "output": 0.238,
+            "cached_input": 0.0026
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 76.19047619047619
+        },
+        {
+          "provider": "Makora",
+          "tag": "makora/fp8",
+          "quantization": "fp8",
+          "context_length": 1048576,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 0.13,
+            "output": 0.28,
+            "cached_input": 0.002
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "temperature",
+            "top_p",
+            "top_k",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "stop",
+            "max_tokens",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Relace",
+          "tag": "relace/mxfp4",
+          "quantization": "mxfp4",
+          "context_length": 1048576,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 0.13,
+            "output": 0.28,
+            "cached_input": 0.003
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "repetition_penalty",
+            "tools",
+            "tool_choice",
+            "response_format"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Cohere",
+          "tag": "cohere",
+          "quantization": "unknown",
+          "context_length": 1048576,
+          "max_completion_tokens": 384000,
+          "usd_per_1m": {
+            "input": 0.14,
+            "output": 0.28,
+            "cached_input": 0.003
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "top_k",
+            "seed",
+            "structured_outputs",
+            "response_format",
+            "tools",
+            "tool_choice",
+            "parallel_tool_calls",
+            "logprobs",
+            "top_logprobs",
+            "repetition_penalty"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Novita",
+          "tag": "novita/fp8",
+          "quantization": "fp8",
+          "context_length": 1048576,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 0.14,
+            "output": 0.28,
+            "cached_input": 0.0028
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "repetition_penalty",
+            "response_format",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Xiaomi",
+          "tag": "xiaomi/fp8",
+          "quantization": "fp8",
+          "context_length": 1048576,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 0.14,
+            "output": 0.28,
+            "cached_input": 0.0028
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "response_format",
+            "tools",
+            "tool_choice",
+            "frequency_penalty",
+            "presence_penalty",
+            "structured_outputs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Venice",
+          "tag": "venice/fp8",
+          "quantization": "fp8",
+          "context_length": 1000000,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 0.175,
+            "output": 0.35,
+            "cached_input": 0.0037
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "top_k",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 0
+        }
+      ],
+      "served_by": "Relace",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 946,
+        "e2e_ms": 961,
+        "text_call_cost_usd": 5.538e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 946,
+            "e2e_ms": 961,
+            "usage": {
+              "prompt_tokens": 14,
+              "completion_tokens": 16,
+              "total_tokens": 30,
+              "cost": 5.538e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 6,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 5.538e-06,
+                "upstream_inference_prompt_cost": 1.058e-06,
+                "upstream_inference_completions_cost": 4.48e-06
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 14,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Relace",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "wrong_answer",
+            "answer": "based on the image provided:\n\n*   the **left half** is **green**.\n*   the **right half** is **red**.\n\ngreen red"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "inclusionai/ling-3.0-flash-vl",
+      "provider": "openrouter",
+      "name": "inclusionAI: Ling 3.0 Flash VL",
+      "family": "inclusionai",
+      "description": "Ling 3.0 Flash VL builds on Ling 3.0 Flash (124B total / 5.5B active MoE from InclusionAI), further strengthening its language capabilities while adding native visual perception and advanced visual...",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image+video->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logit_bias",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 131072,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.06,
+          "output": 0.18,
+          "cached_input": 0.012
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "inclusionAI/Ling-3.0-flash-VL",
+      "endpoints": [
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/fp16",
+          "quantization": "fp16",
+          "context_length": 131072,
+          "max_completion_tokens": 32768,
+          "usd_per_1m": {
+            "input": 0.06,
+            "output": 0.18,
+            "cached_input": 0.012
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "logit_bias",
+            "tools",
+            "tool_choice",
+            "structured_outputs",
+            "response_format"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "DeepInfra",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 541,
+        "e2e_ms": 888,
+        "text_call_cost_usd": 5.1e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 541,
+            "e2e_ms": 888,
+            "usage": {
+              "prompt_tokens": 28,
+              "completion_tokens": 19,
+              "total_tokens": 47,
+              "cost": 5.1e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 5.1e-06,
+                "upstream_inference_prompt_cost": 1.68e-06,
+                "upstream_inference_completions_cost": 3.42e-06
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 15,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "DeepInfra",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "nex-agi/nex-n2.5-mini",
+      "provider": "openrouter",
+      "name": "Nex AGI: Nex-N2.5-Mini",
+      "family": "nex-agi",
+      "description": "Nex-N2.5 is an agentic model built to turn goals into working, verified outcomes. Its core strength is agentic coding within a visual feedback loop: it can explore codebases, implement multi-file...",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "include_reasoning",
+          "logprobs",
+          "max_tokens",
+          "reasoning",
+          "reasoning_effort",
+          "structured_outputs",
+          "temperature",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": false,
+        "tools_auto": false,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.025,
+          "output": 0.1,
+          "cached_input": 0.0025
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "nex-agi/Nex-N2.5-mini",
+      "endpoints": [
+        {
+          "provider": "Nex AGI",
+          "tag": "nex-agi/bf16",
+          "quantization": "bf16",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.025,
+            "output": 0.1,
+            "cached_input": 0.0025
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_k",
+            "top_p",
+            "structured_outputs",
+            "logprobs",
+            "top_logprobs",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "Nex AGI",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 1569,
+        "e2e_ms": 1571,
+        "text_call_cost_usd": 9e-07,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 1569,
+            "e2e_ms": 1571,
+            "usage": {
+              "prompt_tokens": 16,
+              "completion_tokens": 5,
+              "total_tokens": 21,
+              "cost": 9e-07,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 9e-07,
+                "upstream_inference_prompt_cost": 4e-07,
+                "upstream_inference_completions_cost": 5e-07
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 1,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Nex AGI",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support tool use. Try disabling \"get_weather\". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection"
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "nex-agi/nex-n2.5-pro",
+      "provider": "openrouter",
+      "name": "Nex AGI: Nex-N2.5-Pro",
+      "family": "nex-agi",
+      "description": "Nex-N2.5 is an agentic model built to turn goals into working, verified outcomes. Its core strength is agentic coding within a visual feedback loop: it can explore codebases, implement multi-file...",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image->text",
+        "features": [
+          "include_reasoning",
+          "logprobs",
+          "max_tokens",
+          "reasoning",
+          "reasoning_effort",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.075,
+          "output": 0.25,
+          "cached_input": 0.015
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "nex-agi/Nex-N2.5-Pro",
+      "endpoints": [
+        {
+          "provider": "Nex AGI",
+          "tag": "nex-agi/fp8",
+          "quantization": "fp8",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.075,
+            "output": 0.25,
+            "cached_input": 0.015
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_k",
+            "top_p",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "Nex AGI",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 2040,
+        "e2e_ms": 2043,
+        "text_call_cost_usd": 2.45e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 2040,
+            "e2e_ms": 2043,
+            "usage": {
+              "prompt_tokens": 16,
+              "completion_tokens": 5,
+              "total_tokens": 21,
+              "cost": 2.45e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 2.45e-06,
+                "upstream_inference_prompt_cost": 1.2e-06,
+                "upstream_inference_completions_cost": 1.25e-06
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 1,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Nex AGI",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "stepfun/step-3.7-flash",
+      "provider": "openrouter",
+      "name": "StepFun: Step 3.7 Flash",
+      "family": "stepfun",
+      "description": "Step 3.7 Flash is StepFun's latest high-efficiency multimodal Mixture-of-Experts model. It pairs a 196B-parameter language backbone with a vision encoder for native image and video understanding, activating roughly 11B parameters...",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image+video->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logprobs",
+          "max_tokens",
+          "presence_penalty",
+          "reasoning",
+          "reasoning_effort",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.2,
+          "output": 1.15,
+          "cached_input": 0.04
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "stepfun-ai/Step-3.7-Flash",
+      "endpoints": [
+        {
+          "provider": "Novita",
+          "tag": "novita/fp8",
+          "quantization": "fp8",
+          "context_length": 262144,
+          "max_completion_tokens": 256000,
+          "usd_per_1m": {
+            "input": 0.2,
+            "output": 1.15,
+            "cached_input": 0.04
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "repetition_penalty",
+            "tools",
+            "tool_choice",
+            "structured_outputs",
+            "logprobs",
+            "top_logprobs",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "StepFun",
+          "tag": "stepfun/fp8",
+          "quantization": "fp8",
+          "context_length": 256000,
+          "max_completion_tokens": 230400,
+          "usd_per_1m": {
+            "input": 0.2,
+            "output": 1.15,
+            "cached_input": 0.04
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "temperature",
+            "max_tokens",
+            "tools",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "logprobs",
+            "top_logprobs",
+            "response_format",
+            "structured_outputs",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "StepFun",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 2657,
+        "e2e_ms": 3027,
+        "text_call_cost_usd": 4.885e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 2657,
+            "e2e_ms": 3027,
+            "usage": {
+              "prompt_tokens": 20,
+              "completion_tokens": 39,
+              "total_tokens": 59,
+              "cost": 4.885e-05,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 4.885e-05,
+                "upstream_inference_prompt_cost": 4e-06,
+                "upstream_inference_completions_cost": 4.485e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "StepFun",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "stepfun/step-5-preview",
+      "provider": "openrouter",
+      "name": "StepFun: Step 5 Preview",
+      "family": "stepfun",
+      "description": "Step 5 Preview is StepFun's flagship model for agentic work, built on a sparse Mixture-of-Experts architecture (27B active / 600B total parameters). It performs strongly in software engineering and professional...",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image+video->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logit_bias",
+          "logprobs",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "reasoning_effort",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1048576,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 1.0,
+          "output": 2.7,
+          "cached_input": 0.1
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "stepfun-ai/Step-5-Preview",
+      "endpoints": [
+        {
+          "provider": "InferenceNet",
+          "tag": "inference-net/us",
+          "quantization": "fp4",
+          "context_length": 1048576,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 1.0,
+            "output": 2.7,
+            "cached_input": 0.05
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "min_p",
+            "logit_bias",
+            "response_format",
+            "structured_outputs",
+            "repetition_penalty",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "InferenceNet",
+          "tag": "inference-net/fp4",
+          "quantization": "fp4",
+          "context_length": 1048576,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 1.0,
+            "output": 2.7,
+            "cached_input": 0.05
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "min_p",
+            "logit_bias",
+            "response_format",
+            "structured_outputs",
+            "repetition_penalty",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": null
+        },
+        {
+          "provider": "Featherless",
+          "tag": "featherless/fp4",
+          "quantization": "fp4",
+          "context_length": 262144,
+          "max_completion_tokens": 32768,
+          "usd_per_1m": {
+            "input": 1.0,
+            "output": 2.7,
+            "cached_input": 0.1
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "min_p",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": null
+        },
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/fp8",
+          "quantization": "fp8",
+          "context_length": 1048576,
+          "max_completion_tokens": 65536,
+          "usd_per_1m": {
+            "input": 1.0,
+            "output": 2.7,
+            "cached_input": 0.1
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "logit_bias",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "reasoning_effort"
+          ],
+          "uptime_30m": null
+        },
+        {
+          "provider": "StepFun",
+          "tag": "stepfun/fp8",
+          "quantization": "fp8",
+          "context_length": 1000000,
+          "max_completion_tokens": 64000,
+          "usd_per_1m": {
+            "input": 1.0,
+            "output": 2.7,
+            "cached_input": 0.1
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "temperature",
+            "max_tokens",
+            "tools",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "logprobs",
+            "top_logprobs",
+            "response_format",
+            "structured_outputs",
+            "reasoning_effort"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "DeepInfra",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 686,
+        "e2e_ms": 1227,
+        "text_call_cost_usd": 0.0003538,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 686,
+            "e2e_ms": 1227,
+            "usage": {
+              "prompt_tokens": 19,
+              "completion_tokens": 124,
+              "total_tokens": 143,
+              "cost": 0.0003538,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0003538,
+                "upstream_inference_prompt_cost": 1.9e-05,
+                "upstream_inference_completions_cost": 0.0003348
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 121,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "DeepInfra",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "xiaomi/mimo-v2.5-pro",
+      "provider": "openrouter",
+      "name": "Xiaomi: MiMo-V2.5-Pro",
+      "family": "xiaomi",
+      "description": "MiMo-V2.5-Pro is Xiaomi’s flagship model, delivering strong performance in general agentic capabilities, complex software engineering, and long-horizon tasks, with top rankings on benchmarks such as ClawEval, GDPVal, and SWE-bench Pro....",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "include_reasoning",
+          "logprobs",
+          "max_tokens",
+          "reasoning",
+          "response_format",
+          "seed",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1050000,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.3045,
+          "output": 0.609,
+          "cached_input": 0.0028
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "XiaomiMiMo/MiMo-V2.5-Pro",
+      "endpoints": [
+        {
+          "provider": "GMICloud",
+          "tag": "gmicloud/bf16",
+          "quantization": "bf16",
+          "context_length": 1050000,
+          "max_completion_tokens": 945000,
+          "usd_per_1m": {
+            "input": 0.3045,
+            "output": 0.609,
+            "cached_input": 0.0028
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "seed",
+            "response_format"
+          ],
+          "uptime_30m": 0
+        },
+        {
+          "provider": "AtlasCloud",
+          "tag": "atlas-cloud/fp8",
+          "quantization": "fp8",
+          "context_length": 1024000,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 0.435,
+            "output": 0.87,
+            "cached_input": 0.0036
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "response_format",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "DigitalOcean",
+          "tag": "digitalocean",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.48,
+            "output": 1.8,
+            "cached_input": 0.096
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "temperature",
+            "top_p",
+            "max_tokens",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "DigitalOcean",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 1450,
+        "e2e_ms": 1512,
+        "text_call_cost_usd": 6.408e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 1450,
+            "e2e_ms": 1512,
+            "usage": {
+              "prompt_tokens": 258,
+              "completion_tokens": 18,
+              "total_tokens": 276,
+              "cost": 6.408e-05,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 240,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 6.408e-05,
+                "upstream_inference_prompt_cost": 3.168e-05,
+                "upstream_inference_completions_cost": 3.24e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 14,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "DigitalOcean",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    },
+    {
+      "id": "xiaomi/mimo-v2.6-pro",
+      "provider": "openrouter",
+      "name": "Xiaomi: MiMo-V2.6-Pro",
+      "family": "xiaomi",
+      "description": "MiMo-V2.6-Pro is the flagship foundation model developed by Xiaomi. Built at a scale of over 1T parameters, it is designed to push the ceiling of capability for the most demanding...",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image+audio+video->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logit_bias",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 1050000,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.435,
+          "output": 0.87,
+          "cached_input": 0.0036
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:12:18+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "XiaomiMiMo/MiMo-V2.6-Pro-RL",
+      "endpoints": [
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/fp8",
+          "quantization": "fp8",
+          "context_length": 1048576,
+          "max_completion_tokens": 943718,
+          "usd_per_1m": {
+            "input": 0.387,
+            "output": 0.783,
+            "cached_input": 0.0032
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "logit_bias",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Novita",
+          "tag": "novita/fp8",
+          "quantization": "fp8",
+          "context_length": 1048576,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 0.435,
+            "output": 0.87,
+            "cached_input": 0.0036
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "repetition_penalty",
+            "response_format",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "GMICloud",
+          "tag": "gmicloud/bf16",
+          "quantization": "bf16",
+          "context_length": 1050000,
+          "max_completion_tokens": 945000,
+          "usd_per_1m": {
+            "input": 0.435,
+            "output": 0.87,
+            "cached_input": 0.004
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Xiaomi",
+          "tag": "xiaomi/fp8",
+          "quantization": "fp8",
+          "context_length": 1048576,
+          "max_completion_tokens": 131072,
+          "usd_per_1m": {
+            "input": 0.435,
+            "output": 0.87,
+            "cached_input": 0.0036
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "response_format",
+            "tools",
+            "tool_choice",
+            "frequency_penalty",
+            "presence_penalty",
+            "structured_outputs"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "StreamLake",
+          "tag": "streamlake",
+          "quantization": "unknown",
+          "context_length": 1000000,
+          "max_completion_tokens": 128000,
+          "usd_per_1m": {
+            "input": 0.522,
+            "output": 1.044,
+            "cached_input": 0.0043
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "response_format",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": null
+        }
+      ],
+      "served_by": "Xiaomi",
+      "probe": {
+        "checked_at": "2026-10-24T10:12:18+00:00",
+        "ttft_ms": 2272,
+        "e2e_ms": 3029,
+        "text_call_cost_usd": 2.175e-05,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 2272,
+            "e2e_ms": 3029,
+            "usage": {
+              "prompt_tokens": 14,
+              "completion_tokens": 18,
+              "total_tokens": 32,
+              "cost": 2.175e-05,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 2.175e-05,
+                "upstream_inference_prompt_cost": 6.09e-06,
+                "upstream_inference_completions_cost": 1.566e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 15,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Xiaomi",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    }
+  ]
+}

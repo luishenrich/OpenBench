@@ -1,0 +1,114 @@
+[
+  {
+    "id": "thinkingmachines/inkling",
+    "hf_repo": "thinkingmachines/Inkling",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "Open weights, 125 files."
+  },
+  {
+    "id": "thinkingmachines/inkling-small",
+    "hf_repo": "thinkingmachines/Inkling-Small",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "Open weights."
+  },
+  {
+    "id": "poolside/laguna-s-2.1",
+    "hf_repo": "poolside/Laguna-S-2.1",
+    "license": "openmdw-1.1",
+    "gated": false,
+    "open_weight": true,
+    "note": "OpenMDW 1.1 permissive model/data license."
+  },
+  {
+    "id": "poolside/laguna-xs-2.1",
+    "hf_repo": "poolside/Laguna-XS-2.1",
+    "license": "openmdw-1.1",
+    "gated": false,
+    "open_weight": true,
+    "note": "OpenMDW 1.1."
+  },
+  {
+    "id": "arcee-ai/trinity-large-thinking",
+    "hf_repo": "arcee-ai/Trinity-Large-Thinking",
+    "license": "other (openmdw-1.1 LICENSE file)",
+    "gated": false,
+    "open_weight": true,
+    "note": "HF tag 'other'; license_name openmdw-1.1."
+  },
+  {
+    "id": "liquid/lfm-2.5-24b-a2b",
+    "hf_repo": "LiquidAI/LFM2.5-24B-A2B",
+    "license": "other (lfm1.0)",
+    "gated": false,
+    "open_weight": true,
+    "note": "LFM Open License v1.0, custom: free commercial use below a revenue threshold (verify terms in LICENSE)."
+  },
+  {
+    "id": "liquid/lfm-2.5-2.6b:free",
+    "hf_repo": "LiquidAI/LFM2.5-2.6B",
+    "license": "other (lfm1.0)",
+    "gated": false,
+    "open_weight": true,
+    "note": "Free-tier only on OpenRouter (no paid variant); rate-limited, not benchmark-grade. Probe failed: 404 guardrail/data-policy, no endpoint for this account."
+  },
+  {
+    "id": "moondream/moondream3.1-9b-a2b",
+    "hf_repo": "moondream/moondream3.1-9B-A2B",
+    "license": "other (moondream-model-license-1.0)",
+    "gated": false,
+    "open_weight": true,
+    "note": "Custom Moondream model license 1.0 (https://moondream.ai/licenses/model/1.0); weights public (model.safetensors)."
+  },
+  {
+    "id": "rekaai/reka-edge",
+    "hf_repo": "RekaAI/reka-edge-2603",
+    "license": "other (reka-edge-2603-license)",
+    "gated": false,
+    "open_weight": true,
+    "note": "Custom Reka license; weights public. OpenRouter slug maps to the reka-edge-2603 repo."
+  },
+  {
+    "id": "prism-ml/ternary-bonsai-2-27b",
+    "hf_repo": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "HF repo is the GGUF ternary build; weights public."
+  },
+  {
+    "id": "recursive/flint-v1.0:free",
+    "hf_repo": "RecursiveSI/flint",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "Free-tier only (no paid variant); rate-limited, not benchmark-grade."
+  },
+  {
+    "id": "xingchen-agi/xing4.0-29b-a4b:free",
+    "hf_repo": "XingChen-AGI/Xing4.0-29B-A4B",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "Free-tier only (no paid variant); rate-limited, not benchmark-grade."
+  },
+  {
+    "id": "cohere/north-mini-code:free",
+    "hf_repo": "CohereLabs/North-Mini-Code-1.0",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "Free-tier only; rate-limited, not benchmark-grade."
+  },
+  {
+    "id": "reflection/beam-1.0-501b-a23b",
+    "hf_repo": "reflection/Beam-1.0-501B-A23B",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "Added from step 1 (Reflection AI, 501B MoE)."
+  }
+]
