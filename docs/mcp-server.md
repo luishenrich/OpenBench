@@ -6,7 +6,7 @@ BIY exposes a remote MCP server at `https://<host>/mcp` (Streamable HTTP, built 
 
 ## Connect
 
-Get a workspace API key from **Settings → MCP** in the dashboard.
+Get a workspace API key in the dashboard: **Use cases** page, **"Connect your coding agent"** panel (Create key / Replace key). It is shown once. The live server is `https://biy.studypdf.net`.
 
 ```bash
 claude mcp add --transport http biy https://<host>/mcp --header "Authorization: Bearer $BIY_KEY"
