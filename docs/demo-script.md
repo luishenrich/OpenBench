@@ -4,11 +4,20 @@ Deck for the final: https://claude.ai/artifact/8ZvtknjtNsukP5N4FGGxKR (private u
 
 ## Pre-flight (before each judge table)
 
-- **Check first: `/mcp__biy__scan_repo` shows up in Claude Code.** MCP is live on https://biy.studypdf.net/mcp since 2026-10-24 ~14:10 (PR #10: 12 `biy_*` tools + the `scan_repo` prompt); calls need the workspace key.
+- **Check first: `/mcp__biy__scan_repo` shows up in Claude Code (CLI).** Connect with OAuth: `claude mcp add --transport http biy https://biy.studypdf.net/mcp`, then `/mcp` → biy → Authenticate (browser consent page). No key on screen. The first use cases appear in the dashboard within ~1 min; filling all of them in takes minutes, so switch to a finished run.
 - Laptop with three things open:
-  1. **Claude Code in the demo repo**, BIY already connected (`claude mcp add --transport http biy https://biy.studypdf.net/mcp --header "Authorization: Bearer biy_…"`, copied from the dashboard's "Connect your coding agent" panel). Keep the key off screen.
-  2. **Dashboard tab**, logged in, on Use cases.
-  3. **Dashboard tab** on a **finished run** from rehearsal (verdict, Pareto, leaderboard).
+  1. **Claude Code in the demo repo**, BIY connected via OAuth (Connections page shows it under "Connected apps").
+  2. **Dashboard tab**, logged in, on Use cases (sidebar: studypdf, gpt-researcher, graphiti).
+  3. **Dashboard tab** on a **finished run** (below).
+
+### Finished runs to show (Luis's workspace, 2026-10-24)
+
+| Show | Repo · use case | Verdict | Run |
+|---|---|---|---|
+| **Lead** | graphiti · Entity summaries from episodes | Switch to DeepSeek-V4-Flash: 95% of GPT-6.1 Sol's quality at 1/29 of the cost (jury agreement 96%) | https://biy.studypdf.net/runs/5a64a5ad-08bf-4cde-bb70-6292fdb8efb6 |
+| Backup | gpt-researcher · Deep research: clarify-query questions (today o3-mini) | Switch to DeepSeek-V4-Flash: 100% of GPT-6.1 Sol's quality at 1/15 of the cost | https://biy.studypdf.net/runs/5e594ffe-c4dc-498d-b392-bae08f8565b2 |
+| Backup | gpt-researcher · Summarize scraped URL (today GPT-5.4) | Switch to Qwen3.8-27B: 98% of today's quality at 1/2 of the cost (jury agreement 98.6%) | https://biy.studypdf.net/runs/f070f4d8-ae06-42c7-8835-34321298c8d4 |
+| Honest "keep" | graphiti · Entity extraction from text | Keep today's model (GPT-6 Luna): no open model beats it | https://biy.studypdf.net/runs/5990e180-9097-4833-a96c-2d742a262821 |
 - Rehearse on the demo repo *and* a public repo. Don't pre-pick or name use cases. Discovery runs live.
 
 ## Script

@@ -2,18 +2,21 @@ You are helping me benchmark open-weight LLMs for every place this product uses 
 The BIY MCP server (tools prefixed `biy_`) is connected. Work through the steps below in order.
 **Do not change any application code.** Keep a short running note of what you find; you will show it at the end.
 
-The dashboard fills in live while you work, so **create each use case as soon as you have grouped it** (step 2),
-then complete them one at a time (step 3). Never build one big payload for everything.
+The dashboard fills in live while someone watches, so **speed to the first use case matters**: the first one should
+appear within about a minute. Find call sites with grep only, create a light use case for each right away (step 2),
+and leave all careful reading for step 3. Never build one big payload for everything.
 **Send BIY tool calls one at a time**, never several in parallel.
 
-## 1. Find and group every LLM call site
+## 1. Find and group every LLM call site (grep only, no deep reading yet)
 
 First, note the **repo name**: `git remote get-url origin` (the last path part, without `.git`), or the folder name.
 Every `source_refs` entry gets `"repo": "<that name>"`, so the dashboard shows the scan as one project.
 
-Search the whole repository (all packages of a monorepo) with grep/ripgrep, then read the code around each hit.
-**Large monorepo** (several apps or services): first list them with a rough count of LLM call sites each, and ask me
-which to scan first. Then scan those completely.
+Search the whole repository (all packages of a monorepo) with a few broad grep/ripgrep calls (the patterns below,
+combined), plus one grep for the default model. Grep output with a few lines of context is enough to name, group and
+create a use case. **Don't open prompt files, read call sites, test data or client code yet**: that's step 3.
+**Large monorepo** (several apps or services): list them with a rough count of LLM call sites each, from the same
+greps, and ask me which to scan first. Then scan those completely.
 
 - **Python imports:** openai, anthropic, google.genai, google.generativeai, mistralai, groq, together, cohere, ollama, litellm, langchain*, llama_index, instructor, dspy, transformers, vllm
 - **JS/TS imports:** openai, @anthropic-ai/sdk, @google/genai, ai, @ai-sdk/*, @langchain/*, llamaindex, @mastra/*
@@ -31,7 +34,9 @@ For a multi-step agent, benchmark **single steps**: one use case per distinct LL
 
 ## 2. Create each use case right away
 
-As soon as a use case is grouped, call **`biy_use_cases_create` with a list of one** and only the light fields:
+Straight after the greps, before reading any file in full, call **`biy_use_cases_create` with a list of one** per
+use case, one call after the other, with only the light fields. If a later read shows two were really one prompt (or one
+was two), fix it in step 3 with `biy_use_cases_update`.
 
 - `name`, `kind` (chat | batch | extraction | classification | agent | rag | summarization | generation | other)
 - `description`: what it does and why it matters, in one or two sentences
@@ -57,23 +62,33 @@ Call `biy_workspace_get` once for the company's default trade-off profile. Then,
 **b. Metrics:** call **`biy_metrics_select`** with `kind` plus every flag you can tell (`user_facing`, `waiting`, `has_schema`,
 `has_reference`, `numeric_fields`, `tools`, `multi_step_agent`, `ocr`, `layout_boxes`, `knowledge_base`, `citations_required`,
 `baseline_present` (true when there is a current model), `phi_or_customer_data`, `length_bounded`, `brand_voice`,
-`feedback_text` (the output is a grade or label **and** a written comment a person reads), …) and a one-paragraph
+`feedback_text` (the output is a grade or label **and** a written comment a person reads), `citations_required`
+(the prompt asks for citations or sources), …) and a one-paragraph
 `narrative`. Use the returned `metrics` and `gates` **as they are**; don't invent metric ids.
 
 **c. Trade-off weights** `{quality, speed, cost}` (sum 100): keep the company default unless the use case clearly differs.
 A person waiting on streamed text → speed matters more. Background batch → speed near 0, cost matters. Agents → quality
 first. Give a one-sentence reason for every override.
 
-**d. Fill it in** with **`biy_use_cases_update`**: `io_spec` (`system_prompt`; `user_template` with `{{variable}}` placeholders;
+**d. Fill it in with one call, `biy_use_cases_fill`** (pass the brief from b as `brief` instead of calling
+`biy_metrics_select`, and the repo cases from e as `cases`; it marks the use case complete). Or, step by step, with **`biy_use_cases_update`**: `io_spec` (`system_prompt`; `user_template` with `{{variable}}` placeholders;
 `response_schema` as JSON Schema, converted from pydantic / zod / TypedDict; `tools` in OpenAI format; `params`),
 `metrics`, `gates`, and `profile` only when you override the weights.
 
 **Large fields go by upload, never through your tool arguments.** A prompt over ~4,000 characters, a big schema or tool
 list: call **`biy_upload_url`** (`field`: `system_prompt`, `user_template`, `response_schema` or `tools`), then from your shell
-`curl -sf --data-binary @<file> <url>`. Use the prompt's own file, or a scratch file you assemble from template literals or
+`curl -fsS --retry 3 --data-binary @<file> <url>`. Use the prompt's own file, or a scratch file you assemble from template literals or
 f-strings, character for character. **Never truncate, shorten or paraphrase a prompt.** If you can't attach it exactly,
 leave it empty and say "prompt not attached" in the description: BIY refuses to run a use case without a prompt, so a
-placeholder is never benchmarked.
+placeholder is never benchmarked. A curl that fails (it prints the error and exits non-zero, e.g. a 502 while BIY
+redeploys) has attached nothing: retry it, and never move on as if it worked. Literal braces in a real prompt
+(`{{cite:…}}`, `{{1}}`) need no escaping: only `{{name}}` placeholders that match a case variable are filled in.
+
+**Prompts built by code** (f-strings, helper functions, message lists): read the function and write its text into a
+scratch file yourself, one use case at a time, with `{{variable}}` for each interpolation and the default config values
+filled in. Don't write a script that imports or runs the application's code to render prompts: the repo's dependencies
+may not be installed, running it needs approval, and it stalls the scan. Small helpers that only format a variable
+(a JSON dump, a list join) are part of the variable, not of the template.
 
 **e. Test cases:** collect realistic inputs from unit tests, fixtures, mocks, seed or demo data, few-shot examples inside
 prompts, and docs. Add them with **`biy_cases_add`**: `input` is `{"vars": {...}}` matching the template variables, or
@@ -90,7 +105,9 @@ documents with an exact reference**: write the expected output first (text, Mark
 local script (HTML → screenshot, or LaTeX → PDF → PNG), upload the image with `biy_upload_url` field `image` + curl (it
 returns the image URL), then `biy_cases_add` with `input.images = [url]`, `reference` = what you wrote, `source: "synthetic"`.
 
-Then move on to the next use case.
+When it is filled in (or you gave up on part of it and said so in its description), call
+`biy_use_cases_update` with `{"setup_state": "complete"}`. Then move on to the next use case. Before step 4, make sure
+no use case you created is left `in_progress`.
 
 **Data rules, no exceptions:**
 - Only templates, schemas and test data from the repo, or synthetic data, go to BIY. **Never real user content or uploads**,

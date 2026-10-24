@@ -75,7 +75,8 @@ Streamable HTTP, same auth (workspace key). The tools wrap the same service func
 | `biy_models_list` | `GET /api/models` |
 | `biy_metrics_list` | `GET /api/metrics` |
 | `biy_metrics_select` | `POST /api/metrics/select`. Discovery calls this per use case and puts `metrics` + `gates` into `biy_use_cases_create` |
-| `biy_use_cases_list` / `_create` / `_update` | use-case routes, **compact replies** (`id, name, kind, url, metrics, case_count, prompt_attached, needs, latest_run`); `_create` takes a list |
+| `biy_use_cases_list` / `_create` / `_update` | use-case routes, **compact replies** (`id, name, kind, url, metrics, case_count, prompt_attached, needs, latest_run`); `_create` takes a list. `prompt_attached` = `system_prompt` **or** `user_template` is set (one is enough; a chat use case may have only a system prompt). `needs`: `prompt not attached`, `no cases` (or `needs page images` when the description says so), `no metrics`. Templates fill `{{name}}` / `{name}` only for variables the case has; anything else (`{{cite:…}}`, `{{1}}`) is left as is, so no escaping |
+| `biy_use_cases_fill` | one call for scan_repo step 3: `patch` (io_spec, profile, metrics/gates) + optional `brief` (BIY selects metrics + gates when the patch has none) + optional `cases`; sets `setup_state: complete` unless `complete: false` |
 | `biy_use_cases_get` | `GET /api/use-cases/{id}` (the full object) |
 | `biy_cases_list` / `_add` / `_update` / `_delete` / `_generate` | case routes; `_list` is paginated and compact (previews), `_delete` takes a list of ids |
 | `biy_workspace_update` | `PATCH /api/workspace` |

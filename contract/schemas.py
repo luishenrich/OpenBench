@@ -100,7 +100,7 @@ class WorkspacePatch(BaseModel):
 
 class Me(BaseModel):
     user_id: UUID
-    email: str
+    email: str | None  # with a workspace key: the owner's email (first member), null if unknown
     workspace: Workspace
     mcp_key_last4: str | None
 
@@ -167,6 +167,7 @@ class UseCasePatch(BaseModel):
     judge: JudgeConfig | None = None
     io_spec: IOSpec | None = None
     pinned: bool | None = None  # pinning sets pinned_at; unpinning clears it
+    setup_state: Literal["in_progress", "complete"] | None = None  # the agent sets "complete" when done with it
 
 
 class RunBrief(BaseModel):
@@ -187,6 +188,8 @@ class UseCase(UseCaseIn):
     updated_at: datetime | None = None  # last change to the use case or any of its cases
     pinned: bool = False
     pinned_at: datetime | None = None
+    # "in_progress" while the agent is still filling it in (created via MCP), "complete" otherwise
+    setup_state: Literal["in_progress", "complete"] = "complete"
 
 
 class CaseIn(BaseModel):

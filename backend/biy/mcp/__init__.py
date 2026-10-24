@@ -74,7 +74,9 @@ def _brief(u) -> dict:
     """Compact use case for tool replies (full objects filled agents' context: ~76k chars for 27).
     The full object is biy_use_cases_get."""
     prompt = bool(u.io_spec.system_prompt or u.io_spec.user_template)
-    needs = ([] if prompt else ["prompt not attached"]) + ([] if u.case_count else ["no cases"]) \
+    # image use cases: scan_repo writes "needs page images" in the description when the repo has none
+    data = "needs page images" if "needs page images" in (u.description or "").lower() else "no cases"
+    needs = ([] if prompt else ["prompt not attached"]) + ([] if u.case_count else [data]) \
         + ([] if u.metrics else ["no metrics"])
     return {"id": str(u.id), "name": u.name, "kind": u.kind,
             "url": f"{settings.public_base_url.rstrip('/')}/use-cases/{u.id}",
@@ -196,12 +198,40 @@ async def biy_use_cases_create(use_cases: list[UseCaseIn]) -> ToolResult:
 @mcp.tool
 async def biy_use_cases_update(use_case_id: UUID, patch: UseCasePatch) -> ToolResult:
     """Change part of a use case, e.g. the trade-off: {"profile": {"weights": {"quality": 50, "speed": 10, "cost": 40}}}.
-    Weights sum to 100. Re-run with biy_runs_estimate / biy_runs_start to see the new ranking."""
+    Weights sum to 100. Re-run with biy_runs_estimate / biy_runs_start to see the new ranking.
+    When you have finished filling a use case in (or gave up on part of it, said in its description),
+    set {"setup_state": "complete"}: until then the dashboard shows it as being set up by the agent."""
     u = await _call(uc_service.update_use_case(await _ws(), use_case_id, patch))
     w = (u.profile.weights if u.profile else None)
     return _result(f"Updated: {_brief_line(_brief(u))}" + (f"; weights q{w['quality']}/s{w['speed']}/c{w['cost']}" if w else ""),
                    _brief(u))
 
+
+@mcp.tool
+async def biy_use_cases_fill(use_case_id: UUID, patch: UseCasePatch, brief: ScorecardBrief | None = None,
+                             cases: list[CaseIn] | None = None, complete: bool = True) -> ToolResult:
+    """Fill in ONE use case in a single call (scan_repo step 3), instead of metrics_select + update + cases_add.
+    patch: io_spec (system_prompt, user_template, response_schema, tools, params), profile, and metrics/gates if
+    you already have them. Large prompts or schemas still go by biy_upload_url first.
+    brief: when patch has no metrics, BIY selects metrics + gates from it (same as biy_metrics_select).
+    cases: added as with biy_cases_add (for many, upload a cases_jsonl instead).
+    complete: marks setup_state "complete" (the default); pass false if you'll come back to it."""
+    ws = await _ws()
+    fields = patch.model_dump(exclude_unset=True)
+    if brief and patch.metrics is None:
+        try:
+            card = metrics.scorecard(brief)
+        except Exception as e:
+            raise ToolError(f"metric selection failed: {e}. Check the brief fields (kind is required).") from e
+        fields["metrics"] = card.metrics
+        fields.setdefault("gates", card.gates)
+    if complete:
+        fields.setdefault("setup_state", "complete")
+    u = await _call(uc_service.update_use_case(ws, use_case_id, UseCasePatch(**fields)))
+    added = await _call(uc_service.add_cases(ws, use_case_id, cases)) if cases else []
+    if added:
+        u = await _call(uc_service.get_use_case(ws, use_case_id))
+    return _result(f"Filled: {_brief_line(_brief(u))}" + (f"; added {len(added)} cases" if added else ""), _brief(u))
 
 @mcp.tool
 async def biy_cases_add(use_case_id: UUID, cases: list[CaseIn]) -> ToolResult:
@@ -263,7 +293,7 @@ async def biy_cases_generate(use_case_id: UUID, n: int = 20, strategy: str = "au
 async def biy_upload_url(use_case_id: UUID, field: str) -> ToolResult:
     """One-time URL to upload a large field straight from a file, so its bytes never go through your
     tool arguments. Use it for any prompt over ~4,000 characters, big schemas or tool lists, many cases,
-    and images. Then run from your shell:  curl -sf --data-binary @path/to/file <url>
+    and images. Then run from your shell:  curl -fsS --retry 3 --data-binary @path/to/file <url>
 
     field: system_prompt | user_template (text) | response_schema | tools (JSON) |
            cases_jsonl (one CaseIn JSON object per line) | image (PNG/JPEG/WebP/PDF → returns its URL;
@@ -293,7 +323,7 @@ def _estimate_text(est) -> str:
 @mcp.tool(annotations=READ)
 async def biy_runs_estimate(use_case_id: UUID, candidates: list[ModelRef] | None = None, auto: int = 6,
                             repeats: int | None = None, include_references: bool = True) -> ToolResult:
-    """Cost and call count before a run. Leave candidates empty to let BIY pick `auto` shortlisted open-weight
+    """Free: computes the cost and call count of a run, calls no model and spends nothing. Leave candidates empty to let BIY pick `auto` shortlisted open-weight
     models with verified capabilities for this use case. References (GPT-6.1 Sol, GPT-6 Luna, and today's
     model when it is closed) run on the same cases for comparison and are never recommended.
     repeats left out → the workspace default. Show the total to the user before starting."""
