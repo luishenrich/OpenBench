@@ -1,0 +1,6 @@
+---
+description: Team notes and folder ownership for the BIY repo
+alwaysApply: true
+---
+
+Follow AGENTS.md at the repo root. In short: at the start of a session and after every `git pull`, run `BIY_ME=jad scripts/notes.sh` (when working for Jad) and show the open notes before other work. Delete a note's file once it is handled, and commit `notes: done <topic>`. Never edit another person's folders; write them a note in `notes/to-<name>/` instead.
