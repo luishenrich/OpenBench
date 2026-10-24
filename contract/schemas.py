@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 UseCaseKind = Literal[
     "chat", "batch", "extraction", "agent", "classification", "rag", "summarization", "generation", "other"
@@ -30,11 +30,37 @@ class Profile(BaseModel):
     }])
 
 
+class JudgeModel(BaseModel):
+    """One juror. params.reasoning_effort is pinned (stored with every judgement)."""
+    provider: Provider
+    model: str
+    params: dict[str, Any] = Field(default_factory=dict)
+
+
+def _default_jury() -> list[JudgeModel]:
+    return [JudgeModel(provider="openrouter", model="openai/gpt-6-luna", params={"reasoning_effort": "low"}),
+            JudgeModel(provider="nebius", model="deepseek-ai/DeepSeek-V4.1-Flash-1017",
+                       params={"reasoning_effort": "low"})]
+
+
 class JudgeConfig(BaseModel):
-    provider: Provider = "nebius"
-    model: str = "deepseek-ai/DeepSeek-V4.1-Flash-1017"
+    """A jury of judges from different model families (Verga et al. 2024).
+
+    Rubric: mean of the judges' scores. Pairwise: both orders × every judge; a win counts only if
+    all non-abstaining judges agree in both orders, else a tie (0.5). A judge abstains on outputs
+    from its own model family. Configs saved before juries ({provider, model}, e.g. workspace defaults
+    in the database) get the default jury, keeping their mode and rubric.
+    """
+    judges: list[JudgeModel] = Field(default_factory=_default_jury)
     mode: Literal["rubric", "pairwise"] = "rubric"
     rubric: str | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _legacy_single_judge(cls, data: Any) -> Any:
+        if isinstance(data, dict) and "judges" not in data:
+            data = {k: v for k, v in data.items() if k not in ("provider", "model", "params")}
+        return data
 
 
 class Workspace(BaseModel):
@@ -61,6 +87,8 @@ class SourceRef(BaseModel):
 
 
 class ModelRef(BaseModel):
+    """A model at given settings. params.reasoning_effort (none | minimal | low | medium | high | xhigh)
+    is part of its identity: candidate_key = "<provider>:<model>@<effort>" when set."""
     provider: Provider
     model: str
     params: dict[str, Any] = Field(default_factory=dict)  # temperature, reasoning_effort, max_tokens, …
@@ -250,11 +278,23 @@ class Scorecard(BaseModel):
 
 # --- runs --------------------------------------------------------------------
 
+def _default_references() -> list[ModelRef]:
+    return [ModelRef(provider="openrouter", model="openai/gpt-6.1-sol", params={"reasoning_effort": "medium"}),
+            ModelRef(provider="openrouter", model="openai/gpt-6-luna", params={"reasoning_effort": "medium"})]
+
+
 class RunIn(BaseModel):
+    """candidates: open-weight models from GET /api/models (others → 422).
+
+    references: closed frontier models, run on the same cases × repeats for comparison only, never
+    ranked or recommended. use_case.current_model is added as one more reference ("today") when it
+    is a closed model. The first reference is the pairwise opponent (pairwise_vs_baseline).
+    """
     use_case_id: UUID
     candidates: list[ModelRef]
     repeats: int = 3
-    include_baseline: bool = True  # also run use_case.current_model, if set
+    references: list[ModelRef] = Field(default_factory=_default_references)
+    include_references: bool = True
     confirm_cost_usd: float | None = None  # required by POST /api/runs; must be ≥ estimate
 
 
@@ -269,8 +309,8 @@ class Estimate(BaseModel):
     calls: int
     est_input_tokens: int
     est_output_tokens: int
-    est_cost_usd: float  # candidates + baseline
-    judge_cost_usd: float
+    est_cost_usd: float  # candidates + references
+    judge_cost_usd: float  # every juror
     total_usd: float
     per_candidate: list[EstimateLine]
 
@@ -297,10 +337,15 @@ class Scores(BaseModel):
 
 
 class CandidateResult(BaseModel):
-    candidate_key: str  # "nebius:zai-org/GLM-5.3"
+    """A leaderboard row. References (is_reference) are measured the same way but never ranked,
+    never on the Pareto front and never recommended; failed_gates is informative for them."""
+    candidate_key: str  # "nebius:zai-org/GLM-5.3", "openrouter:openai/gpt-6.1-sol@medium"
     provider: Provider
     model: str
-    is_baseline: bool
+    is_reference: bool
+    reference_label: str | None = None  # "GPT-6.1 Sol", "today" (the use case's current model)
+    reasoning_effort: str | None = None  # pinned effort; "default" = the provider's own default
+    avg_reasoning_tokens: float | None = None  # per call (usage.completion_tokens_details.reasoning_tokens)
     n: int
     quality: Stat
     metrics: dict[str, Stat]
@@ -314,7 +359,7 @@ class CandidateResult(BaseModel):
     passed_gates: bool
     failed_gates: list[str]
     pareto: bool
-    rank: int | None  # null if disqualified
+    rank: int | None  # null if disqualified, and always null for references
 
 
 class ParetoPoint(BaseModel):
@@ -323,21 +368,23 @@ class ParetoPoint(BaseModel):
     quality: float
     cost_per_success_usd: float | None
     latency_ms: float
-    is_baseline: bool
+    is_reference: bool  # draw as a grey reference line/point, never on the front
     pareto: bool
 
 
 class Recommendation(BaseModel):
+    """Compared with reference_key: the best reference by quality (usually GPT-6.1 Sol)."""
     candidate_key: str
     provider: Provider
     model: str
-    headline: str  # "Switch to GLM-5.3-Flash: 97% of GPT-4.1's quality at 1/9 of the cost"
+    headline: str  # "Switch to GLM-5.3-Flash: 97% of GPT-6.1 Sol's quality at 1/20 of the cost"
     reasons: list[str]
-    quality_vs_baseline_pct: float | None
-    cost_multiple_vs_baseline: float | None  # 0.11 = 9× cheaper
-    latency_delta_ms: float | None
+    reference_key: str | None = None
+    quality_vs_reference_pct: float | None
+    cost_multiple_vs_reference: float | None  # 0.05 = 20× cheaper
+    latency_delta_ms: float | None  # candidate − reference, p95
     statistical_tie_with: list[str] = Field(default_factory=list)
-    est_monthly_savings_usd: float | None = None
+    est_monthly_savings_usd: float | None = None  # vs the "today" reference, when there is one
 
 
 class Progress(BaseModel):
@@ -354,9 +401,11 @@ class Run(BaseModel):
     status: RunStatus
     progress: Progress
     candidates: list[ModelRef]
+    references: list[ModelRef] = Field(default_factory=list)  # as run, incl. "today" when added
     repeats: int
     est_cost_usd: float
     actual_cost_usd: float
+    judge_agreement: float | None = None  # share of judged results where both jurors agree; null if < 2 judged
     created_at: datetime
     started_at: datetime | None
     finished_at: datetime | None
@@ -377,7 +426,10 @@ class ResultOut(BaseModel):
     cost_usd: float | None
     error: str | None
     scores: dict[str, float]
-    judge: dict[str, Any] | None  # {"mode", "score", "reasoning", "winner"}
+    # {"mode", "score", "winner", "agreement": bool | None, "abstained": ["openrouter:openai/gpt-6-luna@low"],
+    #  "reasoning": "<juror>: …  |  <juror>: …" (all jurors, one string),
+    #  "jurors": [{"key", "reasoning_effort", "score", "reasoning", "winner"}]}
+    judge: dict[str, Any] | None
 
 
 class ResultsPage(BaseModel):

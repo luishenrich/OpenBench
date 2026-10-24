@@ -11,7 +11,7 @@ create table if not exists workspace (
   id              uuid primary key default gen_random_uuid(),
   name            text not null,
   default_profile jsonb not null default '{"weights": {"quality": 60, "speed": 20, "cost": 20}, "targets": {}}',
-  default_judge   jsonb not null default '{"provider": "nebius", "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017", "mode": "rubric"}',
+  default_judge   jsonb not null default '{"mode": "rubric"}',  -- JudgeConfig; no "judges" = the default jury
   mcp_key_hash    text unique,          -- sha256 of the "biy_…" key
   mcp_key_last4   text,
   created_at      timestamptz not null default now()

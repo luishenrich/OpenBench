@@ -1,7 +1,7 @@
 {
-  "calls": 900,
-  "est_input_tokens": 540000,
-  "est_output_tokens": 180000,
+  "calls": 1050,
+  "est_input_tokens": 630000,
+  "est_output_tokens": 210000,
   "est_cost_usd": 0.41,
   "judge_cost_usd": 0.0,
   "total_usd": 0.41,
@@ -38,9 +38,15 @@
     },
     {
       "provider": "openrouter",
-      "model": "openai/gpt-4.1-mini",
+      "model": "openai/gpt-6.1-sol",
       "calls": 150,
-      "est_cost_usd": 0.069
+      "est_cost_usd": 0.285
+    },
+    {
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna",
+      "calls": 150,
+      "est_cost_usd": 0.015
     }
   ]
 }

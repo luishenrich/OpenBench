@@ -75,7 +75,7 @@ async def biy_workspace_get() -> ToolResult:
     ws = await workspace.get_workspace(await _ws())
     w = ws.default_profile.weights
     return _result(f"Workspace '{ws.name}': default weights quality {w['quality']} / speed {w['speed']} / "
-                   f"cost {w['cost']}; judge {ws.default_judge.model}.", ws)
+                   f"cost {w['cost']}; jury {', '.join(j.model.split('/')[-1] for j in ws.default_judge.judges)}.", ws)
 
 
 @mcp.tool(annotations=READ)
@@ -130,10 +130,13 @@ async def biy_use_cases_list() -> ToolResult:
 
 @mcp.tool
 async def biy_use_cases_create(use_cases: list[UseCaseIn]) -> ToolResult:
-    """Create several use cases at once (discovery creates them all in one call).
+    """Create use cases. Discovery creates each one AS SOON AS it is found, with the light fields only
+    (name, kind, description, source_refs with `repo` set, current_model), so it shows up in the
+    dashboard right away; then fills it in with biy_use_cases_update and biy_cases_add. A list of one is fine.
 
-    current_model is today's model, benchmarked as the baseline. Closed models go through OpenRouter:
-    {"provider": "openrouter", "model": "openai/gpt-4.1-mini"} (or anthropic/…, google/…).
+    current_model is today's model; when it is a closed model it runs as the "today" reference.
+    Closed models go through OpenRouter: {"provider": "openrouter", "model": "openai/<model>"}
+    (or anthropic/…, google/…).
     io_spec: system_prompt, user_template with {{var}} placeholders, response_schema (JSON schema),
     tools (OpenAI format), params (temperature, max_tokens).
     """
@@ -178,9 +181,9 @@ async def biy_cases_generate(use_case_id: UUID, n: int = 20, strategy: str = "au
 # --- runs --------------------------------------------------------------------
 
 async def _run_in(ws: UUID, use_case_id: UUID, candidates: list[ModelRef] | None, auto: int, repeats: int,
-                  include_baseline: bool, confirm_cost_usd: float | None = None) -> RunIn:
+                  include_references: bool, confirm_cost_usd: float | None = None) -> RunIn:
     cands = candidates or await _call(runs.auto_candidates(ws, use_case_id, auto))
-    return RunIn(use_case_id=use_case_id, candidates=cands, repeats=repeats, include_baseline=include_baseline,
+    return RunIn(use_case_id=use_case_id, candidates=cands, repeats=repeats, include_references=include_references,
                  confirm_cost_usd=confirm_cost_usd)
 
 
@@ -192,11 +195,13 @@ def _estimate_text(est) -> str:
 
 @mcp.tool(annotations=READ)
 async def biy_runs_estimate(use_case_id: UUID, candidates: list[ModelRef] | None = None, auto: int = 6,
-                            repeats: int = 3, include_baseline: bool = True) -> ToolResult:
-    """Cost and call count before a run. Leave candidates empty to let BIY pick `auto` shortlisted models
-    with verified capabilities for this use case. Show the total to the user before starting."""
+                            repeats: int = 3, include_references: bool = True) -> ToolResult:
+    """Cost and call count before a run. Leave candidates empty to let BIY pick `auto` shortlisted open-weight
+    models with verified capabilities for this use case. References (GPT-6.1 Sol, GPT-6 Luna, and today's
+    model when it is closed) run on the same cases for comparison and are never recommended.
+    Show the total to the user before starting."""
     ws = await _ws()
-    req = await _run_in(ws, use_case_id, candidates, auto, repeats, include_baseline)
+    req = await _run_in(ws, use_case_id, candidates, auto, repeats, include_references)
     est = await _call(runs.estimate_run(ws, req))
     data = est.model_dump(mode="json") | {"candidates": [c.model_dump(mode="json") for c in req.candidates]}
     return _result(_estimate_text(est) + "\nPass the same candidates and confirm_cost_usd to biy_runs_start.", data)
@@ -204,11 +209,11 @@ async def biy_runs_estimate(use_case_id: UUID, candidates: list[ModelRef] | None
 
 @mcp.tool
 async def biy_runs_start(use_case_id: UUID, confirm_cost_usd: float, candidates: list[ModelRef] | None = None,
-                         auto: int = 6, repeats: int = 3, include_baseline: bool = True) -> ToolResult:
+                         auto: int = 6, repeats: int = 3, include_references: bool = True) -> ToolResult:
     """Start a benchmark run. Only after the user agreed to the estimate: confirm_cost_usd must be ≥ the
     estimate's total_usd, or the run is refused and the new estimate is returned."""
     ws = await _ws()
-    req = await _run_in(ws, use_case_id, candidates, auto, repeats, include_baseline, confirm_cost_usd)
+    req = await _run_in(ws, use_case_id, candidates, auto, repeats, include_references, confirm_cost_usd)
     try:
         run = await _call(runs.start_run(ws, req))
     except CostNotConfirmed as e:
@@ -228,7 +233,7 @@ async def biy_runs_status(run_id: UUID) -> ToolResult:
     p = run.progress
     lines = [f"Run {run.id}: {run.status}, {p.done}/{p.total} calls ({p.errors} errors), ${run.actual_cost_usd:.4f} spent."]
     for c in run.leaderboard[:8]:
-        lines.append(f"  #{c.rank or '-'} {c.candidate_key}{' (baseline)' if c.is_baseline else ''}: "
+        lines.append(f"  #{c.rank or '-'} {c.candidate_key}{f' (reference: {c.reference_label})' if c.is_reference else ''}: "
                      f"quality {c.quality.mean:.3f}, p95 {c.e2e_ms.p95:.0f} ms, ${c.cost_per_call_usd:.6f}/call"
                      + (f", fails {', '.join(c.failed_gates)}" if c.failed_gates else ""))
     if run.recommendation:
