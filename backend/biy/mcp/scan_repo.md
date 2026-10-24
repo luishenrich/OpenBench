@@ -70,16 +70,19 @@ Call `biy_workspace_get` once for the company's default trade-off profile. Then,
 A person waiting on streamed text → speed matters more. Background batch → speed near 0, cost matters. Agents → quality
 first. Give a one-sentence reason for every override.
 
-**d. Fill it in** with **`biy_use_cases_update`**: `io_spec` (`system_prompt`; `user_template` with `{{variable}}` placeholders;
+**d. Fill it in with one call, `biy_use_cases_fill`** (pass the brief from b as `brief` instead of calling
+`biy_metrics_select`, and the repo cases from e as `cases`; it marks the use case complete). Or, step by step, with **`biy_use_cases_update`**: `io_spec` (`system_prompt`; `user_template` with `{{variable}}` placeholders;
 `response_schema` as JSON Schema, converted from pydantic / zod / TypedDict; `tools` in OpenAI format; `params`),
 `metrics`, `gates`, and `profile` only when you override the weights.
 
 **Large fields go by upload, never through your tool arguments.** A prompt over ~4,000 characters, a big schema or tool
 list: call **`biy_upload_url`** (`field`: `system_prompt`, `user_template`, `response_schema` or `tools`), then from your shell
-`curl -sf --data-binary @<file> <url>`. Use the prompt's own file, or a scratch file you assemble from template literals or
+`curl -fsS --retry 3 --data-binary @<file> <url>`. Use the prompt's own file, or a scratch file you assemble from template literals or
 f-strings, character for character. **Never truncate, shorten or paraphrase a prompt.** If you can't attach it exactly,
 leave it empty and say "prompt not attached" in the description: BIY refuses to run a use case without a prompt, so a
-placeholder is never benchmarked.
+placeholder is never benchmarked. A curl that fails (it prints the error and exits non-zero, e.g. a 502 while BIY
+redeploys) has attached nothing: retry it, and never move on as if it worked. Literal braces in a real prompt
+(`{{cite:…}}`, `{{1}}`) need no escaping: only `{{name}}` placeholders that match a case variable are filled in.
 
 **Prompts built by code** (f-strings, helper functions, message lists): read the function and write its text into a
 scratch file yourself, one use case at a time, with `{{variable}}` for each interpolation and the default config values

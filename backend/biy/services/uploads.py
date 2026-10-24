@@ -1,7 +1,7 @@
 """One-time upload URLs, so large prompts, schemas, case sets and images never pass through a
 coding agent's tool-call arguments (it would have to write every character, and tends to truncate).
 
-The agent asks for a URL (biy_upload_url), then runs `curl -sf --data-binary @file <url>` from its
+The agent asks for a URL (biy_upload_url), then runs `curl -fsS --retry 3 --data-binary @file <url>` from its
 shell. The token is the credential: single use, ~15 min, scoped to one workspace + use case + field.
 Tokens live in Redis, so there is no table to migrate.
 """
@@ -53,7 +53,7 @@ async def create_upload_url(workspace_id: UUID, use_case_id: UUID, field: str) -
         await r.aclose()
     url = f"{settings.public_base_url.rstrip('/')}/api/uploads/{token}"
     return {"url": url, "field": field, "expires_in_s": TTL_S,
-            "curl": f"curl -sf --data-binary @<path> {url}"}
+            "curl": f"curl -fsS --retry 3 --data-binary @<path> {url}"}
 
 
 async def receive(token: str, body: bytes) -> dict[str, Any]:
