@@ -6,8 +6,11 @@ import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-route
 import Backdrop from '@/components/Backdrop'
 import { Logo } from '@/components/Logo'
 import { Button } from '@/components/ui'
+import { Line, LoadingRegion, Skeleton } from '@/components/Skeleton'
+import { knownIcon } from '@/components/connections/grants'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
+import { slowFor } from '@/lib/fixtures'
 import { FIXTURES } from '@/lib/mode'
 import { supabase } from '@/lib/supabase'
 
@@ -42,7 +45,7 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 async function fetchDetails(id: string): Promise<DetailsResult> {
   if (FIXTURES) {
-    await wait(250)
+    await wait(250 + slowFor('consent'))
     if (id === 'expired') throw new ConsentError(EXPIRED)
     return { kind: 'consent', details: { ...FAKE, authorization_id: id } }
   }
@@ -146,7 +149,7 @@ export default function OAuthConsent() {
   if (!id) {
     body = <Problem title="Nothing to approve" text="This link is missing its sign-in request. Start the connection again from your agent." />
   } else if (details.isPending) {
-    body = <p className="py-6 text-sm text-muted">Checking the request…</p>
+    body = <ConsentSkeleton />
   } else if (details.isError) {
     body = <Problem title="Link expired" text={details.error instanceof ConsentError ? details.error.message : EXPIRED} />
   } else if (result?.kind === 'redirect') {
@@ -175,25 +178,20 @@ export default function OAuthConsent() {
         </div>
 
         <div className="mt-6 flex items-center justify-between gap-3 rounded-lg border border-line bg-bg px-3.5 py-3">
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="truncate text-sm text-fg">{d.user.email || auth.email}</div>
             <div className="mt-0.5 truncate text-xs text-faint">
               {me.data ? <>Workspace <span className="text-muted">{me.data.workspace.name}</span></> : me.isPending ? 'Loading workspace…' : 'Your workspace'}
             </div>
           </div>
-          <button type="button" onClick={switchAccount} className="shrink-0 text-xs text-muted hover:text-fg">Not you? Switch account</button>
+          {/* Shrinks to two lines on a phone instead of cutting off the workspace name */}
+          <button type="button" onClick={switchAccount} className="w-min shrink-0 text-right text-xs leading-4 text-muted hover:text-fg sm:w-auto">
+            <span className="whitespace-nowrap">Not you?</span> <span className="whitespace-nowrap">Switch account</span>
+          </button>
         </div>
 
         <div className="mt-6">
-          <h2 className="text-xs font-medium tracking-wide text-faint uppercase">It will be able to</h2>
-          <ul className="mt-3 space-y-2.5">
-            {CAN.map((line) => (
-              <li key={line} className="flex gap-3 text-sm leading-relaxed text-muted">
-                <span className="mt-[7px] size-1.5 shrink-0 rounded-[1px] bg-win" aria-hidden />
-                {line}
-              </li>
-            ))}
-          </ul>
+          <CanList />
           {scopes.length > 0 && (
             <div className="mt-4 flex flex-wrap items-center gap-1.5">
               <span className="mr-1 text-xs text-faint">Scopes</span>
@@ -214,9 +212,7 @@ export default function OAuthConsent() {
             {busy && phase.action === 'approve' ? <><Spinner /> Connecting…</> : 'Allow'}
           </Button>
         </div>
-        <p className="mt-4 text-xs leading-relaxed text-faint text-pretty">
-          Only allow this if you just started the connection from your agent. The app name is provided by the app itself.
-        </p>
+        <Caution />
       </>
     )
   }
@@ -234,10 +230,72 @@ export default function OAuthConsent() {
   )
 }
 
+function CanList() {
+  return (
+    <>
+      <h2 className="text-xs font-medium tracking-wide text-faint uppercase">It will be able to</h2>
+      <ul className="mt-3 space-y-2.5">
+        {CAN.map((line) => (
+          <li key={line} className="flex gap-3 text-sm leading-relaxed text-muted">
+            <span className="mt-[7px] size-1.5 shrink-0 rounded-[1px] bg-win" aria-hidden />
+            {line}
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}
+
+function Caution() {
+  return (
+    <p className="mt-4 text-xs leading-relaxed text-faint text-pretty">
+      Only allow this if you just started the connection from your agent. The app name is provided by the app itself.
+    </p>
+  )
+}
+
+/** While the request loads: the consent card's own layout, so the card doesn't grow when it arrives. */
+function ConsentSkeleton() {
+  return (
+    <LoadingRegion label="Checking the request">
+      <div className="flex items-start gap-4" aria-hidden>
+        <Skeleton className="size-11 shrink-0 rounded-lg" />
+        <div className="min-w-0 flex-1">
+          <Line lh="h-[27.5px]" bar="h-4" className="w-[85%]" />
+          <Line lh="h-[27.5px]" bar="h-4" className="w-[45%]" />
+          <Line lh="mt-1.5 h-4" bar="h-2" className="w-[60%]" />
+        </div>
+      </div>
+      <div className="mt-6 rounded-lg border border-line bg-bg px-3.5 py-3" aria-hidden>
+        <Line lh="h-5" bar="h-2.5" className="w-36" />
+        <Line lh="mt-0.5 h-4" bar="h-2" className="w-44" />
+      </div>
+      <div className="mt-6 opacity-50" aria-hidden>
+        <CanList />
+        <div className="mt-4 flex h-[22.5px] items-center gap-1.5">
+          <Skeleton className="h-2 w-12" />
+          {[52, 44, 54].map((w) => <Skeleton key={w} className="h-[22.5px] rounded-[5px]" style={{ width: w }} />)}
+        </div>
+      </div>
+      <div className="mt-7 flex gap-2.5" aria-hidden>
+        <Skeleton className="h-[38px] flex-1 rounded-md" />
+        <Skeleton className="h-[38px] flex-1 rounded-md" />
+      </div>
+      <div aria-hidden><Caution /></div>
+    </LoadingRegion>
+  )
+}
+
 function ClientMark({ name, logo }: { name: string; logo: string }) {
-  const [broken, setBroken] = useState(false)
-  if (logo && !broken) {
-    return <img src={logo} alt="" onError={() => setBroken(true)} className="size-11 shrink-0 rounded-lg border border-line bg-raised object-contain p-1.5" />
+  const [broken, setBroken] = useState<string | null>(null)
+  // Known clients (Claude Code, Cursor) get their mark, the same as under Connected apps
+  const src = knownIcon(name) ?? (logo || null)
+  if (src && broken !== src) {
+    return (
+      <span aria-hidden className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-line bg-raised">
+        <img src={src} alt="" onError={() => setBroken(src)} className="size-6 object-contain" draggable={false} />
+      </span>
+    )
   }
   return (
     <span aria-hidden className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-line bg-raised text-lg font-semibold text-fg">

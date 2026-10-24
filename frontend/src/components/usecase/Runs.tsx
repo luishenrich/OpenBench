@@ -38,6 +38,48 @@ function figuresOf(run: Run, keep: boolean): { value: string; label: string; ton
   return out
 }
 
+// The latest verdict as one clickable card: VerdictCard on top, a footer with the run's facts and a primary
+// "Open the full run" on the bottom. The section loses its bottom edge so the two read as one card; the
+// whole card is the link (the button is its visual label, not a second control). In the two-column
+// Overview the card stretches to the row's height (the section grows) and the footer stays at the bottom.
+const CARD = '[&>section]:flex-1 [&>section]:rounded-b-none [&>section]:border-b-0 [&>section>div]:pb-4'
+const footerCls = (keep: boolean) =>
+  `flex flex-col gap-3 rounded-b-2xl border border-t-0 px-5 pb-5 sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:px-6 ${keep ? 'border-line bg-panel' : 'border-line-strong bg-bg'}`
+const primaryCls = 'inline-flex shrink-0 items-center justify-center gap-2 rounded-md bg-fg px-4 py-2 text-sm font-medium text-bg transition-colors group-hover:bg-white'
+
+/** VerdictCard (compact) and its footer while the latest run loads: badge, model line, a three-line headline, four figures, reasons. */
+export function VerdictSkeleton() {
+  return (
+    <LoadingRegion label="Loading the latest run" className="flex flex-col">
+      <div className="flex-1 rounded-t-2xl border border-b-0 border-line bg-panel p-5 pb-4 sm:p-6 sm:pb-4" aria-hidden>
+        <Skeleton className="h-[27px] w-[150px] rounded-md" />
+        <Line lh="mt-4 h-5" bar="h-2.5" className="w-48" />
+        {/* compact headline: text-2xl / sm:text-3xl, 32 / 36px lines */}
+        <div className="mt-3">
+          {['92%', '80%', '55%'].map((w) => <Line key={w} lh="h-8 sm:h-9" bar="h-4 sm:h-5" style={{ width: w }} className="" />)}
+        </div>
+        <div className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="border-l border-line pl-4">
+              <Line lh="h-7 sm:h-8" bar="h-5" className="w-20" />
+              <Line lh="mt-1 h-4" bar="h-2" className="w-[80%]" />
+              <Line lh="mt-0.5 h-4" bar="h-2" className="w-[50%]" />
+            </div>
+          ))}
+        </div>
+        <Line lh="mt-5 h-4" bar="h-2" className="w-[70%]" />
+        <div className="mt-3 border-t border-line pt-3">
+          {['90%', '55%'].map((w) => <Line key={w} lh="h-4" bar="h-2" style={{ width: w }} className="" />)}
+        </div>
+      </div>
+      <div className={footerCls(true)} aria-hidden>
+        <Line lh="h-4" bar="h-2" className="w-64 max-w-[50%]" />
+        <Skeleton className="h-9 w-full shrink-0 rounded-md sm:w-[163px]" />
+      </div>
+    </LoadingRegion>
+  )
+}
+
 /** Overview: what the last benchmark said, in a few lines, with a link to the full run. */
 export function LatestRun({ brief }: { brief: RunBrief | null }) {
   const run = useQuery({
@@ -50,7 +92,7 @@ export function LatestRun({ brief }: { brief: RunBrief | null }) {
 
   if (!brief) {
     return (
-      <Panel className="p-5">
+      <Panel className="self-start p-5">
         <Badge>Latest run</Badge>
         <p className="title mt-4 text-lg">No benchmark yet</p>
         <p className="mt-1 max-w-xl text-sm text-muted">Estimate the cost in Benchmark models, then start a run. The verdict lands here.</p>
@@ -67,25 +109,33 @@ export function LatestRun({ brief }: { brief: RunBrief | null }) {
   // a finished run with a recommendation gets the same verdict card as the run page
   const full = r && r.status === 'done' && r.recommendation ? runVerdict(r) : null
   if (r && full && r.recommendation) {
+    const keep = full === 'keep'
     return (
-      <div>
+      <Link
+        to={`/runs/${brief.id}`} aria-label={`Open the full run: ${r.recommendation.headline}`}
+        className={`group flex flex-col rounded-2xl transition-transform duration-200 hover:-translate-y-0.5 ${CARD} hover:[&>*]:border-fg/30 ${focusRing} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
+      >
         <VerdictCard
+          compact
           rec={r.recommendation} verdict={full}
           reference={r.leaderboard.find((c) => c.candidate_key === r.recommendation?.reference_key)}
           pick={r.leaderboard.find((c) => c.candidate_key === r.recommendation!.candidate_key)}
         />
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 px-1">
-          <span className="text-xs text-faint">
+        <div className={`${footerCls(keep)} transition-colors`}>
+          <span className="min-w-0 flex-1 text-xs text-pretty text-faint">
             {r.candidates.length} open-weight {r.candidates.length === 1 ? 'candidate' : 'candidates'}, {r.repeats} repeats, {usd(r.actual_cost_usd)} spent{brief.finished_at ? `, finished ${ago(brief.finished_at)}` : ''}
           </span>
-          <Link to={`/runs/${brief.id}`} className={linkCls}>Open the run <span aria-hidden>→</span></Link>
+          <span className={`${primaryCls} sm:self-auto`} aria-hidden>Open the full run <span className="transition-transform group-hover:translate-x-0.5">→</span></span>
         </div>
-      </div>
+      </Link>
     )
   }
 
+  // a finished run most likely ends in the verdict card: hold its shape while the run loads, not the short card's
+  if (brief.status === 'done' && brief.recommendation_headline && run.isLoading) return <VerdictSkeleton />
+
   return (
-    <Panel className="p-5">
+    <Panel className="self-start p-5">
       <div className="flex flex-wrap items-center gap-2">
         <Badge tone={v ? verdictTone[v] : live ? 'signal' : brief.status === 'done' ? 'win' : 'bad'}>{v ? `Latest run · ${verdictWord[v]}` : 'Latest run'}</Badge>
         <StatusPill status={brief.status} />

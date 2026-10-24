@@ -17,12 +17,10 @@ export function ListSkeleton({ rows = 6 }: { rows?: number }) {
         <Skeleton className="mb-4 h-1 rounded-full" />
         <div className="overflow-hidden rounded-xl border border-line">
           <ColumnHeader />
-          <div className="flex h-10 items-center gap-3 border-b border-line bg-panel">
+          <div className="flex h-9 items-center gap-3 border-b border-line bg-panel">
             <span className={`shrink-0 ${SELECT_W}`} />
             <Skeleton className="size-3.5 rounded-[3px]" />
-            <Skeleton className="h-2.5 w-24" />
-            <Skeleton className="h-[18px] w-7 rounded-md" />
-            <Skeleton className="mr-4 ml-auto h-2 w-40" />
+            <Skeleton className="h-2.5 w-20" />
           </div>
           <ul className="divide-y divide-line">
             {Array.from({ length: rows }, (_, i) => (

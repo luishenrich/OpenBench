@@ -85,6 +85,7 @@ function PointLabels({ data, front }: { data: Pt[]; front: Pt[] }) {
   const rank = (p: Pt) => (p.recommended ? 0 : p.today ? 1 : p.pareto ? 2 : p.is_reference ? 3 : 4)
   const placed: { p: Pt; x: number; top: number; h: number; icon: string | null; iw: number; lead: [number, number, number, number] | null }[] = []
   const taken: Box[] = []
+  const labels: Box[] = [] // label boxes only, to tell a label that would sit on another label
 
   for (const p of [...data].sort((a, b) => rank(a) - rank(b) || a.x - b.x)) {
     const { cx, cy } = pos(p)
@@ -97,7 +98,7 @@ function PointLabels({ data, front }: { data: Pt[]; front: Pt[] }) {
     const sides = ORDER[p.is_reference ? 'base' : p.pareto ? 'front' : 'other']
     let best: { box: Box; x: number; y: number; cost: number; lead: [number, number, number, number] | null } | null = null
     // level 0 hugs the point; levels 1–2 move the label further up or down with a leader line
-    search: for (let level = 0; level < 3; level++) {
+    search: for (let level = 0; level < 4; level++) {
       for (const side of sides) {
         const vertical = side.startsWith('top') || side.startsWith('bottom')
         if (level > 0 && !vertical) continue
@@ -114,7 +115,11 @@ function PointLabels({ data, front }: { data: Pt[]; front: Pt[] }) {
         if (cost === level * 40) break search
       }
     }
+    // a secondary label (closed reference, off-front point) that can only land on another label is dropped:
+    // its dot stays, and the tooltip names it
+    if (rank(p) >= 3 && labels.some((o) => overlap(best!.box, o) > 0)) continue
     taken.push(best!.box)
+    labels.push(best!.box)
     if (best!.lead) {
       const [x1, y1, , y2] = best!.lead
       taken.push({ x0: x1 - 1, y0: Math.min(y1, y2), x1: x1 + 1, y1: Math.max(y1, y2) })
@@ -156,8 +161,14 @@ export default function ParetoChart({ points, recommended, efforts = {} }: {
   const xs = data.map((d) => d.x)
   const xLo = Math.min(...xs) / 1.6
   const xHi = Math.max(...xs) * 1.6
-  const yLo = Math.max(0, Math.floor((Math.min(...data.map((d) => d.y)) - 0.02) * 20) / 20)
+  const ys = data.map((d) => d.y)
+  // when quality barely separates the models (all 100%, say), open the axis up so the points sit in a band with
+  // room for their labels above and below, instead of squeezed onto the top edge
+  const flat = Math.max(...ys) - Math.min(...ys) < 0.02
+  const yLo = Math.max(0, Math.floor((Math.min(...ys) - (flat ? 0.06 : 0.02)) * 20) / 20)
   const yTicks = Array.from({ length: Math.round((1 - yLo) * 20) + 1 }, (_, i) => +(yLo + i * 0.05).toFixed(2))
+  // headroom above 100%: labels of top points stay on the plot
+  const yHi = 1 + (1 - yLo) * (flat ? 0.35 : 0.05)
 
   return (
     <div className="h-[360px] w-full">
@@ -170,7 +181,7 @@ export default function ParetoChart({ points, recommended, efforts = {} }: {
             label={{ value: 'Cost per successful call, log scale (cheaper is left)', position: 'bottom', offset: 10, fontSize: 12, fill: MUTED }}
           />
           <YAxis
-            type="number" dataKey="y" domain={[yLo, 1]} ticks={yTicks} tickFormatter={(v) => pct(v, 0)}
+            type="number" dataKey="y" domain={[yLo, yHi]} allowDataOverflow ticks={yTicks} tickFormatter={(v) => pct(v, 0)}
             tick={{ fontSize: 12, fill: MUTED }} stroke="#3a3a40" width={44}
           />
           <Tooltip

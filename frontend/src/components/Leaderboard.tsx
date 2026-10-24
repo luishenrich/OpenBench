@@ -8,8 +8,10 @@ import { ModelName, isReference, isToday, notScored, prettyModel, reasoningNote,
 // A forest plot: one lane per model on a shared quality axis. The band is the 95% CI, the tick is the mean,
 // the dashed line is today's model. Overlapping bands mean the difference is not significant.
 
-// rank | model (name, provider, per-metric chips) | quality lane + mean | p95 latency | cost | errors
-const COLS = 'grid-cols-[24px_minmax(280px,300px)_minmax(280px,1fr)_112px_84px_56px]'
+// rank | model (name, tags, reasoning; provider, n, per-metric chips) | quality lane (≤ 200px, ≤ 20%) | mean ± std | p95 latency | cost | errors
+// The model column takes the slack so names and chips stay on two lines; the lane stays a compact forest plot.
+export const LEADERBOARD_COLS = 'grid-cols-[20px_minmax(300px,1fr)_minmax(150px,min(20%,200px))_64px_92px_72px_40px]'
+const COLS = LEADERBOARD_COLS
 
 function axis(rows: CandidateResult[]) {
   const lo = Math.min(...rows.map((r) => r.quality.ci_low))
@@ -42,19 +44,24 @@ function Lane({ r, x, baseX, refXs, recommended, running }: {
   )
 }
 
-export default function Leaderboard({ rows, metrics, recommended, closest = null, running }: {
+export default function Leaderboard({ rows, metrics, recommended, closest = null, running, order = [] }: {
   rows: CandidateResult[]
   metrics: MetricInfo[]
   recommended: string | null
   /** on a "keep" verdict: the best challenger, tagged but not highlighted as the pick */
   closest?: string | null
   running: boolean
+  /** "provider:model" of the run's candidates: while running, rows keep this order instead of jumping with live scores */
+  order?: string[]
 }) {
-  const sorted = [...rows].sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999) || b.scores.utility - a.scores.utility)
+  const slot = (r: CandidateResult) => { const i = order.indexOf(r.candidate_key.split('@')[0]); return i < 0 ? 999 : i }
+  const sorted = running
+    ? [...rows].sort((a, b) => slot(a) - slot(b) || a.candidate_key.localeCompare(b.candidate_key))
+    : [...rows].sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999) || b.scores.utility - a.scores.utility)
   // Open-weight candidates are ranked. Closed references (incl. "today") are measured but never ranked, and
   // their failed_gates is informative only. Candidates no juror could score are unranked too.
   const base = sorted.find(isToday)
-  const refs = sorted.filter((r) => isReference(r) && !isToday(r)).sort((a, b) => b.quality.mean - a.quality.mean)
+  const refs = sorted.filter((r) => isReference(r) && !isToday(r)).sort((a, b) => (running ? 0 : b.quality.mean - a.quality.mean))
   const cands = sorted.filter((r) => !isReference(r))
   // While the run is live nothing is final: unjudged rows aren't "not scored", failed gates are provisional.
   // Every candidate stays in one list, in order; the groups only appear once the run is done.
@@ -80,86 +87,81 @@ export default function Leaderboard({ rows, metrics, recommended, closest = null
     const failedIds = ref || running ? new Set<string>() : new Set(r.failed_gates.map((g) => g.split(' ')[0]))
     const note = reasoningNote(r)
     return (
-      <div key={r.candidate_key} className={`grid ${COLS} items-center gap-4 border-t border-line px-4 py-3 ${isRec ? 'bg-front/[0.06]' : ''} ${ref ? 'text-muted' : ''}`}>
-        <span className={`title text-lg ${isRec ? 'text-front' : r.rank && !ref ? 'text-fg' : 'text-faint'}`}>{ref ? '–' : r.rank ?? '–'}</span>
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-1.5">
+      <div key={r.candidate_key} className={`grid ${COLS} items-center gap-x-2.5 border-t border-line px-4 py-2.5 ${isRec ? 'bg-front/[0.06]' : ''} ${ref ? 'text-muted' : ''}`}>
+        <span className={`title text-lg tabular-nums ${isRec ? 'text-front' : r.rank && !ref ? 'text-fg' : 'text-faint'}`}>{ref ? '–' : r.rank ?? '–'}</span>
+        <div className="@container min-w-0">
+          {/* line 1: name, tags and how much it reasons (a property of the model, like its effort) */}
+          <div className="flex min-w-0 items-center gap-1.5 [&>*]:shrink-0">
             <ModelName model={r.candidate_key} effort={rowEffort(r)} nameClass={ref && !today ? 'font-medium text-muted' : 'font-medium'} />
             {today ? <Tag>today</Tag> : ref && <Tag>reference</Tag>}
             {isRec && <Tag tone="front">pick</Tag>}
             {r.candidate_key === closest && <Tag>closest challenger</Tag>}
             {r.pareto && !isRec && !ref && !(running && unscoredRow) && <Tag tone="signal">Pareto</Tag>}
+            {note && <span className="ml-0.5 hidden min-w-0 !shrink truncate text-xs text-faint @[460px]:inline" title={note}>{note}</span>}
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs text-faint">
-            <ProviderIcon provider={r.provider} size={11} />via {r.provider}, n = {r.n}
-            {note && <span>· {note}</span>}
+          {/* line 2: provider and n, then the per-metric chips */}
+          <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-faint">
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><ProviderIcon provider={r.provider} size={11} />via {r.provider}, n = {r.n}</span>
+            {/* in a narrow model column the reasoning note moves here instead of being cut off on line 1 */}
+            {note && <span className="whitespace-nowrap @[460px]:hidden">· {note}</span>}
             {!!r.dropped_params?.length && (
               <span title="This model does not accept these settings, so it ran at the provider's default">
                 · {r.dropped_params.join(', ')} not supported, ran at provider default
               </span>
             )}
-
+            {Object.entries(r.metrics).map(([k, v]) => {
+              const bad = failedIds.has(k)
+              return (
+                <span key={k} className={`inline-flex items-baseline gap-1.5 rounded-[5px] border px-1.5 py-[3px] text-[11px] leading-none whitespace-nowrap ${bad ? 'border-bad/40 text-bad' : 'border-line text-faint'}`}>
+                  {name(k)}<span className={`font-medium tabular-nums ${bad ? '' : 'text-muted'}`}>{pct(v.mean, 0)}</span>
+                </span>
+              )
+            })}
           </div>
-          {Object.keys(r.metrics).length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {Object.entries(r.metrics).map(([k, v]) => {
-                const bad = failedIds.has(k)
-                return (
-                  <span key={k} className={`inline-flex items-baseline gap-1.5 rounded-[5px] border px-1.5 py-[3px] text-[11px] leading-none ${bad ? 'border-bad/40 text-bad' : 'border-line text-faint'}`}>
-                    {name(k)}<span className={`font-medium ${bad ? '' : 'text-muted'}`}>{pct(v.mean, 0)}</span>
-                  </span>
-                )
-              })}
-            </div>
-          )}
-          {ref && !r.passed_gates && <div className="mt-1.5 text-xs text-faint">Below {r.failed_gates.map(gateText).join(', ')} (for information)</div>}
+          {ref && !r.passed_gates && <div className="mt-1 text-xs text-faint">Below {r.failed_gates.map(gateText).join(', ')} (for information)</div>}
           {!r.passed_gates && !ref && !unscoredRow && (running
-            ? <div className="mt-1.5 text-xs text-faint">Below {r.failed_gates.map(gateText).join(', ')} so far</div>
-            : <div className="mt-1.5 text-xs text-bad">Failed {r.failed_gates.map(gateText).join(', ')}</div>)}
+            ? <div className="mt-1 text-xs text-faint">Below {r.failed_gates.map(gateText).join(', ')} so far</div>
+            : <div className="mt-1 text-xs text-bad">Failed {r.failed_gates.map(gateText).join(', ')}</div>)}
           {!running && !!r.unmeasured_gates?.length && (
-            <div className="mt-1.5 text-xs text-faint" title="No model produced a value for these metrics, so the gate was skipped">
+            <div className="mt-1 text-xs text-faint" title="No model produced a value for these metrics, so the gate was skipped">
               Not evaluated (never measured): {r.unmeasured_gates.map(gateText).join(', ')}
             </div>
           )}
         </div>
-        <div className="flex items-center gap-3">
-          <div className="min-w-0 flex-1">
-            {unscoredRow && running
-              ? <p className="flex items-center gap-2 text-xs text-muted"><LiveDot small />Not scored yet</p>
-              : unscoredRow
-              ? <p className="text-xs text-faint">Quality not scored: every juror abstained on this model's family.</p>
-              : <Lane r={r} x={x} baseX={baseX} refXs={refXs} recommended={isRec} running={running} />}
-          </div>
-          <div className="w-[88px] shrink-0 text-right">
-            <div className="text-sm font-medium">{unscoredRow ? '–' : pct(r.quality.mean)}</div>
-            {!unscoredRow && <div className="text-[11px] text-faint">± {pct(r.quality.std)}</div>}
-          </div>
+        <div className="min-w-0">
+          {unscoredRow && running
+            ? <p className="flex items-center gap-2 text-xs text-muted"><LiveDot small />Not scored yet</p>
+            : unscoredRow
+            ? <p className="text-xs text-faint">Quality not scored: every juror abstained on this model's family.</p>
+            : <Lane r={r} x={x} baseX={baseX} refXs={refXs} recommended={isRec} running={running} />}
         </div>
-        <div className="text-right text-sm whitespace-nowrap">
+        <div className="text-right tabular-nums">
+          <div className="text-sm font-medium">{unscoredRow ? '–' : pct(r.quality.mean)}</div>
+          <div className="text-[11px] text-faint">{unscoredRow ? ' ' : `± ${pct(r.quality.std)}`}</div>
+        </div>
+        <div className="text-right text-sm whitespace-nowrap tabular-nums">
           {ms(r.e2e_ms.p95)}
           {r.ttft_ms && <div className="text-[11px] text-faint">first token {ms(r.ttft_ms.p95)}</div>}
         </div>
-        <div className="text-right text-sm">{usd(r.cost_per_call_usd)}</div>
-        <div className={`text-right text-sm ${r.error_rate > 0 ? 'text-bad' : 'text-faint'}`}>{pct(r.error_rate, r.error_rate ? 1 : 0)}</div>
+        <div className="text-right text-sm tabular-nums">{usd(r.cost_per_call_usd)}</div>
+        <div className={`text-right text-sm tabular-nums ${r.error_rate > 0 ? 'text-bad' : 'text-faint'}`}>{pct(r.error_rate, r.error_rate ? 1 : 0)}</div>
       </div>
     )
   }
 
   return (
     <div className="overflow-x-auto rounded-xl border border-line bg-panel">
-      <div className="min-w-[960px]">
-        <div className={`grid ${COLS} items-end gap-4 px-4 pt-3 pb-2 text-xs text-faint`}>
+      <div className="min-w-[860px]">
+        <div className={`grid ${COLS} items-end gap-x-2.5 px-4 pt-3 pb-2 text-xs text-faint`}>
           <span>#</span>
           <span>Model</span>
-          <div className="flex items-end gap-3">
-            <div className="relative h-8 min-w-0 flex-1">
-              <span className="absolute top-0 left-0">Quality, 95% CI</span>
-              {scoredRows.length > 0 && ticks.map((t) => (
-                <span key={t} className="absolute bottom-0 -translate-x-1/2 text-[10.5px]" style={{ left: `${x(t)}%` }}>{num(t * 100, 0)}</span>
-              ))}
-            </div>
-            <span className="w-[88px] shrink-0 text-right">mean ± std</span>
+          <div className="relative h-8 min-w-0">
+            <span className="absolute top-0 left-0 whitespace-nowrap">Quality, 95% CI</span>
+            {scoredRows.length > 0 && ticks.map((t) => (
+              <span key={t} className={`absolute bottom-0 text-[10.5px] tabular-nums ${x(t) > 94 ? '-translate-x-full' : x(t) < 6 ? '' : '-translate-x-1/2'}`} style={{ left: `${x(t)}%` }}>{num(t * 100, 0)}</span>
+            ))}
           </div>
+          <span className="text-right whitespace-nowrap">mean ± std</span>
           <span className="text-right">p95 latency</span>
           <span className="text-right">cost / call</span>
           <span className="text-right">errors</span>

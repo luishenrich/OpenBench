@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import Leaderboard from '@/components/Leaderboard'
 import ParetoChart from '@/components/ParetoChart'
 import ResultsViewer from '@/components/ResultsViewer'
 import { Badge, Button, ErrorNote, Panel, Section, StatusPill } from '@/components/ui'
 import RunSkeleton from '@/components/run/RunSkeleton'
-import { Line, Skeleton } from '@/components/Skeleton'
+import { Line } from '@/components/Skeleton'
 import VerdictCard from '@/components/VerdictCard'
 import { api } from '@/lib/api'
 import { ago, effortOf } from '@/lib/format'
@@ -61,9 +61,8 @@ export default function RunPage() {
   return (
     <div className="space-y-14">
       <div>
-        {uc.data && <Link to={`/use-cases/${uc.data.id}`} className="rounded-md border border-line bg-panel px-2.5 py-1 text-xs text-muted hover:text-fg">{uc.data.name}</Link>}
-        {uc.isLoading && <Skeleton className="h-[26px] w-[136px] rounded-md" />}
-        <div className="mt-8 flex flex-wrap items-center gap-3">
+        {/* the app header carries the breadcrumb (project / use case / run); the row keeps the Cancel button's height so it doesn't jump when the run ends */}
+        <div className="flex min-h-[38px] flex-wrap items-center gap-3">
           <Badge tone={live ? 'signal' : r.status === 'done' ? 'win' : 'bad'}>Benchmark run</Badge>
           <StatusPill status={r.status} />
           {live && <Button variant="danger" className="ml-auto" onClick={() => cancel.mutate()} disabled={cancel.isPending}>Cancel run</Button>}
@@ -121,7 +120,7 @@ export default function RunPage() {
             {points.length > 0
               ? <ParetoChart points={points} recommended={pickKey} efforts={efforts} />
               : (
-                <div className="flex h-[180px] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line text-center">
+                <div className="flex h-[360px] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line text-center">
                   <p className="flex items-center gap-2 text-sm text-muted"><LiveDot small />Points appear once answers are scored · {runPhase(r).text.charAt(0).toLowerCase() + runPhase(r).text.slice(1)}</p>
                   <p className="text-xs text-faint">Quality comes from the metrics and the jury, so a model has no point until its answers are scored.</p>
                 </div>
@@ -134,7 +133,8 @@ export default function RunPage() {
         {r.leaderboard.length === 0 ? (
           <p className="rounded-xl border border-dashed border-line-strong px-5 py-8 text-sm text-muted">Waiting for the first results.</p>
         ) : (
-          <Leaderboard rows={r.leaderboard} metrics={metrics.data ?? []} recommended={pickKey} closest={closestKey} running={live} />
+          <Leaderboard rows={r.leaderboard} metrics={metrics.data ?? []} recommended={pickKey} closest={closestKey} running={live}
+            order={r.candidates.map((m) => `${m.provider}:${m.model}`)} />
         )}
       </Section>
 

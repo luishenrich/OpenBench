@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ModelIcon } from '@/components/ModelIcon'
 import { StatusPill } from '@/components/ui'
-import { ago, shortModel, usd } from '@/lib/format'
+import { shortModel, usd } from '@/lib/format'
 import { briefVerdict } from '@/lib/verdict'
 import type { UseCase } from '@/types'
 import { setupState, stateDot, stateLabel } from './group'
@@ -15,7 +15,7 @@ const verdictWord = { switch: 'Switch', keep: 'Keep', use: 'Use' } as const
 // Shared with the column header in ProjectList so labels line up with the cells. The select (left) and
 // menu (right) cells sit outside this grid with fixed widths: SELECT_W and MENU_W.
 export const ROW_GRID = 'md:grid-cols-[minmax(0,1fr)_150px_64px_150px] lg:grid-cols-[minmax(0,1fr)_180px_64px_170px]'
-export const SELECT_W = 'w-10'
+export const SELECT_W = 'w-7 md:w-10'
 // rows sit under their section label: chevron (14px) + gap (12px)
 export const ROW_INDENT = 'pl-[26px]'
 export const MENU_W = 'w-11'
@@ -73,19 +73,11 @@ export function UseCaseRow({ uc, fresh, actions }: { uc: UseCase; fresh: boolean
     <div className={`grid items-center gap-x-4 gap-y-1 ${ROW_GRID}`}>
       <div className="min-w-0">
         {name}
-        <div className="mt-0.5 flex min-w-0 items-center gap-2">
-          {ref && (
-            <span className={`truncate font-mono text-[11.5px] text-faint ${run?.status === 'done' ? 'lg:max-w-[55%] lg:shrink-0' : ''}`} title={`${ref.path}${ref.line ? `:${ref.line}` : ''}`}>
-              {ref.path}{ref.line ? `:${ref.line}` : ''}
-            </span>
-          )}
-          {uc.created_by === 'mcp' && <span className="shrink-0 text-[11px] text-front/80">found by agent</span>}
-          {run?.status === 'done' && run.recommendation_headline && (
-            // wide screens: the verdict headline sits inline, next to the path
-            <span className="hidden min-w-0 truncate text-[12.5px] text-muted lg:inline" title={run.recommendation_headline}>
-              <span className="text-faint">· </span>{run.recommendation_headline}
-            </span>
-          )}
+        {/* always one line tall, so every row has the same height with or without a source path */}
+        <div className="mt-0.5 flex h-[17px] min-w-0 items-center">
+          {ref
+            ? <span className="truncate font-mono text-[11.5px] text-faint" title={`${ref.path}${ref.line ? `:${ref.line}` : ''}`}>{ref.path}{ref.line ? `:${ref.line}` : ''}</span>
+            : <span className="text-[11.5px] text-faint" aria-hidden>–</span>}
         </div>
       </div>
 
@@ -96,10 +88,10 @@ export function UseCaseRow({ uc, fresh, actions }: { uc: UseCase; fresh: boolean
       </div>
 
       <div className={`text-[13px] tabular-nums md:text-right ${uc.case_count ? 'text-muted' : 'text-faint'}`}>
-        {uc.case_count} <span className="md:hidden">cases</span>
+        {uc.case_count} <span className="md:hidden">{uc.case_count === 1 ? 'case' : 'cases'}</span>
       </div>
 
-      <div className="flex min-w-0 items-center gap-2 text-[13px]">
+      <div className="flex min-w-0 items-center gap-2 text-[13px]" title={v ? run?.recommendation_headline ?? undefined : undefined}>
         {v ? (
           <>
             <span className={`size-2 shrink-0 rounded-[2px] ${verdictDot[v]}`} />
@@ -137,12 +129,6 @@ export function UseCaseRow({ uc, fresh, actions }: { uc: UseCase; fresh: boolean
       ) : (
         <Link to={`/use-cases/${uc.id}`} className={`block min-w-0 flex-1 rounded-sm py-2.5 pr-1 ${ROW_INDENT} ${focusRing}`}>
           {cells}
-          {run?.status === 'done' && run.recommendation_headline && (
-            <p className="mt-1 truncate text-[12.5px] text-muted lg:hidden" title={run.recommendation_headline}>
-              {run.recommendation_headline}
-              {run.finished_at && <span className="ml-2 text-faint">{ago(run.finished_at)}</span>}
-            </p>
-          )}
         </Link>
       )}
       <div className={`grid shrink-0 place-items-center ${MENU_W}`}>

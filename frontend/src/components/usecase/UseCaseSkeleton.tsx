@@ -11,20 +11,19 @@ const chip = 'h-[26px] rounded-md'
 export default function UseCaseSkeleton({ tab = 'overview' }: { tab?: TabKey }) {
   return (
     <LoadingRegion label="Loading use case">
-      {/* breadcrumb and actions */}
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <Skeleton className={`${chip} w-[78px]`} />
+      {/* kind badges and the page actions on one slim row (the breadcrumb is in the app header) */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Skeleton className="h-[27px] w-[108px] rounded-md" />
+          <Skeleton className="h-[27px] w-[136px] rounded-md" />
+        </div>
         <div className="flex flex-wrap items-center gap-1.5">
           {[121, 123, 60, 78].map((w) => <Skeleton key={w} className={chip} style={{ width: w }} />)}
         </div>
       </div>
 
-      {/* kind badges, title */}
-      <div className="mt-5 flex flex-wrap items-center gap-2">
-        <Skeleton className="h-[27px] w-[108px] rounded-md" />
-        <Skeleton className="h-[27px] w-[136px] rounded-md" />
-      </div>
-      <Line lh="mt-2.5 h-10" bar="h-[56%]" className="w-[min(440px,80%)]" />
+      {/* title */}
+      <Line lh="mt-2.5 h-9 sm:h-10" bar="h-[56%]" className="w-[min(440px,80%)]" />
 
       {/* two-line description */}
       <div className="mt-2.5 max-w-[70ch] text-[15px]">
@@ -35,7 +34,7 @@ export default function UseCaseSkeleton({ tab = 'overview' }: { tab?: TabKey }) 
       {/* fact strip: called from, model today, test cases, must pass */}
       <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="min-w-0 bg-panel px-4 py-3">
+          <div key={i} className={`min-w-0 bg-panel px-4 py-3 ${i < 2 ? 'col-span-2 md:col-span-1' : ''}`}>
             <Line lh="h-4" bar="h-2" className="w-20" />
             {i < 2 ? (
               <>
@@ -63,7 +62,7 @@ export default function UseCaseSkeleton({ tab = 'overview' }: { tab?: TabKey }) 
         {tab === 'overview' && (
           <div className="space-y-8">
             <SetupSkeleton />
-            <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
               <LatestRunSkeleton />
               <StartRunSkeleton />
             </div>
@@ -116,7 +115,7 @@ function SetupSkeleton() {
 
 function LatestRunSkeleton() {
   return (
-    <Panel className="p-5">
+    <Panel className="self-start p-5">
       <div className="flex items-center gap-2">
         <Skeleton className="h-[27px] w-[150px] rounded-md" />
         <Skeleton className="h-[22px] w-14 rounded-md" />

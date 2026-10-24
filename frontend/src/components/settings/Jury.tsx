@@ -9,11 +9,12 @@ const MODES: { key: JudgeConfig['mode']; label: string; hint: string }[] = [
   { key: 'pairwise', label: 'Pairwise', hint: 'Jurors compare each output with the first reference, in both orders. A win needs every juror to agree.' },
 ]
 
-// Decided, waiting on the backend: a third juror from a third family, so every output gets two votes.
-const PLANNED = { model: 'zai-org/GLM-5.3', label: 'GLM-5.3' }
+// The default third juror (contract JudgeConfig): a third family, so every output keeps two votes.
+// Shown as planned only when a jury still has fewer than three jurors.
+const PLANNED = { model: 'MiniMaxAI/MiniMax-M3.1-Flash', label: 'MiniMax-M3.1-Flash' }
 
 export function Jury({ value, onChange }: { value: JudgeConfig; onChange: (v: JudgeConfig) => void }) {
-  const planned = !value.judges.some((j) => j.model.toLowerCase().includes('glm-5.3'))
+  const planned = value.judges.length < 3 && !value.judges.some((j) => j.model.toLowerCase().includes('minimax'))
   return (
     <div className="space-y-5">
       <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-panel">

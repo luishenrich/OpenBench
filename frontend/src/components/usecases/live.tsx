@@ -26,23 +26,39 @@ export function useNow(ms = 15_000): number {
 }
 
 // Slim banner over the list while the coding agent is creating or filling in use cases. It goes away by
-// itself once nothing has changed for 5 minutes (AGENT_WINDOW_MS).
+// itself once nothing has changed for 5 minutes (AGENT_WINDOW_MS). It stays mounted and slides open and
+// shut (grid rows 0fr <-> 1fr), carrying its own top spacing, so the toolbar and list below move smoothly
+// instead of jumping by its height.
 export function ScanBanner({ list, fallbackName }: { list: UseCase[]; fallbackName: string }) {
   const now = useNow(1000)
   const a = scanActivity(list, fallbackName, now)
-  if (!a) return null
+  // the last activity, kept so the banner still has its text while it slides shut
+  const last = useRef(a)
+  if (a) last.current = a
+  const shown = a ?? last.current
   const manyProjects = new Set(list.map((u) => u.source_refs[0]?.repo?.trim() || fallbackName)).size > 1
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-line bg-panel px-4 py-2.5 text-sm">
-      <LiveDot className="mr-1" />
-      <span role="status" className="contents">
-        <span className="font-medium text-fg">Your agent is scanning</span>
-        {manyProjects && <><span aria-hidden className="text-faint">·</span><span className="text-muted">{a.projects.join(', ')}</span></>}
-        <span aria-hidden className="text-faint">·</span>
-        <span className="tabular-nums text-muted">{a.setUp} of {a.total} set up</span>
-      </span>
-      <span aria-hidden className="text-faint">·</span>
-      <span className="tabular-nums text-faint">last change {sinceLabel(a.lastChange, now)}</span>
+    <div
+      className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none ${a ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+      aria-hidden={!a}
+    >
+      <div className="min-h-0 overflow-hidden">
+        {shown && (
+          <div className="pt-5">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-line bg-panel px-4 py-2.5 text-sm">
+              <LiveDot className="mr-1" />
+              <span role="status" className="contents">
+                <span className="font-medium text-fg">Your agent is scanning</span>
+                {manyProjects && <><span aria-hidden className="text-faint">·</span><span className="min-w-0 truncate text-muted">{shown.projects.join(', ')}</span></>}
+                <span aria-hidden className="text-faint">·</span>
+                <span className="tabular-nums text-muted">{shown.setUp} of {shown.total} set up</span>
+              </span>
+              <span aria-hidden className="text-faint">·</span>
+              <span className="tabular-nums text-faint">last change {sinceLabel(shown.lastChange, now)}</span>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

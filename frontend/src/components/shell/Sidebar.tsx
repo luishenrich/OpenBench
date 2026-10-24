@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import type { ReactNode } from 'react'
+import { useState, type FocusEvent, type MouseEvent, type ReactNode } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
-import { Logo } from '@/components/Logo'
+import { Logo, Mark } from '@/components/Logo'
 import { groupUseCases, isAgentSettingUp, projectOf, scanActivity, setupState } from '@/components/usecases/group'
 import { LiveDot, useNow } from '@/components/usecases/live'
 import { api } from '@/lib/api'
@@ -40,7 +40,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 /** Sidebar content, shared by the fixed desktop sidebar and the mobile drawer. */
-export function SidebarContent({ header }: { header?: ReactNode }) {
+export function SidebarContent({ header, rail = false }: { header?: ReactNode; rail?: boolean }) {
   const auth = useAuth()
   const { pathname } = useLocation()
   const [params] = useSearchParams()
@@ -59,6 +59,32 @@ export function SidebarContent({ header }: { header?: ReactNode }) {
   const ucMatch = pathname.match(/^\/use-cases\/([^/]+)/)
   const ucProject = ucMatch ? (() => { const u = all.find((x) => x.id === decodeURIComponent(ucMatch[1])); return u ? projectOf(u, fallbackName) : null })() : null
   const onUseCases = onList || !!ucMatch || pathname.startsWith('/runs/')
+
+  if (rail) {
+    return (
+      <Rail
+        items={[
+          { to: '/', icon: 'list', label: `Use cases${all.length ? ` · ${all.length}` : ''}`, active: onUseCases, current: onList && !project },
+          { to: '/connections', icon: 'plug', label: 'Connections', active: pathname.startsWith('/connections'), current: pathname.startsWith('/connections') },
+          { to: '/settings', icon: 'gear', label: 'Settings', active: pathname.startsWith('/settings'), current: pathname.startsWith('/settings') },
+        ]}
+        projects={projects.map((p) => {
+          const needInput = p.items.filter((u) => setupState(u, now) === 'data').length
+          const settingUp = p.items.some((u) => isAgentSettingUp(u, now))
+          const repo = p.name.slice(p.name.lastIndexOf('/') + 1)
+          const notes = [`${p.items.length} use ${p.items.length === 1 ? 'case' : 'cases'}`, needInput ? `${needInput} need input` : '', settingUp ? 'setting up' : ''].filter(Boolean)
+          return {
+            key: p.key, name: p.name, initial: (repo.match(/[a-z0-9]/i)?.[0] ?? '?').toUpperCase(), needInput: needInput > 0, settingUp,
+            label: `${p.name} · ${notes.join(' · ')}`,
+            on: project === p.name || (!project && ucProject === p.name), current: project === p.name,
+          }
+        })}
+        scan={scan ? `Your agent is scanning · ${scan.setUp} of ${scan.total} set up` : null}
+        email={auth.email}
+        onSignOut={auth.signOut}
+      />
+    )
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -149,6 +175,77 @@ export function SidebarContent({ header }: { header?: ReactNode }) {
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+type RailItem = { to: string; icon: NavIconName; label: string; active: boolean; current: boolean }
+type RailProject = { key: string; name: string; initial: string; label: string; needInput: boolean; settingUp: boolean; on: boolean; current: boolean }
+
+const railBtn = 'relative grid size-9 place-items-center rounded-md transition-colors outline-none focus-visible:ring-2 focus-visible:ring-signal/70'
+
+/** The collapsed sidebar: a 56px rail of icons. Labels show as a tooltip to the right on hover and focus. */
+function Rail({ items, projects, scan, email, onSignOut }: {
+  items: RailItem[]; projects: RailProject[]; scan: string | null; email: string | null | undefined; onSignOut: () => void
+}) {
+  const [tip, setTip] = useState<{ label: string; y: number } | null>(null)
+  const tipFor = (label: string) => {
+    const show = (e: MouseEvent<HTMLElement> | FocusEvent<HTMLElement>) => {
+      const r = e.currentTarget.getBoundingClientRect()
+      setTip({ label, y: r.top + r.height / 2 })
+    }
+    return { 'aria-label': label, onMouseEnter: show, onFocus: show, onMouseLeave: () => setTip(null), onBlur: () => setTip(null) }
+  }
+
+  return (
+    <div className="flex h-full flex-col items-center">
+      <Link to="/" className="mt-3 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-signal/70" {...tipFor('BIY, use cases')}>
+        <Mark className="size-8" />
+      </Link>
+
+      <nav aria-label="Main" className="mt-5 flex min-h-0 w-full flex-1 flex-col items-center gap-px overflow-y-auto overflow-x-hidden pb-4">
+        {items.map((it) => (
+          <Link key={it.to} to={it.to} aria-current={it.current ? 'page' : undefined} className={`${railBtn} ${it.active ? itemOn : itemOff}`} {...tipFor(it.label)}>
+            <NavIcon name={it.icon} className="size-4" />
+          </Link>
+        ))}
+        {projects.length > 0 && <span aria-hidden className="my-3 h-px w-6 bg-line" />}
+        {projects.map((p) => (
+          <Link
+            key={p.key} to={projectHref(p.name)} aria-current={p.current ? 'page' : undefined}
+            className={`${railBtn} ${p.on ? 'bg-raised' : 'hover:bg-raised/60'}`} {...tipFor(p.label)}
+          >
+            <span className={`grid size-6 place-items-center rounded-md border text-[11px] font-semibold ${p.on ? 'border-line-strong bg-bg text-fg' : 'border-line text-muted'}`}>{p.initial}</span>
+            {(p.needInput || p.settingUp) && (
+              <span className="absolute top-1 right-1 flex">
+                {p.needInput ? <span className="size-1.5 rounded-full bg-front ring-2 ring-panel" /> : <LiveDot small />}
+              </span>
+            )}
+          </Link>
+        ))}
+      </nav>
+
+      {scan && (
+        <span role="status" tabIndex={0} className={`${railBtn} mb-2`} {...tipFor(scan)}>
+          <LiveDot />
+        </span>
+      )}
+
+      <div className="flex w-full flex-col items-center gap-1 border-t border-line py-3">
+        {FIXTURES && <span className="size-1.5 rounded-[1px] bg-signal" title="Fixture data" aria-label="Fixture data" />}
+        <button type="button" onClick={onSignOut} className={`${railBtn} text-muted hover:bg-raised hover:text-fg`} {...tipFor(email ? `Sign out ${email}` : 'Sign out')}>
+          <NavIcon name="out" className="size-4" />
+        </button>
+      </div>
+
+      {tip && (
+        <div
+          role="tooltip" style={{ top: tip.y }}
+          className="pointer-events-none fixed left-[64px] z-50 -translate-y-1/2 rounded-md whitespace-nowrap border border-line bg-raised px-2 py-1 text-xs text-fg shadow-lg shadow-black/40"
+        >
+          {tip.label}
+        </div>
+      )}
     </div>
   )
 }

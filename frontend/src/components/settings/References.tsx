@@ -18,24 +18,29 @@ export function References({ value, onChange }: { value: ModelRef[]; onChange: (
             const label = modelLabel(m.model)
             const effort = typeof m.params?.reasoning_effort === 'string' ? (m.params.reasoning_effort as string) : 'medium'
             return (
-              <li key={`${m.provider}:${m.model}`} className="flex items-center gap-3 px-3.5 py-2.5">
-                <ModelIcon model={m.model} size={16} />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm text-fg">{label}</div>
-                  <div className="truncate font-mono text-[11px] text-faint">{m.provider}:{m.model}</div>
+              // On a phone the controls wrap under the name instead of squeezing it to "GPT-6…"
+              <li key={`${m.provider}:${m.model}`} className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3.5 py-2.5">
+                <div className="flex min-w-[12rem] flex-1 items-center gap-3">
+                  <ModelIcon model={m.model} size={16} />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm text-fg">{label}</div>
+                    <div className="truncate font-mono text-[11px] text-faint">{m.provider}:{m.model}</div>
+                  </div>
                 </div>
-                {i === 0 && value.length > 1 && <span className="hidden text-xs text-faint lg:inline">Pairwise opponent</span>}
-                <select aria-label={`Reasoning effort for ${label}`} value={effort} onChange={(e) => setEffort(i, e.target.value)} className={selectCls}>
-                  {EFFORTS.map((e) => <option key={e} value={e}>Reasoning {e}</option>)}
-                </select>
-                <button
-                  type="button"
-                  onClick={() => onChange(value.filter((_, j) => j !== i))}
-                  className="rounded-md px-2 py-1 text-xs text-muted hover:bg-raised hover:text-fg"
-                  aria-label={`Remove ${label}`}
-                >
-                  Remove
-                </button>
+                <div className="ml-auto flex items-center gap-3">
+                  {i === 0 && value.length > 1 && <span className="hidden text-xs text-faint lg:inline">Pairwise opponent</span>}
+                  <select aria-label={`Reasoning effort for ${label}`} value={effort} onChange={(e) => setEffort(i, e.target.value)} className={selectCls}>
+                    {EFFORTS.map((e) => <option key={e} value={e}>Reasoning {e}</option>)}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => onChange(value.filter((_, j) => j !== i))}
+                    className="rounded-md px-2 py-1 text-xs text-muted hover:bg-raised hover:text-fg"
+                    aria-label={`Remove ${label}`}
+                  >
+                    Remove
+                  </button>
+                </div>
               </li>
             )
           })}

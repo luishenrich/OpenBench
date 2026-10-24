@@ -2,16 +2,13 @@
 // Section titles are static, so they render for real.
 import { Line, LoadingRegion, Skeleton } from '@/components/Skeleton'
 import { Panel, Section } from '@/components/ui'
-
-// Leaderboard's column template (components/Leaderboard.tsx)
-const COLS = 'grid-cols-[24px_minmax(280px,300px)_minmax(280px,1fr)_112px_84px_56px]'
+import { LEADERBOARD_COLS as COLS } from '@/components/Leaderboard'
 
 export default function RunSkeleton() {
   return (
     <LoadingRegion label="Loading run" className="space-y-14">
       <div>
-        <Skeleton className="h-[26px] w-[136px] rounded-md" />
-        <div className="mt-8 flex items-center gap-3">
+        <div className="flex min-h-[38px] items-center gap-3">
           <Skeleton className="h-[27px] w-[124px] rounded-md" />
           <Skeleton className="h-[22px] w-14 rounded-md" />
         </div>
@@ -63,24 +60,21 @@ export default function RunSkeleton() {
 
       <Section title="Leaderboard" aside={<Line lh="h-5" bar="h-2.5" className="w-[440px] max-w-full" />}>
         <div className="overflow-x-auto rounded-xl border border-line bg-panel">
-          <div className="min-w-[960px]">
-            <div className={`grid ${COLS} items-end gap-4 px-4 pt-3 pb-2`}>
-              {[10, 40, 120, 60, 56, 36].map((w, i) => <Skeleton key={i} className={`h-2 ${i > 2 ? 'ml-auto' : ''}`} style={{ width: w }} />)}
+          <div className="min-w-[860px]">
+            <div className={`grid ${COLS} h-[52px] items-end gap-x-2.5 px-4 pt-3 pb-2`}>
+              {[10, 40, 90, 48, 56, 48, 32].map((w, i) => <Skeleton key={i} className={`h-2 ${i > 2 ? 'ml-auto' : ''}`} style={{ width: w }} />)}
             </div>
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className={`grid ${COLS} h-24 items-center gap-4 border-t border-line px-4`}>
+              <div key={i} className={`grid ${COLS} h-[66px] items-center gap-x-2.5 border-t border-line px-4`}>
                 <Skeleton className="h-4 w-3" />
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2"><Skeleton className="size-3.5 rounded-full" /><Skeleton className="h-3 w-32" /></div>
-                  <Line lh="mt-1 h-4" bar="h-2" className="w-40" />
-                  <div className="mt-2 flex gap-1"><Skeleton className="h-[19px] w-28 rounded-[5px]" /><Skeleton className="h-[19px] w-24 rounded-[5px]" /></div>
+                  <div className="flex items-center gap-2"><Skeleton className="size-4 rounded-full" /><Skeleton className="h-3 w-32" /><Skeleton className="h-[18px] w-20 rounded-[5px]" /></div>
+                  <div className="mt-1.5 flex items-center gap-1.5"><Skeleton className="h-2 w-40" /><Skeleton className="ml-1 h-[17px] w-28 rounded-[5px]" /><Skeleton className="h-[17px] w-24 rounded-[5px]" /></div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="relative h-9 flex-1">
-                    <Skeleton className="absolute top-1/2 h-3 w-[14%] -translate-y-1/2 rounded-[2px]" style={{ left: `${48 + i * 9}%` }} />
-                  </div>
-                  <div className="w-[88px] shrink-0"><Skeleton className="ml-auto h-3 w-12" /><Skeleton className="mt-1.5 ml-auto h-2 w-9" /></div>
+                <div className="relative h-9">
+                  <Skeleton className="absolute top-1/2 h-3 w-[18%] -translate-y-1/2 rounded-[2px]" style={{ left: `${44 + i * 9}%` }} />
                 </div>
+                <div><Skeleton className="ml-auto h-3 w-12" /><Skeleton className="mt-1.5 ml-auto h-2 w-9" /></div>
                 <Skeleton className="ml-auto h-3 w-10" />
                 <Skeleton className="ml-auto h-3 w-14" />
                 <Skeleton className="ml-auto h-3 w-6" />

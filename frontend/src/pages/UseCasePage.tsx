@@ -5,7 +5,7 @@ import StartRun from '@/components/StartRun'
 import { ErrorNote, Section } from '@/components/ui'
 import { api } from '@/lib/api'
 import { effortOf } from '@/lib/format'
-import type { MetricInfo, Profile, UseCasePatch } from '@/types'
+import type { MetricInfo, Profile, UseCase, UseCasePatch } from '@/types'
 import UseCaseHeader from '@/components/usecase/Header'
 import CasesTable, { editedAfterRun } from '@/components/usecase/CasesTable'
 import { useEffective } from '@/components/settings/inherit'
@@ -42,7 +42,12 @@ function Description({ text }: { text: string }) {
 export default function UseCasePage() {
   const { id = '' } = useParams()
   const qc = useQueryClient()
-  const uc = useQuery({ queryKey: ['use-case', id], queryFn: () => api.useCase(id), refetchInterval: 4000 })
+  // Coming from the list (or with the sidebar's list already loaded), the row is the same UseCase: show it at
+  // once while the detail fetch confirms it, so the page opens without a skeleton swap.
+  const uc = useQuery({
+    queryKey: ['use-case', id], queryFn: () => api.useCase(id), refetchInterval: 4000,
+    placeholderData: () => qc.getQueryData<UseCase[]>(['use-cases'])?.find((x) => x.id === id),
+  })
   const me = useQuery({ queryKey: ['me'], queryFn: api.me })
   const cases = useQuery({ queryKey: ['cases', id], queryFn: () => api.cases(id), refetchInterval: 4000 })
   const runs = useQuery({ queryKey: ['runs', id], queryFn: () => api.runs(id) })
@@ -94,7 +99,7 @@ export default function UseCasePage() {
       {u.description && <Description text={u.description} />}
 
       <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-4">
-        <div className="min-w-0 bg-panel px-4 py-3">
+        <div className="col-span-2 min-w-0 bg-panel px-4 py-3 md:col-span-1">
           <dt className="text-xs text-faint">Called from</dt>
           <dd className="mt-1 truncate font-mono text-[12.5px]" title={u.source_refs.map((r) => `${r.path}:${r.line ?? ''}`).join('\n')}>
             {ref ? `${ref.path}${ref.line ? `:${ref.line}` : ''}` : '–'}
@@ -103,7 +108,7 @@ export default function UseCasePage() {
             {[ref?.symbol, moreRefs > 0 ? `+${moreRefs} more call ${moreRefs === 1 ? 'site' : 'sites'}` : null].filter(Boolean).join(' · ') || ' '}
           </dd>
         </div>
-        <div className="min-w-0 bg-panel px-4 py-3">
+        <div className="col-span-2 min-w-0 bg-panel px-4 py-3 md:col-span-1">
           <dt className="text-xs text-faint">Model today</dt>
           <dd className="mt-1">
             {u.current_model
@@ -139,9 +144,10 @@ export default function UseCasePage() {
         {tab === 'overview' && (
           <div className="space-y-8">
             <SetupPanel uc={u} cases={cases.data} now={now} />
-            <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
+            {/* both columns share the row's height: the verdict card and Benchmark models end on one line */}
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
               <LatestRun brief={u.latest_run} />
-              <div className="min-w-0">
+              <div className="flex min-w-0 flex-col">
                 <StartRun useCase={u} needsVision={ready.vision} blocked={ready.blocked} />
               </div>
             </div>

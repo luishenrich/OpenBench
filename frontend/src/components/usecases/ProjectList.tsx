@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { usd } from '@/lib/format'
 import type { UseCase } from '@/types'
 import {
-  type KindGroup, type ProjectGroup, type SortKey, STATE_ORDER, countStates, groupUseCases, kindLabel, projectOf, savingsOf, setupState, stateDot, stateShort,
+  type KindGroup, type ProjectGroup, type SortKey, countStates, groupUseCases, kindLabel, projectOf, savingsOf, setupState, stateDot,
 } from './group'
 import { Checkbox, Icon } from './kit'
 import { LiveDot } from './live'
@@ -165,11 +165,15 @@ function Project({ project, projectAll, isOpen, toggle, openAll, fresh, ops, hid
         <ColumnHeader />
         {project.pinned.length > 0 && (
           <div>
-            <div className="flex items-center gap-2 border-b border-line bg-panel px-4 py-2 text-xs text-muted">
-              <Icon name="pin" className="size-3.5 text-front" /> Pinned
-              <span className="rounded-md bg-raised px-1.5 py-px tabular-nums">{project.pinned.length}</span>
+            <div className="flex h-9 items-center border-b border-line bg-panel text-[13px]">
+              <span className={`shrink-0 ${SELECT_W}`} />
+              <span className="flex items-center gap-3">
+                <Icon name="pin" className="size-3.5 shrink-0 text-front" />
+                <span className="font-medium text-muted">Pinned</span>
+              </span>
+              <span className="ml-2 tabular-nums text-faint">{project.pinned.length}</span>
             </div>
-            <ul className="divide-y divide-line border-b border-line">
+            <ul className="divide-y divide-line">
               {project.pinned.map((uc) => <li key={uc.id}><Row uc={uc} fresh={fresh} ops={ops} /></li>)}
             </ul>
           </div>
@@ -205,15 +209,17 @@ function Row({ uc, fresh, ops }: { uc: UseCase; fresh: Set<string>; ops: ListOps
 function KindSection({ group, first, open, onToggle, fresh, ops }: {
   group: KindGroup; first: boolean; open: boolean; onToggle: () => void; fresh: Set<string>; ops: ListOps
 }) {
-  const c = countStates(group.items)
+  const needInput = group.items.filter((u) => setupState(u) === 'data').length
   const newHere = group.items.filter((u) => fresh.has(u.id)).length
   const bodyId = `uc-section-${group.key.replace(/[^a-z0-9]+/gi, '-')}`
   const ids = group.items.map((u) => u.id)
   const nSel = ids.filter((id) => ops.selected.has(id)).length
 
+  // A quiet sub-header on the list's own surface: chevron, label, count, and a coral dot only when
+  // something in the section needs the user's input. The checkbox sits in the same cell as the rows'.
   return (
     <div className={first ? '' : 'border-t border-line'}>
-      <div className={`group/sec flex items-center bg-panel transition-colors hover:bg-raised ${open ? 'border-b border-line' : ''}`}>
+      <div className={`group/sec flex h-9 items-center bg-panel transition-colors hover:bg-raised/50 ${open ? 'border-b border-line' : ''}`}>
         <div className={`grid shrink-0 place-items-center self-stretch ${SELECT_W}`}>
           <Checkbox
             checked={nSel > 0 && nSel === ids.length} indeterminate={nSel > 0 && nSel < ids.length}
@@ -226,20 +232,20 @@ function KindSection({ group, first, open, onToggle, fresh, ops }: {
           onClick={onToggle}
           aria-expanded={open}
           aria-controls={bodyId}
-          className="flex min-w-0 flex-1 items-center gap-3 rounded-sm py-2.5 pr-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-signal/70"
+          className="flex h-full min-w-0 flex-1 items-center gap-3 rounded-sm pr-4 text-left text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-signal/70"
         >
           <svg viewBox="0 0 16 16" className={`size-3.5 shrink-0 text-faint transition-transform ${open ? 'rotate-90' : ''}`} aria-hidden>
             <path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="1.5" />
           </svg>
-          <span className="text-sm font-medium text-fg">{group.kind ? kindLabel[group.kind] : 'All'}</span>
-          <span className="rounded-md bg-raised px-1.5 py-px text-xs tabular-nums text-muted">{group.items.length}</span>
-          {newHere > 0 && <span className="text-xs text-front">{newHere} new</span>}
-          <span className="ml-auto flex min-w-0 flex-wrap justify-end gap-x-3 gap-y-0.5 text-xs text-faint">
-            {STATE_ORDER.filter((s) => c[s] > 0).map((s) => (
-              <span key={s} className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                {s === 'setup' ? <LiveDot small /> : <span className={`size-1.5 rounded-[1px] ${stateDot[s]}`} />}{c[s]} {stateShort[s]}
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="truncate font-medium text-muted">{group.kind ? kindLabel[group.kind] : 'All'}</span>
+            <span className="tabular-nums text-faint">{group.items.length}</span>
+            {needInput > 0 && (
+              <span className="size-1.5 shrink-0 rounded-full bg-front" title={`${needInput} ${needInput === 1 ? 'needs' : 'need'} your input`}>
+                <span className="sr-only">{needInput} need your input</span>
               </span>
-            ))}
+            )}
+            {newHere > 0 && <span className="text-xs text-front">{newHere} new</span>}
           </span>
         </button>
       </div>

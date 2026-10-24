@@ -26,8 +26,9 @@ function Fact({ label, value, detail }: { label: string; value: ReactNode; detai
   return (
     <div className="min-w-0">
       <dt className="text-xs text-faint">{label}</dt>
-      <dd className="mt-1 text-base font-medium whitespace-nowrap text-fg">{value}</dd>
-      {detail && <dd className="mt-0.5 text-xs text-faint">{detail}</dd>}
+      <dd className="mt-1 text-base font-medium text-fg tabular-nums lg:whitespace-nowrap">{value}</dd>
+      {/* the detail line is always there (one line, never wrapping), so the strip keeps its height while numbers arrive */}
+      <dd className="mt-0.5 text-xs text-faint tabular-nums lg:truncate">{detail ?? '\u00a0'}</dd>
     </div>
   )
 }
@@ -68,7 +69,7 @@ export default function RunFacts({ run: r }: { run: Run }) {
 
   return (
     <div className="mt-8 rounded-xl border border-line bg-panel px-5 py-4">
-      <dl className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3 lg:grid-cols-5">
+      <dl className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.45fr)_minmax(0,0.85fr)_minmax(0,1.05fr)_minmax(0,1.15fr)]">
         <Fact
           label={live ? 'Running for' : 'Duration'}
           value={dur == null ? '–' : duration(dur)}
@@ -98,8 +99,8 @@ export default function RunFacts({ run: r }: { run: Run }) {
       {live && (
         <div className="mt-4 border-t border-line pt-3">
           <div className="flex items-baseline justify-between gap-4 text-xs">
-            <span className="text-muted">{phase}</span>
-            <span className="text-faint">{Math.round(frac * 100)}%</span>
+            <span className="text-muted tabular-nums">{phase}</span>
+            <span className="text-faint tabular-nums">{Math.round(frac * 100)}%</span>
           </div>
           <div className="mt-2 h-1 overflow-hidden rounded-full bg-line" role="progressbar" aria-label={phase} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(frac * 100)}>
             <div className={`h-full rounded-full transition-[width] duration-700 ${jurying ? 'bg-signal' : 'bg-front'}`} style={{ width: `${frac * 100}%` }} />

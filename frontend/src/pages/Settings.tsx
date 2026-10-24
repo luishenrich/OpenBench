@@ -6,7 +6,7 @@ import { ApiError, api } from '@/lib/api'
 import { Button, ErrorNote } from '@/components/ui'
 import SettingsSkeleton from '@/components/settings/SettingsSkeleton'
 import Weights from '@/components/Weights'
-import { SettingsSection, inputCls } from '@/components/settings/controls'
+import { HEADER, SettingsSection, inputCls } from '@/components/settings/controls'
 import { withDefaults, type FullWorkspace } from '@/components/settings/defaults'
 import { Pool, Runs, Targets } from '@/components/settings/fields'
 import { Jury } from '@/components/settings/Jury'
@@ -59,14 +59,14 @@ export default function Settings() {
 
   return (
     <div className={dirty ? 'pb-24' : ''}>
-      <header className="max-w-2xl">
-        <h1 className="display text-4xl sm:text-5xl">Settings</h1>
-        <p className="mt-3 text-muted text-pretty">
+      <header className={HEADER}>
+        <h1 className="display min-w-0 truncate text-3xl">Settings</h1>
+        <p className="text-sm text-muted text-pretty">
           Defaults for every use case in {base.name}. A use case keeps these until you change a setting on its own page.
         </p>
       </header>
 
-      <div className="mt-10">
+      <div className="mt-6">
         <SettingsSection title="Workspace name" help="Shown in the sidebar and on shared reports.">
           <input
             aria-label="Workspace name"
@@ -118,7 +118,7 @@ export default function Settings() {
       </div>
 
       {saved && !dirty && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-5 z-30 flex justify-center px-4 lg:left-60">
+        <div className="pointer-events-none fixed inset-x-0 bottom-5 z-30 flex justify-center px-4 lg:left-(--sidebar-w)">
           <p role="status" className="flex items-center gap-2 rounded-xl border border-line-strong bg-raised/95 px-4 py-3 text-sm text-fg shadow-2xl shadow-black/60 backdrop-blur">
             <span aria-hidden className="size-1.5 rounded-[1px] bg-win" />
             Saved. Use cases that inherit these settings use them on their next run.
@@ -127,7 +127,7 @@ export default function Settings() {
       )}
 
       {dirty && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-5 z-30 flex justify-center px-4 lg:left-60">
+        <div className="pointer-events-none fixed inset-x-0 bottom-5 z-30 flex justify-center px-4 lg:left-(--sidebar-w)">
           <div
             role="region"
             aria-label="Unsaved changes"

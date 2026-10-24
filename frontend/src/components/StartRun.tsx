@@ -124,8 +124,8 @@ export default function StartRun({ useCase, needsVision, blocked = null }: { use
   const link = 'text-muted underline decoration-line-strong underline-offset-2 hover:text-fg'
 
   return (
-    <Panel className="p-5">
-      <Badge tone="signal">New run</Badge>
+    <Panel className="flex flex-1 flex-col p-5">
+      <div><Badge tone="signal">New run</Badge></div>
       <h2 className="title mt-4 text-lg">Benchmark models</h2>
       {blocked ? (
         // the agent still filling the use case in is a wait, not a problem: neutral with a live dot
@@ -259,7 +259,8 @@ export default function StartRun({ useCase, needsVision, blocked = null }: { use
       )}
       {(estimateM.error || startM.error) && <div className="mt-3"><ErrorNote error={estimateM.error ?? startM.error} /></div>}
 
-      <div className="mt-4">
+      {/* pinned to the bottom when the panel is stretched to the row; the estimate fills the slack above it */}
+      <div className="mt-auto pt-4">
         {estimate && !blocked ? (
           <Button className="w-full" onClick={() => startM.mutate()} disabled={startM.isPending || overCap}>
             {startM.isPending ? 'Starting…' : overCap ? 'Over the workspace cap' : `Start benchmark for ${usd(estimate.total_usd)}`}

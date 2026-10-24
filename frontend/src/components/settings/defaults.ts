@@ -23,6 +23,7 @@ const LABELS: Record<string, string> = {
   'openai/gpt-6-luna': 'GPT-6 Luna',
   'deepseek-ai/DeepSeek-V4.1-Flash-1017': 'DeepSeek-V4.1-Flash',
   'zai-org/GLM-5.3': 'GLM-5.3',
+  'MiniMaxAI/MiniMax-M3.1-Flash': 'MiniMax-M3.1-Flash',
 }
 export const modelLabel = (model: string) => LABELS[model] ?? shortModel(model)
 export const sameModel = (a: ModelRef, b: ModelRef) => a.provider === b.provider && a.model === b.model

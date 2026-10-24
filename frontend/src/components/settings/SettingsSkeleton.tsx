@@ -1,5 +1,6 @@
 // First-load skeleton for Settings: the real page title, then sections on the SettingsSection grid.
 import { Line, LoadingRegion, Skeleton } from '@/components/Skeleton'
+import { HEADER } from './controls'
 
 const SECTIONS: { title: number; controls: 'input' | 'weights' | 'rows' | 'chips' }[] = [
   { title: 130, controls: 'input' },
@@ -11,14 +12,14 @@ const SECTIONS: { title: number; controls: 'input' | 'weights' | 'rows' | 'chips
 export default function SettingsSkeleton() {
   return (
     <LoadingRegion label="Loading settings">
-      <header className="max-w-2xl">
-        <h1 className="display text-4xl sm:text-5xl">Settings</h1>
-        <div className="mt-3">
-          <Line lh="h-6" bar="h-3" className="w-full" />
-          <Line lh="h-6" bar="h-3" className="w-[45%]" />
-        </div>
+      <header className={HEADER}>
+        <h1 className="display min-w-0 truncate text-3xl">Settings</h1>
+        {/* Same sentence as the page, so it wraps the same; only the workspace name is unknown yet */}
+        <p className="text-sm text-faint text-pretty">
+          Defaults for every use case in this workspace. A use case keeps these until you change a setting on its own page.
+        </p>
       </header>
-      <div className="mt-10">
+      <div className="mt-6">
         {SECTIONS.map((s, i) => (
           <section key={i} className="grid gap-x-12 gap-y-4 border-t border-line py-8 md:grid-cols-[260px_minmax(0,1fr)]" aria-hidden>
             <div>

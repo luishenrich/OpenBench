@@ -1,7 +1,7 @@
 // Connect a coding agent to BIY over MCP. Primary: OAuth (the client opens a browser to sign in and approve).
 // Secondary: a workspace key sent as a header, for CI, headless runs and clients without OAuth.
 import { useState, type ReactNode } from 'react'
-import { SettingsSection } from '@/components/settings/controls'
+import { HEADER, SettingsSection } from '@/components/settings/controls'
 import { Tag } from '@/components/ui'
 import { ConnectedApps } from '@/components/connections/ConnectedApps'
 import { KeyMethod } from '@/components/connections/KeyMethod'
@@ -40,14 +40,14 @@ export default function Connections() {
 
   return (
     <div>
-      <header className="max-w-2xl">
-        <h1 className="display text-4xl sm:text-5xl">Connections</h1>
-        <p className="mt-3 text-muted text-pretty">
+      <header className={HEADER}>
+        <h1 className="display min-w-0 truncate text-3xl">Connections</h1>
+        <p className="text-sm text-muted text-pretty">
           Connect your coding agent to BIY over MCP. It scans your product repo and sets up use cases for you.
         </p>
       </header>
 
-      <div className="mt-10">
+      <div className="mt-6">
         <SettingsSection
           title="Add BIY to your agent"
           help="Add the server, then sign in from your agent. No key to copy: your browser opens to approve the connection."
@@ -74,11 +74,12 @@ export default function Connections() {
           <ol className="mt-5 grid gap-3 lg:grid-cols-3">
             {STEPS.map((step, i) => (
               <li key={step.title} className="rounded-lg border border-line bg-panel px-4 py-3.5">
-                <div className="flex items-center gap-2.5">
-                  <span className="inline-flex size-5 items-center justify-center rounded-[5px] border border-line-strong text-[11px] tabular-nums text-muted">{i + 1}</span>
-                  <span className="text-sm text-fg">{step.title}</span>
+                {/* items-start: a title that wraps at 1280 keeps its number on the first line */}
+                <div className="flex items-start gap-2.5">
+                  <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-[5px] border border-line-strong text-[11px] tabular-nums text-muted">{i + 1}</span>
+                  <span className="text-sm leading-5 text-fg text-pretty">{step.title}</span>
                 </div>
-                <p className="mt-1.5 text-xs leading-relaxed text-faint">{step.body}</p>
+                <p className="mt-1.5 text-xs leading-relaxed text-faint text-pretty">{step.body}</p>
               </li>
             ))}
           </ol>

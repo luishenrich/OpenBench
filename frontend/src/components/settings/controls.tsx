@@ -1,6 +1,9 @@
 // Small form controls for the settings page.
 import { useEffect, useState, type ReactNode } from 'react'
 
+/** Page header for Settings and Connections: the use-case list's compact h1 with an inline summary. */
+export const HEADER = 'flex min-h-9 flex-wrap items-center gap-x-4 gap-y-1'
+
 /** One settings block: title and helper text on the left, controls on the right. */
 export function SettingsSection({ id, title, help, children }: { id?: string; title: string; help: ReactNode; children: ReactNode }) {
   return (

@@ -8,6 +8,8 @@ const PATHS = {
   menu: 'M2.5 4.5h11M2.5 8h11M2.5 11.5h11',
   x: 'M4 4l8 8M12 4l-8 8',
   out: 'M6.5 2.5h-3a1 1 0 00-1 1v9a1 1 0 001 1h3M10 5l3 3-3 3M13 8H6.5',
+  sidebar: 'M3.5 2.5h9a1 1 0 011 1v9a1 1 0 01-1 1h-9a1 1 0 01-1-1v-9a1 1 0 011-1zM6.5 2.5v11',
+  chevron: 'M6 3.5l4.5 4.5L6 12.5',
 } as const
 export type NavIconName = keyof typeof PATHS
 

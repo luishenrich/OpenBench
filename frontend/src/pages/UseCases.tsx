@@ -85,43 +85,54 @@ export default function UseCases() {
         {all.length > 0 && <ViewControls view={view} update={update} className="ml-auto" />}
       </header>
 
-      {q.isLoading && <ToolbarSkeleton />}
-      {all.length > 0 && <div className="mt-5"><ScanBanner list={all} fallbackName={fallbackName} /></div>}
-      {all.length > 0 && <div className="mt-5"><Toolbar all={all} view={view} update={update} now={now} controls={false} /></div>}
-
-      <div className="mt-6">
-        {q.isLoading && <ListSkeleton />}
-        {q.error && !q.data && <ErrorNote error={q.error} />}
-        {q.data?.length === 0 && <WaitingForAgent />}
-        {project && everything.length > 0 && all.length === 0 && (
-          <div className="rounded-xl border border-dashed border-line-strong px-6 py-12 text-center">
-            <p className="title">No use cases in “{project}”</p>
-            <p className="mt-1 text-sm text-muted">The project may have been renamed, or its use cases deleted.</p>
-            <button type="button" onClick={clearProject} className={`mt-4 rounded-md border border-line bg-panel px-3 py-1.5 text-sm text-fg hover:border-line-strong ${focusRing}`}>
-              Show all projects
-            </button>
+      {/* Three states, each its own block (keyed), so going from the skeleton to the empty state or the list,
+          or from the empty state to the first use case, swaps blocks instead of pushing a shared one around. */}
+      {q.isLoading ? (
+        <div key="loading">
+          <ToolbarSkeleton />
+          <div className="mt-6"><ListSkeleton /></div>
+        </div>
+      ) : all.length === 0 ? (
+        <div key="empty" className="mt-6">
+          {q.error && !q.data && <ErrorNote error={q.error} />}
+          {q.data?.length === 0 && <WaitingForAgent />}
+          {project && everything.length > 0 && (
+            <div className="rounded-xl border border-dashed border-line-strong px-6 py-12 text-center">
+              <p className="title">No use cases in “{project}”</p>
+              <p className="mt-1 text-sm text-muted">The project may have been renamed, or its use cases deleted.</p>
+              <button type="button" onClick={clearProject} className={`mt-4 rounded-md border border-line bg-panel px-3 py-1.5 text-sm text-fg hover:border-line-strong ${focusRing}`}>
+                Show all projects
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div key="list">
+          {/* the banner slides open and shut (it carries its own top spacing), so the list moves smoothly */}
+          <ScanBanner list={all} fallbackName={fallbackName} />
+          <div className="mt-5"><Toolbar all={all} view={view} update={update} now={now} controls={false} /></div>
+          <div className="mt-6">
+            {shown.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-line-strong px-6 py-12 text-center">
+                <p className="title">No use cases match</p>
+                <p className="mt-1 text-sm text-muted">Nothing fits {view.q.trim() ? <>“{view.q.trim()}”</> : 'this filter'}.</p>
+                <button type="button" onClick={() => update({ q: '', status: 'all' })} className={`mt-4 rounded-md border border-line bg-panel px-3 py-1.5 text-sm text-fg hover:border-line-strong ${focusRing}`}>
+                  Clear filters
+                </button>
+              </div>
+            ) : (
+              <ProjectList
+                useCases={shown} all={all} fallbackName={fallbackName} fresh={fresh}
+                sort={view.sort} flat={view.group === 'none'} filtering={isFiltering(view)} ops={ops}
+                single={!!project}
+              />
+            )}
           </div>
-        )}
-        {all.length > 0 && shown.length === 0 && (
-          <div className="rounded-xl border border-dashed border-line-strong px-6 py-12 text-center">
-            <p className="title">No use cases match</p>
-            <p className="mt-1 text-sm text-muted">Nothing fits {view.q.trim() ? <>“{view.q.trim()}”</> : 'this filter'}.</p>
-            <button type="button" onClick={() => update({ q: '', status: 'all' })} className={`mt-4 rounded-md border border-line bg-panel px-3 py-1.5 text-sm text-fg hover:border-line-strong ${focusRing}`}>
-              Clear filters
-            </button>
-          </div>
-        )}
-        {shown.length > 0 && (
-          <ProjectList
-            useCases={shown} all={all} fallbackName={fallbackName} fresh={fresh}
-            sort={view.sort} flat={view.group === 'none'} filtering={isFiltering(view)} ops={ops}
-            single={!!project}
-          />
-        )}
-      </div>
+        </div>
+      )}
 
       {selected.size > 0 && (
-        <div className="fixed inset-x-0 bottom-5 z-30 flex justify-center px-4 lg:left-60" role="region" aria-label="Bulk actions">
+        <div className="fixed inset-x-0 bottom-5 z-30 flex justify-center px-4 lg:left-(--sidebar-w)" role="region" aria-label="Bulk actions">
           <div className="flex items-center gap-1 rounded-xl border border-line-strong bg-raised py-1.5 pr-1.5 pl-4 text-sm shadow-2xl shadow-black/50">
             <span className="mr-2 tabular-nums text-fg">{selected.size} selected</span>
             <button type="button" onClick={() => ops.setPinned([...selected], !allPinned)} className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-muted hover:bg-line hover:text-fg ${focusRing}`}>

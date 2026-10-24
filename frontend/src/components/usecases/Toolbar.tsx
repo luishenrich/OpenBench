@@ -7,12 +7,13 @@ import { LiveDot } from './live'
 export type StatusFilter = 'all' | 'setup' | 'data' | 'ready' | 'running' | 'done'
 const FILTERS: { key: StatusFilter; label: string; states: SetupState[] }[] = [
   { key: 'all', label: 'All', states: [] },
-  // only shown while the agent is setting something up (or while selected)
-  { key: 'setup', label: 'Setting up', states: ['setup'] },
   { key: 'data', label: 'Needs data', states: ['data'] },
   { key: 'ready', label: 'Ready', states: ['ready'] },
   { key: 'running', label: 'Running', states: ['running'] },
   { key: 'done', label: 'Benchmarked', states: ['done'] },
+  // only shown while the agent is setting something up (or while selected); last, so its coming and
+  // going never pushes the other chips sideways
+  { key: 'setup', label: 'Setting up', states: ['setup'] },
 ]
 
 export interface ListView { q: string; status: StatusFilter; sort: SortKey; group: 'kind' | 'none' }

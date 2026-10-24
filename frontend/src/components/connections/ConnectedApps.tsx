@@ -32,13 +32,14 @@ export function ConnectedApps() {
             <li key={i} className="flex items-center gap-4 px-4 py-3.5">
               <Skeleton className="size-9 shrink-0 rounded-lg" />
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2.5"><Skeleton className="h-3 w-24" /><Skeleton className="h-2 w-20" /></div>
-                <div className="mt-2 flex items-center gap-1.5">
-                  {[46, 42, 50].map((w) => <Skeleton key={w} className="h-[22px] rounded-md" style={{ width: w }} />)}
+                {/* Heights match GrantRow: a 20px name line, then 23px scope tags */}
+                <div className="flex h-5 items-center gap-2.5"><Skeleton className="h-3 w-24" /><Skeleton className="h-2 w-20" /></div>
+                <div className="mt-1.5 flex h-[23px] items-center gap-1.5">
+                  {[46, 42, 50].map((w) => <Skeleton key={w} className="h-[23px] rounded-md" style={{ width: w }} />)}
                   <Skeleton className="ml-1 h-2 w-24" />
                 </div>
               </div>
-              <Skeleton className="h-8 w-[74px] shrink-0 rounded-md" />
+              <Skeleton className="h-[37px] w-[74px] shrink-0 rounded-md" />
             </li>
           ))}
         </ul>
@@ -108,7 +109,7 @@ function GrantRow({ grant, revoking, onRevoke }: { grant: OAuthGrant; revoking: 
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
           {scopes.map((s) => <Tag key={s}>{s}</Tag>)}
           {ago && (
-            <span className={`text-xs text-faint ${scopes.length ? 'ml-1' : ''}`} title={new Date(granted_at).toLocaleString()}>
+            <span className={`text-xs text-faint ${scopes.length ? 'sm:ml-1' : ''}`} title={new Date(granted_at).toLocaleString()}>
               Connected {ago}
             </span>
           )}
