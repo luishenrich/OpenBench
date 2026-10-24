@@ -8,6 +8,16 @@ BIY exposes a remote MCP server at `https://<host>/mcp` (Streamable HTTP, built 
 
 Get a workspace API key in the dashboard: **Use cases** page, **"Connect your coding agent"** panel (Create key / Replace key). It is shown once. The live server is `https://biy.studypdf.net`.
 
+**Sign in with the browser (OAuth):**
+
+```bash
+claude mcp add --transport http biy https://biy.studypdf.net/mcp
+```
+
+Then in Claude Code run `/mcp`, pick `biy` and choose **Authenticate**. BIY answers `401` with its OAuth metadata, and Supabase signs you in.
+
+**Or with a workspace key** (CI, headless):
+
 ```bash
 claude mcp add --transport http biy https://<host>/mcp --header "Authorization: Bearer $BIY_KEY"
 ```

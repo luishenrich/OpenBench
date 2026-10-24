@@ -56,8 +56,9 @@ Call `biy_workspace_get` once for the company's default trade-off profile. Then,
 
 **b. Metrics:** call **`biy_metrics_select`** with `kind` plus every flag you can tell (`user_facing`, `waiting`, `has_schema`,
 `has_reference`, `numeric_fields`, `tools`, `multi_step_agent`, `ocr`, `layout_boxes`, `knowledge_base`, `citations_required`,
-`baseline_present` (true when there is a current model), `phi_or_customer_data`, `length_bounded`, `brand_voice`, …) and a
-one-paragraph `narrative`. Use the returned `metrics` and `gates` **as they are**; don't invent metric ids.
+`baseline_present` (true when there is a current model), `phi_or_customer_data`, `length_bounded`, `brand_voice`,
+`feedback_text` (the output is a grade or label **and** a written comment a person reads), …) and a one-paragraph
+`narrative`. Use the returned `metrics` and `gates` **as they are**; don't invent metric ids.
 
 **c. Trade-off weights** `{quality, speed, cost}` (sum 100): keep the company default unless the use case clearly differs.
 A person waiting on streamed text → speed matters more. Background batch → speed near 0, cost matters. Agents → quality

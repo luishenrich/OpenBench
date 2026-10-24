@@ -23,6 +23,14 @@ except ImportError:  # pragma: no cover
     _bank, _HAS_BANK = None, False
 
 JUDGE_METRICS = {"rubric_score", "pairwise_vs_baseline"}
+try:  # judge metrics that compare against the reference in both orders (Jad's list)
+    from .metrics.judge import PAIRWISE_METRICS
+except ImportError:  # pragma: no cover
+    PAIRWISE_METRICS = {"pairwise_vs_baseline", "length_controlled_win_rate"}
+
+
+def is_pairwise(metric_id: str) -> bool:
+    return metric_id in PAIRWISE_METRICS
 
 
 @dataclass

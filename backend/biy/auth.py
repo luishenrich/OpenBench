@@ -34,7 +34,13 @@ def _verify_supabase(token: str) -> dict:
     if not settings.supabase_url:
         raise jwt.InvalidTokenError("SUPABASE_URL is not set")
     key = _jwks().get_signing_key_from_jwt(token).key
-    return jwt.decode(token, key, algorithms=["ES256"], audience="authenticated")
+    # "authenticated": dashboard sessions; the /mcp resource URL: OAuth tokens issued for this server
+    audiences = ["authenticated", f"{settings.public_base_url.rstrip('/')}/mcp"]
+    try:
+        return jwt.decode(token, key, algorithms=["ES256"], audience=audiences)
+    except jwt.InvalidAudienceError as e:
+        aud = jwt.decode(token, options={"verify_signature": False}).get("aud")
+        raise jwt.InvalidAudienceError(f"audience {aud!r} not accepted (expected one of {audiences})") from e
 
 
 async def caller_from_token(token: str | None) -> Caller:
@@ -51,6 +57,7 @@ async def caller_from_token(token: str | None) -> Caller:
         claims = _verify_supabase(token)
     except jwt.PyJWTError as e:
         raise HTTPException(401, f"invalid token: {e}") from e
+    # OAuth tokens may carry no email; the user id alone finds (or creates) the same workspace
     user_id, email = UUID(claims["sub"]), claims.get("email")
     return Caller(await workspace.ensure_workspace(user_id, email), user_id, email)
 
