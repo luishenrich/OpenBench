@@ -24,8 +24,11 @@ async def pool() -> asyncpg.Pool:
         if not settings.database_url:
             raise RuntimeError("DATABASE_URL is not set")
         # statement_cache_size=0: Supabase's pooler doesn't support prepared statement caching.
-        _pool = await asyncpg.create_pool(settings.database_url, min_size=1, max_size=10,
-                                          statement_cache_size=0, init=_init)
+        # Supabase's session pooler allows 15 clients in total, shared by the api, the worker and
+        # any script: keep each pool small and give idle connections back quickly.
+        _pool = await asyncpg.create_pool(settings.database_url, min_size=0, max_size=settings.db_pool_size,
+                                          max_inactive_connection_lifetime=30, statement_cache_size=0,
+                                          init=_init)
     return _pool
 
 

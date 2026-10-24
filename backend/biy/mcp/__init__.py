@@ -41,7 +41,8 @@ async def _ws() -> UUID:
         return (await caller_from_token(token)).workspace_id
     except HTTPException as e:
         raise ToolError(f"{e.detail}. Connect with: claude mcp add --transport http biy <url>/mcp "
-                        "--header \"Authorization: Bearer biy_…\" (key from the dashboard, Settings → MCP)") from e
+                        "--header \"Authorization: Bearer biy_…\". Get the key from the dashboard: Use cases page, "
+                        "\"Connect your coding agent\" panel (Create key / Replace key).") from e
 
 
 def _result(text: str, data: Any) -> ToolResult:
