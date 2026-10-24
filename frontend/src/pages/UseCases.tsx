@@ -5,6 +5,7 @@ import { ErrorNote, Loading, StatusPill, Tag } from '@/components/ui'
 import { api } from '@/lib/api'
 import { ago, shortModel, usd } from '@/lib/format'
 import { briefVerdict } from '@/lib/verdict'
+import { ModelIcon } from '@/components/ModelIcon'
 
 const verdictDot = { switch: 'bg-win', keep: 'bg-muted', use: 'bg-front' } as const
 
@@ -16,7 +17,7 @@ export default function UseCases() {
   return (
     <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
       <div>
-        <h1 className="display text-4xl sm:text-5xl">Use cases</h1>
+        <h1 className="display text-4xl text-balance sm:text-5xl">Use cases</h1>
         <p className="mt-3 max-w-lg text-muted">Every place your product calls an LLM, the model it uses today, and what the benchmark says.</p>
         {!!q.data?.length && (
           <p className="mt-5 text-sm text-faint">
@@ -51,25 +52,29 @@ export default function UseCases() {
                         </div>
                         <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
                           {ref && <span className="truncate font-mono text-[12px] text-faint">{ref.path}{ref.line ? `:${ref.line}` : ''}</span>}
-                          <span>{uc.current_model ? `today ${shortModel(uc.current_model.model)}` : 'no current model'}</span>
+                          {uc.current_model
+                            ? <span className="inline-flex items-center gap-1.5">today <ModelIcon model={uc.current_model.model} size={14} />{shortModel(uc.current_model.model)}</span>
+                            : <span>no current model</span>}
                           <span>{uc.case_count} cases</span>
                         </div>
-                        {run && (
+                        {run && (run.status === 'done' && v ? (
+                          // dot and headline stay together when the headline wraps
+                          <div className="mt-3 flex items-start gap-2.5 text-sm">
+                            <span className={`mt-[6px] size-2 shrink-0 rounded-[2px] ${verdictDot[v]}`} />
+                            <p className="min-w-0">
+                              <span className={v === 'keep' ? 'text-muted' : 'text-fg'}>{run.recommendation_headline}</span>
+                              {run.est_monthly_savings_usd != null && run.est_monthly_savings_usd > 0 && (
+                                <span className="ml-3 inline-block text-win">~{usd(run.est_monthly_savings_usd)}/month</span>
+                              )}
+                              {run.finished_at && <span className="ml-3 inline-block text-faint">{ago(run.finished_at)}</span>}
+                            </p>
+                          </div>
+                        ) : (
                           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-                            {run.status === 'done' && v ? (
-                              <>
-                                <span className={`size-2 rounded-[2px] ${verdictDot[v]}`} />
-                                <span className={v === 'keep' ? 'text-muted' : 'text-fg'}>{run.recommendation_headline}</span>
-                              </>
-                            ) : (
-                              <StatusPill status={run.status} />
-                            )}
-                            {run.est_monthly_savings_usd != null && run.est_monthly_savings_usd > 0 && (
-                              <span className="text-win">~{usd(run.est_monthly_savings_usd)}/month</span>
-                            )}
+                            <StatusPill status={run.status} />
                             {run.finished_at && <span className="text-faint">{ago(run.finished_at)}</span>}
                           </div>
-                        )}
+                        ))}
                       </div>
                       <span className="hidden self-center text-faint transition-colors group-hover:text-fg sm:block" aria-hidden>
                         <svg viewBox="0 0 16 16" className="size-4"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>

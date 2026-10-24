@@ -49,6 +49,9 @@ export default function RunPage() {
   const frac = p.total ? p.done / p.total : 0
   const baseline = r.leaderboard.find((c) => c.is_baseline)
   const verdict = runVerdict(r)
+  // On "keep", the recommendation names the closest challenger, not a pick: nothing is highlighted as the choice.
+  const pickKey = verdict === 'keep' ? null : r.recommendation?.candidate_key ?? null
+  const closestKey = verdict === 'keep' ? r.recommendation?.candidate_key ?? null : null
 
   return (
     <div className="space-y-14">
@@ -68,7 +71,7 @@ export default function RunPage() {
           <div className="mt-8">
             <div className="flex items-baseline justify-between gap-4">
               <span className="display text-5xl">{Math.round(frac * 100)}%</span>
-              <span className="text-sm text-muted">{p.done.toLocaleString()} of {p.total.toLocaleString()} calls{p.errors > 0 && <span className="text-bad">, {p.errors} errors</span>}</span>
+              <span className="text-sm text-muted">{p.done.toLocaleString()} of {p.total.toLocaleString()} calls{p.errors > 0 && <span className="text-bad">, {p.errors} {p.errors === 1 ? 'error' : 'errors'}</span>}</span>
             </div>
             <div className="mt-3"><ProgressRuler frac={frac} /></div>
             <p className="mt-3 text-sm text-faint">
@@ -80,13 +83,16 @@ export default function RunPage() {
       </div>
 
       {r.recommendation && verdict && (
-        <VerdictCard rec={r.recommendation} verdict={verdict} baselineName={baseline ? shortModel(baseline.model) : null} />
+        <VerdictCard
+          rec={r.recommendation} verdict={verdict} baselineName={baseline ? shortModel(baseline.model) : null}
+          pick={r.leaderboard.find((c) => c.candidate_key === r.recommendation!.candidate_key)} base={baseline}
+        />
       )}
 
       {r.pareto_points.length > 0 && (
-        <Section title="Quality against cost" aside="Coral squares are the Pareto front: no other model is both better and cheaper.">
+        <Section title="Quality against cost" aside="The coral staircase is the Pareto front: for each model on it, no other model is both better and cheaper.">
           <Panel className="p-4">
-            <ParetoChart points={r.pareto_points} recommended={r.recommendation?.candidate_key ?? null} />
+            <ParetoChart points={r.pareto_points} recommended={pickKey} />
           </Panel>
         </Section>
       )}
@@ -95,7 +101,7 @@ export default function RunPage() {
         {r.leaderboard.length === 0 ? (
           <p className="rounded-xl border border-dashed border-line-strong px-5 py-8 text-sm text-muted">Waiting for the first results.</p>
         ) : (
-          <Leaderboard rows={r.leaderboard} metrics={metrics.data ?? []} recommended={r.recommendation?.candidate_key ?? null} running={live} />
+          <Leaderboard rows={r.leaderboard} metrics={metrics.data ?? []} recommended={pickKey} closest={closestKey} running={live} />
         )}
       </Section>
 

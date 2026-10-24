@@ -1,11 +1,13 @@
 import { ms, num, pct, shortModel, usd } from '@/lib/format'
 import type { CandidateResult, MetricInfo } from '@/types'
 import { Tag } from './ui'
+import { ModelIcon, ProviderIcon } from '@/components/ModelIcon'
 
 // A forest plot: one lane per model on a shared quality axis. The band is the 95% CI, the tick is the mean,
 // the dashed line is today's model. Overlapping bands mean the difference is not significant.
 
-const COLS = 'grid-cols-[28px_minmax(180px,240px)_minmax(260px,1fr)_84px_84px_60px]'
+// rank | model (name, provider, per-metric chips) | quality lane + mean | p95 latency | cost | errors
+const COLS = 'grid-cols-[24px_minmax(280px,300px)_minmax(280px,1fr)_112px_84px_56px]'
 
 function axis(rows: CandidateResult[]) {
   const lo = Math.min(...rows.map((r) => r.quality.ci_low))
@@ -36,10 +38,12 @@ function Lane({ r, x, baseX, recommended, running }: {
   )
 }
 
-export default function Leaderboard({ rows, metrics, recommended, running }: {
+export default function Leaderboard({ rows, metrics, recommended, closest = null, running }: {
   rows: CandidateResult[]
   metrics: MetricInfo[]
   recommended: string | null
+  /** on a "keep" verdict: the best challenger, tagged but not highlighted as the pick */
+  closest?: string | null
   running: boolean
 }) {
   const sorted = [...rows].sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999) || b.scores.utility - a.scores.utility)
@@ -48,25 +52,41 @@ export default function Leaderboard({ rows, metrics, recommended, running }: {
   const { x, ticks } = axis(sorted)
   const base = sorted.find((r) => r.is_baseline)
   const baseX = base ? x(base.quality.mean) : null
-  const name = (id: string) => metrics.find((m) => m.id === id)?.name ?? id.replaceAll('_', ' ')
+  const name = (id: string) => metrics.find((m) => m.id === id || m.aliases.includes(id))?.name ?? id.replaceAll('_', ' ')
+  // "json_schema_valid >= 0.99" → "JSON Schema validity ≥ 0.99"
+  const gateText = (g: string) => {
+    const [id, op, ...rest] = g.split(' ')
+    return [name(id), { '>=': '≥', '<=': '≤' }[op ?? ''] ?? op, ...rest].filter(Boolean).join(' ')
+  }
 
   const row = (r: CandidateResult) => {
     const isRec = r.candidate_key === recommended
+    const failedIds = new Set(r.failed_gates.map((g) => g.split(' ')[0]))
     return (
       <div key={r.candidate_key} className={`grid ${COLS} items-center gap-4 border-t border-line px-4 py-3 ${isRec ? 'bg-front/[0.06]' : ''}`}>
         <span className={`title text-lg ${isRec ? 'text-front' : r.rank ? 'text-fg' : 'text-faint'}`}>{r.rank ?? '–'}</span>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="truncate font-medium">{shortModel(r.model)}</span>
+            <span className="flex min-w-0 items-center gap-2"><ModelIcon model={r.candidate_key} size={16} /><span className="truncate font-medium" title={r.model}>{shortModel(r.model)}</span></span>
             {r.is_baseline && <Tag>today</Tag>}
             {isRec && <Tag tone="front">pick</Tag>}
+            {r.candidate_key === closest && <Tag>closest challenger</Tag>}
             {r.pareto && !isRec && !r.is_baseline && <Tag tone="signal">Pareto</Tag>}
           </div>
-          <div className="mt-0.5 truncate text-xs text-faint">
-            {r.provider}, n = {r.n}
-            {Object.entries(r.metrics).map(([k, v]) => `, ${name(k)} ${pct(v.mean, 0)}`).join('')}
-          </div>
-          {!r.passed_gates && <div className="mt-0.5 text-xs text-bad">failed {r.failed_gates.join(', ')}</div>}
+          <div className="mt-1 flex items-center gap-1.5 text-xs text-faint"><ProviderIcon provider={r.provider} size={11} />via {r.provider}, n = {r.n}</div>
+          {Object.keys(r.metrics).length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {Object.entries(r.metrics).map(([k, v]) => {
+                const bad = failedIds.has(k)
+                return (
+                  <span key={k} className={`inline-flex items-baseline gap-1.5 rounded-[5px] border px-1.5 py-[3px] text-[11px] leading-none ${bad ? 'border-bad/40 text-bad' : 'border-line text-faint'}`}>
+                    {name(k)}<span className={`font-medium ${bad ? '' : 'text-muted'}`}>{pct(v.mean, 0)}</span>
+                  </span>
+                )
+              })}
+            </div>
+          )}
+          {!r.passed_gates && <div className="mt-1.5 text-xs text-bad">Failed {r.failed_gates.map(gateText).join(', ')}</div>}
         </div>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1"><Lane r={r} x={x} baseX={baseX} recommended={isRec} running={running} /></div>
@@ -75,7 +95,7 @@ export default function Leaderboard({ rows, metrics, recommended, running }: {
             <div className="text-[11px] text-faint">± {pct(r.quality.std)}</div>
           </div>
         </div>
-        <div className="text-right text-sm">
+        <div className="text-right text-sm whitespace-nowrap">
           {ms(r.e2e_ms.p95)}
           {r.ttft_ms && <div className="text-[11px] text-faint">first token {ms(r.ttft_ms.p95)}</div>}
         </div>
@@ -87,7 +107,7 @@ export default function Leaderboard({ rows, metrics, recommended, running }: {
 
   return (
     <div className="overflow-x-auto rounded-xl border border-line bg-panel">
-      <div className="min-w-[860px]">
+      <div className="min-w-[960px]">
         <div className={`grid ${COLS} items-end gap-4 px-4 pt-3 pb-2 text-xs text-faint`}>
           <span>#</span>
           <span>Model</span>
@@ -111,11 +131,12 @@ export default function Leaderboard({ rows, metrics, recommended, running }: {
             {failed.map(row)}
           </>
         )}
-        {base && (
-          <div className="flex items-center gap-2 border-t border-line px-4 py-2.5 text-xs text-faint">
-            <span className="h-3 border-l border-dashed border-faint" /> {shortModel(base.model)} today, {pct(base.quality.mean)} quality
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line px-4 py-2.5 text-xs text-faint">
+          <span className="flex items-center gap-2"><span className="h-2.5 w-6 rounded-[2px] bg-muted/35" /> 95% confidence interval</span>
+          <span className="flex items-center gap-2"><span className="h-3.5 w-[3px] rounded-[1px] bg-muted" /> mean</span>
+          {base && <span className="flex items-center gap-2"><span className="h-3.5 border-l border-dashed border-faint" /> {shortModel(base.model)} today, {pct(base.quality.mean)}</span>}
+          <span>Overlapping bands: the difference is not significant.</span>
+        </div>
       </div>
     </div>
   )
