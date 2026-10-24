@@ -20,6 +20,7 @@ Every request carries `Authorization: Bearer <token>`. The token is one of:
 |---|---|---|---|---|
 | GET | `/api/health` | — | `{"ok": true, "db": bool, "redis": bool}` | — |
 | GET | `/api/me` | — | `Me` | `me.json` |
+| PATCH | `/api/workspace` | `WorkspacePatch` (any subset; `null` resets a field to the built-in default) | `Workspace` | `me.json` |
 | POST | `/api/me/mcp-key` | — | `{"key": "biy_…"}`, shown **once**; replaces the old key | — |
 | GET | `/api/models?shortlist=true&type=vision&provider=nebius` | — | `CatalogModel[]` (all filters optional) | `models.json` |
 | GET | `/api/metrics?kind=extraction&category=vision` | — | `MetricInfo[]` from the metric bank (filters optional) | `metrics.json` |
@@ -51,6 +52,7 @@ Every request carries `Authorization: Bearer <token>`. The token is one of:
 - **References:** closed frontier models, by default `openrouter:openai/gpt-6.1-sol@medium` and `openrouter:openai/gpt-6-luna@medium` (`RunIn.references`, `include_references`). The use case's `current_model` is added as one more reference labelled `"today"` when it is a closed model. References run on the same cases × repeats and show in the leaderboard and Pareto points with `is_reference: true` and a `reference_label`. They are **never ranked, never on the Pareto front, never recommended**; their `failed_gates` is informative only. The recommendation is measured against the best reference by quality (`reference_key`, `quality_vs_reference_pct`, `cost_multiple_vs_reference`). `pairwise_vs_baseline` compares candidates with the first reference.
 - **Reasoning effort** is part of a model's identity: `params.reasoning_effort` (`none` … `xhigh`), and the candidate key becomes `"<provider>:<model>@<effort>"`. Automatic candidates get `medium` on OpenRouter where the endpoint supports it. Nebius models keep the provider default and show `reasoning_effort: "default"`, because the parameter is accepted but models react inconsistently (GLM-5.3-Flash nearly stops reasoning at any value). `CandidateResult.avg_reasoning_tokens` is the mean per call.
 - **Judges = a jury** (`JudgeConfig.judges`, default GPT-6 Luna (`low`) + DeepSeek-V4.1-Flash (`low`) + GLM-5.3 (provider default), three families so every output keeps ≥ 2 votes). Rubric: mean of the jurors. Pairwise: both orders × every juror; a win only if all non-abstaining jurors agree, else a tie. A juror abstains on its own model family (and, pairwise, on the reference's). Each judged result stores `judge.jurors`, `judge.abstained` and `judge.agreement`; `Run.judge_agreement` is the share of results where the jurors agreed. **Fairness:** the recommendation's "X% of <reference>'s quality" uses only the jurors that judged both the candidate and the reference when there are ≥ 2 (stated in `reasons`).
+- **Inheritance:** use case field → workspace → built-in default. A use case's `profile` / `judge` = `null` inherits (`PATCH {"profile": null}` resets it). A run inherits what `RunIn` leaves out: `candidates: []` → auto-pick within `workspace.candidate_pool`, `repeats: null` → `default_repeats`, `references: null` → `default_references`. `Estimate` returns what the run would use (`candidates`, `references`, `repeats`) and `over_cap` when `total_usd` > `workspace.max_run_cost_usd`; `POST /api/runs` refuses such a run (`422`).
 - **Use case list fields:** `pinned`, `pinned_at` (set by `PATCH {"pinned": true}`, cleared on unpin; pinning doesn't change `updated_at`) and `updated_at` (any edit to the use case or its cases).
 - **Runs refuse a use case with no prompt** (`io_spec.system_prompt` and `user_template` both empty, unless the cases carry `messages`): `422`.
 - **Leaderboard while running:** `Run.leaderboard` fills in as results arrive (partial `n`). `recommendation` is `null` until `status == "done"`.
@@ -71,6 +73,7 @@ Streamable HTTP, same auth (workspace key). The tools wrap the same service func
 | `biy_use_cases_list` / `_create` / `_update` | use-case routes, **compact replies** (`id, name, kind, url, metrics, case_count, prompt_attached, needs, latest_run`); `_create` takes a list |
 | `biy_use_cases_get` | `GET /api/use-cases/{id}` (the full object) |
 | `biy_cases_list` / `_add` / `_update` / `_delete` / `_generate` | case routes; `_list` is paginated and compact (previews), `_delete` takes a list of ids |
+| `biy_workspace_update` | `PATCH /api/workspace` |
 | `biy_upload_url` | `POST /api/use-cases/{id}/upload-url` |
 | `biy_runs_estimate` / `biy_runs_start` / `biy_runs_status` | run routes (`_start` needs `confirm_cost_usd`) |
 | prompt `scan_repo` | discovery prompt; shows up as `/mcp__biy__scan_repo` |

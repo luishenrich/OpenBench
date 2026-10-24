@@ -18,7 +18,7 @@ from fastmcp.server.dependencies import get_http_headers
 from fastmcp.tools import ToolResult
 
 from contract.schemas import (CaseIn, CasePatch, GenerateCasesIn, ModelRef, RunIn, ScorecardBrief, UseCaseIn,
-                              UseCasePatch)
+                              UseCasePatch, WorkspacePatch)
 
 from .. import catalog
 from ..auth import caller_from_token
@@ -92,11 +92,31 @@ def _brief_line(b: dict) -> str:
 
 @mcp.tool(annotations=READ)
 async def biy_workspace_get() -> ToolResult:
-    """The workspace: default trade-off profile (quality/speed/cost weights + targets) and default judge."""
+    """The company defaults that use cases and runs inherit: trade-off profile, jury, references,
+    candidate pool, repeats and the per-run cost cap."""
     ws = await workspace.get_workspace(await _ws())
-    w = ws.default_profile.weights
-    return _result(f"Workspace '{ws.name}': default weights quality {w['quality']} / speed {w['speed']} / "
-                   f"cost {w['cost']}; jury {', '.join(j.model.split('/')[-1] for j in ws.default_judge.judges)}.", ws)
+    return _result(_workspace_text(ws), ws)
+
+
+def _workspace_text(ws) -> str:
+    w, pool = ws.default_profile.weights, ws.candidate_pool
+    cap = f"${ws.max_run_cost_usd:.2f}" if ws.max_run_cost_usd is not None else "none"
+    return (f"Workspace '{ws.name}': weights quality {w['quality']} / speed {w['speed']} / cost {w['cost']}; "
+            f"jury {', '.join(_short(j.model) for j in ws.default_judge.judges)}; "
+            f"references {', '.join(_short(r.model) for r in ws.default_references)}; "
+            f"pool {'shortlist' if pool.shortlist_only else 'whole catalogue'}"
+            + (f" without {', '.join(pool.exclude_providers)}" if pool.exclude_providers else "")
+            + (f", output ≤ ${pool.max_output_usd_per_1m}/1M" if pool.max_output_usd_per_1m is not None else "")
+            + f"; {ws.default_repeats} repeats; cost cap per run {cap}.")
+
+
+@mcp.tool
+async def biy_workspace_update(patch: WorkspacePatch) -> ToolResult:
+    """Change company defaults that every use case and run inherits (any subset): default_profile,
+    default_judge, default_references, candidate_pool, default_repeats, max_run_cost_usd. A field set to
+    null resets to the built-in default. Only when the user asks for it."""
+    ws = await workspace.update_workspace(await _ws(), patch)
+    return _result("Updated. " + _workspace_text(ws), ws)
 
 
 @mcp.tool(annotations=READ)
@@ -255,42 +275,43 @@ async def biy_upload_url(use_case_id: UUID, field: str) -> ToolResult:
 
 # --- runs --------------------------------------------------------------------
 
-async def _run_in(ws: UUID, use_case_id: UUID, candidates: list[ModelRef] | None, auto: int, repeats: int,
-                  include_references: bool, confirm_cost_usd: float | None = None) -> RunIn:
-    cands = candidates or await _call(runs.auto_candidates(ws, use_case_id, auto))
-    return RunIn(use_case_id=use_case_id, candidates=cands, repeats=repeats, include_references=include_references,
-                 confirm_cost_usd=confirm_cost_usd)
+def _run_in(use_case_id: UUID, candidates: list[ModelRef] | None, repeats: int | None, include_references: bool,
+            confirm_cost_usd: float | None = None) -> RunIn:
+    """Left-out fields inherit the workspace (candidates → auto-pick in its pool, repeats, references)."""
+    return RunIn(use_case_id=use_case_id, candidates=candidates or [], repeats=repeats,
+                 include_references=include_references, confirm_cost_usd=confirm_cost_usd)
 
 
 def _estimate_text(est) -> str:
     rows = "\n".join(f"  {l.provider}:{_short(l.model)}: {l.calls} calls, ${l.est_cost_usd:.4f}" for l in est.per_candidate)
-    return (f"Estimate: {est.calls} calls, ${est.total_usd:.4f} total "
-            f"(models ${est.est_cost_usd:.4f} + judge ${est.judge_cost_usd:.4f}).\n{rows}")
+    cap = (f"\nOver the workspace cap of ${est.max_run_cost_usd:.4f}: this run would be refused."
+           if est.over_cap else "")
+    return (f"Estimate: {est.calls} calls ({est.repeats} repeats), ${est.total_usd:.4f} total "
+            f"(models ${est.est_cost_usd:.4f} + judge ${est.judge_cost_usd:.4f}).\n{rows}{cap}")
 
 
 @mcp.tool(annotations=READ)
 async def biy_runs_estimate(use_case_id: UUID, candidates: list[ModelRef] | None = None, auto: int = 6,
-                            repeats: int = 3, include_references: bool = True) -> ToolResult:
+                            repeats: int | None = None, include_references: bool = True) -> ToolResult:
     """Cost and call count before a run. Leave candidates empty to let BIY pick `auto` shortlisted open-weight
     models with verified capabilities for this use case. References (GPT-6.1 Sol, GPT-6 Luna, and today's
     model when it is closed) run on the same cases for comparison and are never recommended.
-    Show the total to the user before starting."""
+    repeats left out → the workspace default. Show the total to the user before starting."""
     ws = await _ws()
-    req = await _run_in(ws, use_case_id, candidates, auto, repeats, include_references)
-    est = await _call(runs.estimate_run(ws, req))
-    data = est.model_dump(mode="json") | {"candidates": [c.model_dump(mode="json") for c in req.candidates]}
-    return _result(_estimate_text(est) + "\nPass the same candidates and confirm_cost_usd to biy_runs_start.", data)
+    est = await _call(runs.estimate_run(ws, _run_in(use_case_id, candidates, repeats, include_references), auto))
+    return _result(_estimate_text(est) + "\nPass the same candidates and confirm_cost_usd to biy_runs_start.",
+                   est)
 
 
 @mcp.tool
 async def biy_runs_start(use_case_id: UUID, confirm_cost_usd: float, candidates: list[ModelRef] | None = None,
-                         auto: int = 6, repeats: int = 3, include_references: bool = True) -> ToolResult:
+                         auto: int = 6, repeats: int | None = None, include_references: bool = True) -> ToolResult:
     """Start a benchmark run. Only after the user agreed to the estimate: confirm_cost_usd must be ≥ the
     estimate's total_usd, or the run is refused and the new estimate is returned."""
     ws = await _ws()
-    req = await _run_in(ws, use_case_id, candidates, auto, repeats, include_references, confirm_cost_usd)
+    req = _run_in(use_case_id, candidates, repeats, include_references, confirm_cost_usd)
     try:
-        run = await _call(runs.start_run(ws, req))
+        run = await _call(runs.start_run(ws, req, auto))
     except CostNotConfirmed as e:
         raise ToolError(f"Not started: {e}. {_estimate_text(e.estimate)}\nAsk the user, then retry with "
                         f"confirm_cost_usd ≥ {e.estimate.total_usd:.4f}.") from e

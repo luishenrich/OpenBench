@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 
 from contract.schemas import (Case, CaseIn, CasePatch, Estimate, GenerateCasesIn, Me, MetricInfo, ResultsPage, Run, RunBrief, RunIn,
-                              Scorecard, ScorecardBrief, UseCase, UseCaseIn, UseCasePatch)
+                              Scorecard, ScorecardBrief, UseCase, UseCaseIn, UseCasePatch, Workspace, WorkspacePatch)
 
 from .auth import Caller, current_caller
 from .services import CostNotConfirmed, Invalid, NotFound, metrics, runs, uploads, use_cases, workspace
@@ -31,6 +31,12 @@ def install_error_handlers(app: FastAPI) -> None:
 
 
 # --- workspace ---------------------------------------------------------------
+
+@router.patch("/workspace", response_model=Workspace)
+async def update_workspace(patch: WorkspacePatch, c: Caller = Depends(current_caller)):
+    """Company defaults that use cases and runs inherit. A field set to null resets it."""
+    return await workspace.update_workspace(c.workspace_id, patch)
+
 
 @router.get("/me", response_model=Me)
 async def me(c: Caller = Depends(current_caller)):
