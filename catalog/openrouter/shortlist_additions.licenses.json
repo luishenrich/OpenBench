@@ -1,0 +1,10 @@
+[
+  {
+    "id": "inclusionai/ling-3.1-flash",
+    "hf_repo": "inclusionAI/Ling-3.1-flash",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": "OpenRouter lists no hugging_face_id; repo confirmed on HF Hub"
+  }
+]

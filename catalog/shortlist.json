@@ -1,0 +1,64 @@
+{
+  "generated_at": "2026-10-24",
+  "source": {
+    "name": "Artificial Analysis Intelligence Index v4.3.2 (open-weights page)",
+    "url": "https://artificialanalysis.ai/models/open-source",
+    "note": "Scores are for the model's strongest reasoning setting (e.g. 'max'/'xhigh') as listed by AA. Directional; our own benchmarks decide."
+  },
+  "criteria": [
+    "Newest version per model line only; superseded versions stay in models.json but are not shortlisted.",
+    "Nebius first: same weights on Nebius beat OpenRouter (free credits, one provider, EU hosting).",
+    "OpenRouter only for gaps: AA index >= 38, or the best small/cheap model of a family, or a needed niche (EU origin, tiny baseline).",
+    "No legacy (pre-2026), no :free routes, no translation/safety/OCR specialists, nothing AA doesn't rate unless it fills a niche."
+  ],
+  "roles": {
+    "frontier": "AA >= 38: the strongest open models",
+    "value": "AA 25-37 at a clearly lower price or higher speed",
+    "small": "small or cheap models people deploy for high volume",
+    "specialist": "a niche: coding, vision speed, EU origin",
+    "baseline": "well-known cheap reference point"
+  },
+  "models": [
+    {"provider": "nebius", "id": "deepseek-ai/DeepSeek-V4.1-Flash-1017", "aa_name": "DeepSeek V4.1 Flash 1017 (max)", "aa_index": 45, "role": "frontier", "note": "vision; #2 open model"},
+    {"provider": "nebius", "id": "zai-org/GLM-5.3", "aa_name": "GLM-5.3 (max)", "aa_index": 45, "role": "frontier", "note": "best Terminal-Bench among open models"},
+    {"provider": "nebius", "id": "moonshotai/Kimi-K3", "aa_name": "Kimi K3 (max)", "aa_index": 44, "role": "frontier", "note": "vision; most expensive ($3/$15)"},
+    {"provider": "nebius", "id": "MiniMaxAI/MiniMax-M3.1-Flash", "aa_name": "MiniMax-M3.1-Flash", "aa_index": 43, "role": "frontier", "note": "vision; $0.15/$0.60"},
+    {"provider": "nebius", "id": "zai-org/GLM-5.3-Flash", "aa_name": "GLM-5.3-Flash", "aa_index": 42, "role": "frontier", "note": "vision; $0.15/$0.50"},
+    {"provider": "nebius", "id": "meta-models/muse-spark-open", "aa_name": "Muse Spark Open (xhigh)", "aa_index": 39, "role": "frontier", "note": "vision; lowest hallucination rate on AA"},
+    {"provider": "nebius", "id": "deepseek-ai/DeepSeek-V4-Pro-0813", "aa_name": "DeepSeek V4 Pro 0813 (max)", "aa_index": 36, "role": "value", "note": "text-only"},
+    {"provider": "nebius", "id": "deepseek-ai/DeepSeek-V4-Flash-0731", "aa_name": "DeepSeek V4 Flash 0731 (max)", "aa_index": 34, "role": "value", "note": "$0.14/$0.28"},
+    {"provider": "nebius", "id": "Qwen/Qwen3.8-27B", "aa_name": "Qwen3.8 27B (xhigh)", "aa_index": 34, "role": "small", "note": "vision; best dense model that fits one GPU"},
+    {"provider": "nebius", "id": "reflection/beam", "aa_name": "Beam 1.0", "aa_index": 30, "role": "value", "note": "fast (~340 tok/s on AA)"},
+    {"provider": "nebius", "id": "MiniMaxAI/MiniMax-M3", "aa_name": "MiniMax-M3", "aa_index": 29, "role": "value", "note": "vision (Nebius lists text-only)"},
+    {"provider": "nebius", "id": "moonshotai/Kimi-K2.7-Code", "aa_name": "Kimi K2.7 Code", "aa_index": 26, "role": "specialist", "note": "coding"},
+    {"provider": "nebius", "id": "nvidia/Nemotron-3.5-Super-VL", "aa_name": "Nemotron 3.5 Super VL", "aa_index": 26, "role": "specialist", "note": "vision; ~450 tok/s, most open model on AA"},
+    {"provider": "nebius", "id": "nvidia/Nemotron-3_5-Lightning", "aa_name": "Nemotron 3.5 Lightning", "aa_index": 13, "role": "small", "note": "$0.06/$0.24, very fast"},
+    {"provider": "nebius", "id": "openai/gpt-oss-120b", "aa_name": "gpt-oss-120b (high)", "aa_index": 12, "role": "baseline", "note": "the usual cheap reference"},
+    {"provider": "nebius", "id": "Qwen/Qwen3-Embedding-8B", "aa_name": null, "aa_index": null, "role": "specialist", "note": "embeddings for RAG use cases"},
+
+    {"provider": "openrouter", "id": "xiaomi/mimo-v2.6-pro", "aa_name": "MiMo-V2.6-Pro", "aa_index": 46, "role": "frontier", "note": "#1 open model; vision"},
+    {"provider": "openrouter", "id": "stepfun/step-5-preview", "aa_name": "Step 5 Preview", "aa_index": 44, "role": "frontier", "note": "vision; ~230 tok/s"},
+    {"provider": "openrouter", "id": "inclusionai/ling-3.1-flash", "aa_name": "Ling 3.1 Flash", "aa_index": 41, "role": "frontier", "note": "$0.075/$0.225; one endpoint only"},
+    {"provider": "openrouter", "id": "qwen/qwen3.8-flash", "aa_name": "Qwen3.8-Flash-Next", "aa_index": 40, "role": "frontier", "note": "vision; $0.15/$0.47"},
+    {"provider": "openrouter", "id": "xiaomi/mimo-v2.6-flash", "aa_name": "MiMo-V2.6-Flash", "aa_index": 38, "role": "frontier", "note": "text (vision claim failed our probe); cheapest frontier model"},
+    {"provider": "openrouter", "id": "thinkingmachines/inkling-small", "aa_name": "Inkling Small", "aa_index": 26, "role": "value", "note": "vision"},
+    {"provider": "openrouter", "id": "tencent/hy3", "aa_name": "Hy3", "aa_index": 25, "role": "value", "note": "Apache-2.0"},
+    {"provider": "openrouter", "id": "qwen/qwen3.6-35b-a3b", "aa_name": "Qwen3.6 35B A3B", "aa_index": 18, "role": "small", "note": "vision; 3B active"},
+    {"provider": "openrouter", "id": "google/gemma-4-26b-a4b-it", "aa_name": "Gemma 4 26B A4B", "aa_index": 17, "role": "small", "note": "vision; Apache-2.0"},
+    {"provider": "openrouter", "id": "meta/muse-glimmer-30b", "aa_name": "Muse Glimmer (high)", "aa_index": 17, "role": "small", "note": "vision; Apache-2.0"},
+    {"provider": "openrouter", "id": "google/gemma-4-31b-it", "aa_name": "Gemma 4 31B", "aa_index": 15, "role": "small", "note": "vision; dense"},
+    {"provider": "openrouter", "id": "mistralai/mistral-small-2603", "aa_name": "Mistral Small 4", "aa_index": 11, "role": "specialist", "note": "EU origin; vision"},
+    {"provider": "openrouter", "id": "openai/gpt-oss-20b", "aa_name": "gpt-oss-20b (high)", "aa_index": 9, "role": "baseline", "note": "tiny cheap reference"}
+  ],
+  "considered_not_shortlisted": [
+    {"id": "qwen/qwen3.8-2.4t-a95b", "aa_index": 40, "reason": "same AA score as Qwen3.8-Flash-Next at ~13x the price ($2/$6, ~$11 per standard run)"},
+    {"id": "IFM/K2-Horizon-375B-A23B", "aa_index": 31, "reason": "open weights, but no provider on OpenRouter or Nebius"},
+    {"id": "thinkingmachines/inkling", "aa_index": 25, "reason": "Inkling Small scores higher and costs less; vision claim failed our probe"},
+    {"id": "mistralai/mistral-large-4-0", "aa_index": 38, "reason": "no public weights"},
+    {"id": "mistralai/mistral-medium-3-5", "aa_index": 14, "reason": "$1.50/$7.50 for AA 14"},
+    {"id": "meituan/longcat-2.0", "aa_index": 19, "reason": "below cut, no niche"},
+    {"id": "stepfun/step-3.7-flash", "aa_index": 19, "reason": "below cut; Step 5 covers StepFun"},
+    {"id": "nebius superseded", "reason": "GLM-5.1/5.2, DeepSeek-V4-Pro (0424), DeepSeek-V4.1-Flash (non-1017), Kimi-K2.6, Qwen3.5-397B, Nemotron 3 Ultra/Super/Nano: newer or better model of the same line is shortlisted"},
+    {"id": "nebius legacy", "reason": "Qwen3-235B/30B-2507, Hermes-4-405B, Gemma-3-27b, MiniCPM-V-4.5"}
+  ]
+}

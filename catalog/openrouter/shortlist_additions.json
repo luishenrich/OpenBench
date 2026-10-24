@@ -1,0 +1,189 @@
+{
+  "provider": "openrouter",
+  "base_url": "https://openrouter.ai/api/v1",
+  "key_env": "OPENROUTER_API_KEY",
+  "generated_at": "2026-10-24T10:25:25+00:00",
+  "models": [
+    {
+      "id": "inclusionai/ling-3.1-flash",
+      "provider": "openrouter",
+      "name": "inclusionAI: Ling 3.1 Flash",
+      "family": "inclusionai",
+      "description": "Ling 3.1 Flash is a hybrid reasoning mixture-of-experts model from inclusionAI, with 25B active parameters out of 560B total.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logit_bias",
+          "logprobs",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.075,
+          "output": 0.225,
+          "cached_input": 0.015
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:25:25+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": null,
+      "endpoints": [
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/fp4",
+          "quantization": "fp4",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.075,
+            "output": 0.225,
+            "cached_input": 0.015
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "logit_bias",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "response_format"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Novita",
+          "tag": "novita",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.075,
+            "output": 0.225,
+            "cached_input": 0.015
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "repetition_penalty",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "Novita",
+      "probe": {
+        "checked_at": "2026-10-24T10:25:25+00:00",
+        "ttft_ms": 1251,
+        "e2e_ms": 1434,
+        "text_call_cost_usd": 5.25e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 1251,
+            "e2e_ms": 1434,
+            "usage": {
+              "prompt_tokens": 28,
+              "completion_tokens": 14,
+              "total_tokens": 42,
+              "cost": 5.25e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 5.25e-06,
+                "upstream_inference_prompt_cost": 2.1e-06,
+                "upstream_inference_completions_cost": 3.15e-06
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 10,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Novita",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    }
+  ]
+}

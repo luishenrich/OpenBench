@@ -111,6 +111,7 @@ def main() -> None:
                 continue
             m["base_url"] = data["base_url"]
             m["key_env"] = data["key_env"]
+            m["hf_repo"] = m.get("hf_repo") or (lic or {}).get("hf_repo")
             m["license"] = lic.get("license") if lic else None
             m["group"] = f.stem
             models.append(m)
@@ -135,6 +136,19 @@ def main() -> None:
         m["released_at"] = released.date().isoformat() if released else None
         m["legacy"] = bool(released and released < LEGACY_BEFORE)
         m["free_tier"] = m["id"].endswith(":free")
+
+    # Curated default set (catalog/shortlist.json): AA score + role. Everything else stays
+    # in the catalogue but is not picked by default.
+    shortlist = load(CAT / "shortlist.json") or {"models": []}
+    picks = {(s["provider"], s["id"]): s for s in shortlist["models"]}
+    for m in models:
+        s = picks.get((m["provider"], m["id"]))
+        m["shortlist"] = bool(s)
+        m["role"] = s["role"] if s else None
+        m["aa_index"] = s["aa_index"] if s else None
+    missing = [k for k in picks if k not in {(m["provider"], m["id"]) for m in models}]
+    if missing:
+        raise SystemExit(f"shortlist ids not in catalogue: {missing}")
 
     # de-duplicate by (provider, id): a re-probe (*.retry.json) repeats a model; newest wins
     latest: dict[tuple, dict] = {}

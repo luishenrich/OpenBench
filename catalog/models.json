@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-24T10:18:26+00:00",
+  "generated_at": "2026-10-24T10:28:21+00:00",
   "models": [
     {
       "id": "Qwen/Qwen3-Embedding-8B",
@@ -61,7 +61,10 @@
       "reference_price": null,
       "released_at": null,
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "specialist",
+      "aa_index": null
     },
     {
       "id": "deepseek-ai/DeepSeek-V4-Flash-0731",
@@ -165,7 +168,10 @@
       "reference_price": null,
       "released_at": "2026-07-31",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "value",
+      "aa_index": 34
     },
     {
       "id": "deepseek-ai/DeepSeek-V4-Pro",
@@ -264,7 +270,10 @@
       "reference_price": null,
       "released_at": "2026-04-24",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "deepseek-ai/DeepSeek-V4-Pro-0813",
@@ -396,7 +405,10 @@
       },
       "released_at": "2026-08-12",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "value",
+      "aa_index": 36
     },
     {
       "id": "NousResearch/Hermes-4-405B",
@@ -496,7 +508,10 @@
       "reference_price": null,
       "released_at": "2025-08-26",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "nvidia/nemotron-3-super-120b-a12b",
@@ -600,7 +615,10 @@
       "reference_price": null,
       "released_at": "2026-03-11",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "nvidia/Nemotron-3-Ultra-550b-a55b",
@@ -703,7 +721,10 @@
       "reference_price": null,
       "released_at": "2026-06-04",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "nvidia/Nemotron-3_5-Lightning",
@@ -804,7 +825,10 @@
       "reference_price": null,
       "released_at": "2026-08-11",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "small",
+      "aa_index": 13
     },
     {
       "id": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
@@ -899,7 +923,10 @@
       "reference_price": null,
       "released_at": "2025-12-14",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "openai/gpt-oss-120b",
@@ -999,7 +1026,10 @@
       "reference_price": null,
       "released_at": "2025-08-05",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "baseline",
+      "aa_index": 12
     },
     {
       "id": "Qwen/Qwen3-235B-A22B-Instruct-2507",
@@ -1095,7 +1125,10 @@
       "reference_price": null,
       "released_at": "2025-07-21",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "Qwen/Qwen3-30B-A3B-Instruct-2507",
@@ -1191,7 +1224,10 @@
       "reference_price": null,
       "released_at": "2025-07-29",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "Qwen/Qwen3.5-397B-A17B",
@@ -1297,7 +1333,10 @@
       },
       "released_at": "2026-02-16",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "reflection/beam",
@@ -1401,7 +1440,10 @@
       "reference_price": null,
       "released_at": "2026-10-16",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "value",
+      "aa_index": 30
     },
     {
       "id": "zai-org/GLM-5.1",
@@ -1509,7 +1551,10 @@
       },
       "released_at": "2026-04-07",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "zai-org/GLM-5.2",
@@ -1622,7 +1667,10 @@
       },
       "released_at": "2026-06-16",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "zai-org/GLM-5.3",
@@ -1735,7 +1783,10 @@
       },
       "released_at": "2026-08-18",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "frontier",
+      "aa_index": 45
     },
     {
       "id": "deepseek-ai/DeepSeek-V4.1-Flash",
@@ -1837,7 +1888,10 @@
       "reference_price": null,
       "released_at": "2026-09-10",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
@@ -1970,7 +2024,10 @@
       },
       "released_at": "2026-10-17",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "frontier",
+      "aa_index": 45
     },
     {
       "id": "google/gemma-3-27b-it",
@@ -2063,7 +2120,10 @@
       "reference_price": null,
       "released_at": "2025-03-12",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "meta-models/muse-spark-open",
@@ -2168,7 +2228,10 @@
       "reference_price": null,
       "released_at": "2026-10-15",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "frontier",
+      "aa_index": 39
     },
     {
       "id": "MiniMaxAI/MiniMax-M3",
@@ -2312,7 +2375,10 @@
       },
       "released_at": "2026-05-31",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "value",
+      "aa_index": 29
     },
     {
       "id": "MiniMaxAI/MiniMax-M3.1-Flash",
@@ -2428,7 +2494,10 @@
       },
       "released_at": "2026-10-19",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "frontier",
+      "aa_index": 43
     },
     {
       "id": "moonshotai/Kimi-K2.6",
@@ -2536,7 +2605,10 @@
       },
       "released_at": "2026-04-20",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "moonshotai/Kimi-K2.7-Code",
@@ -2661,7 +2733,10 @@
       },
       "released_at": "2026-06-12",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "specialist",
+      "aa_index": 26
     },
     {
       "id": "moonshotai/Kimi-K3",
@@ -2772,7 +2847,10 @@
       },
       "released_at": "2026-07-16",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "frontier",
+      "aa_index": 44
     },
     {
       "id": "nvidia/Nemotron-3.5-Super-VL",
@@ -2875,7 +2953,10 @@
       "reference_price": null,
       "released_at": "2026-10-15",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "specialist",
+      "aa_index": 26
     },
     {
       "id": "openbmb/MiniCPM-V-4_5",
@@ -2969,7 +3050,10 @@
       "reference_price": null,
       "released_at": null,
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "Qwen/Qwen3.8-27B",
@@ -3083,7 +3167,10 @@
       },
       "released_at": "2026-08-14",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "small",
+      "aa_index": 34
     },
     {
       "id": "zai-org/GLM-5.3-Flash",
@@ -3197,7 +3284,10 @@
       },
       "released_at": "2026-08-26",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "frontier",
+      "aa_index": 42
     },
     {
       "id": "arcee-ai/trinity-large-thinking",
@@ -3334,7 +3424,10 @@
       "reference_price": null,
       "released_at": "2026-04-01",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "cohere/command-a",
@@ -3475,7 +3568,10 @@
       "reference_price": null,
       "released_at": "2025-03-13",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "cohere/north-mini-code:free",
@@ -3592,7 +3688,10 @@
       "reference_price": null,
       "released_at": "2026-06-17",
       "legacy": false,
-      "free_tier": true
+      "free_tier": true,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "deepseek/deepseek-chat",
@@ -3799,7 +3898,10 @@
       "reference_price": null,
       "released_at": "2024-12-26",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "deepseek/deepseek-chat-v3-0324",
@@ -3966,7 +4068,10 @@
       "reference_price": null,
       "released_at": "2025-03-24",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "deepseek/deepseek-chat-v3.1",
@@ -4233,7 +4338,10 @@
       "reference_price": null,
       "released_at": "2025-08-21",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "deepseek/deepseek-r1-0528",
@@ -4442,7 +4550,10 @@
       "reference_price": null,
       "released_at": "2025-05-28",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "deepseek/deepseek-v3.1-terminus",
@@ -4610,7 +4721,10 @@
       "reference_price": null,
       "released_at": "2025-09-22",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "deepseek/deepseek-v3.2",
@@ -5039,7 +5153,10 @@
       "reference_price": null,
       "released_at": "2025-12-01",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "deepseek/deepseek-v3.2-exp",
@@ -5184,7 +5301,10 @@
       "reference_price": null,
       "released_at": "2025-09-29",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "deepseek/deepseek-v4-flash",
@@ -5765,7 +5885,10 @@
       "reference_price": null,
       "released_at": "2026-04-24",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "ibm-granite/granite-4.2-8b",
@@ -5957,7 +6080,10 @@
       "reference_price": null,
       "released_at": "2026-08-31",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "inclusionai/ling-3.0-flash",
@@ -6142,7 +6268,202 @@
       "reference_price": null,
       "released_at": "2026-07-23",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
+    },
+    {
+      "id": "inclusionai/ling-3.1-flash",
+      "provider": "openrouter",
+      "name": "inclusionAI: Ling 3.1 Flash",
+      "family": "inclusionai",
+      "description": "Ling 3.1 Flash is a hybrid reasoning mixture-of-experts model from inclusionAI, with 25B active parameters out of 560B total.",
+      "type": "text",
+      "input_modalities": [
+        "text"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text->text",
+        "features": [
+          "frequency_penalty",
+          "include_reasoning",
+          "logit_bias",
+          "logprobs",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": false,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": true
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.075,
+          "output": 0.225,
+          "cached_input": 0.015
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:25:25+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "inclusionAI/Ling-3.1-flash",
+      "endpoints": [
+        {
+          "provider": "DeepInfra",
+          "tag": "deepinfra/fp4",
+          "quantization": "fp4",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.075,
+            "output": 0.225,
+            "cached_input": 0.015
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "repetition_penalty",
+            "top_k",
+            "seed",
+            "min_p",
+            "logit_bias",
+            "structured_outputs",
+            "tools",
+            "tool_choice",
+            "response_format"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Novita",
+          "tag": "novita",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 235929,
+          "usd_per_1m": {
+            "input": 0.075,
+            "output": 0.225,
+            "cached_input": 0.015
+          },
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "top_k",
+            "repetition_penalty",
+            "tools",
+            "tool_choice",
+            "logprobs",
+            "top_logprobs"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "Novita",
+      "probe": {
+        "checked_at": "2026-10-24T10:25:25+00:00",
+        "ttft_ms": 1251,
+        "e2e_ms": 1434,
+        "text_call_cost_usd": 5.25e-06,
+        "results": {
+          "text": {
+            "status": "pass",
+            "answer": "pong",
+            "ttft_ms": 1251,
+            "e2e_ms": 1434,
+            "usage": {
+              "prompt_tokens": 28,
+              "completion_tokens": 14,
+              "total_tokens": 42,
+              "cost": 5.25e-06,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 5.25e-06,
+                "upstream_inference_prompt_cost": 2.1e-06,
+                "upstream_inference_completions_cost": 3.15e-06
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 10,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Novita",
+            "reasoning_seen": true
+          },
+          "vision": {
+            "status": "rejected",
+            "error": "HTTP 404: No endpoints found that support image input"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true,
+      "base_url": "https://openrouter.ai/api/v1",
+      "key_env": "OPENROUTER_API_KEY",
+      "license": "mit",
+      "group": "shortlist_additions",
+      "reference_price": null,
+      "released_at": null,
+      "legacy": false,
+      "free_tier": false,
+      "shortlist": true,
+      "role": "frontier",
+      "aa_index": 41
     },
     {
       "id": "liquid/lfm-2.5-2.6b:free",
@@ -6236,7 +6557,10 @@
       "reference_price": null,
       "released_at": "2026-08-11",
       "legacy": false,
-      "free_tier": true
+      "free_tier": true,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "liquid/lfm-2.5-24b-a2b",
@@ -6395,7 +6719,10 @@
       "reference_price": null,
       "released_at": "2026-10-13",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "meituan/longcat-2.0",
@@ -6567,7 +6894,10 @@
       },
       "released_at": "2026-07-20",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "microsoft/phi-4",
@@ -6742,7 +7072,10 @@
       "reference_price": null,
       "released_at": "2025-01-10",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "minimax/minimax-m2",
@@ -6919,7 +7252,10 @@
       "reference_price": null,
       "released_at": "2025-10-23",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "minimax/minimax-m2.1",
@@ -7079,7 +7415,10 @@
       "reference_price": null,
       "released_at": "2025-12-23",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "minimax/minimax-m2.5",
@@ -7418,7 +7757,10 @@
       "reference_price": null,
       "released_at": "2026-02-12",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "minimax/minimax-m2.7",
@@ -7694,7 +8036,10 @@
       "reference_price": null,
       "released_at": "2026-03-18",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "mistralai/devstral-2512",
@@ -7839,7 +8184,10 @@
       "reference_price": null,
       "released_at": "2025-12-09",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "moonshotai/kimi-k2",
@@ -7982,7 +8330,10 @@
       "reference_price": null,
       "released_at": "2025-07-11",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "moonshotai/kimi-k2-0905",
@@ -8131,7 +8482,10 @@
       "reference_price": null,
       "released_at": "2025-09-04",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "moonshotai/kimi-k2-thinking",
@@ -8318,7 +8672,10 @@
       "reference_price": null,
       "released_at": "2025-11-06",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
@@ -8402,7 +8759,10 @@
       "reference_price": null,
       "released_at": "2026-04-28",
       "legacy": false,
-      "free_tier": true
+      "free_tier": true,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "nvidia/nemotron-3.5-content-safety",
@@ -8547,7 +8907,10 @@
       "reference_price": null,
       "released_at": "2026-06-04",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "openai/gpt-oss-20b",
@@ -9001,7 +9364,10 @@
       "reference_price": null,
       "released_at": "2025-08-05",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "baseline",
+      "aa_index": 9
     },
     {
       "id": "openai/gpt-oss-safeguard-20b",
@@ -9146,7 +9512,10 @@
       "reference_price": null,
       "released_at": "2025-10-29",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "poolside/laguna-s-2.1",
@@ -9279,7 +9648,10 @@
       "reference_price": null,
       "released_at": "2026-07-21",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "poolside/laguna-xs-2.1",
@@ -9412,7 +9784,10 @@
       "reference_price": null,
       "released_at": "2026-07-02",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen-2.5-72b-instruct",
@@ -9565,7 +9940,10 @@
       "reference_price": null,
       "released_at": "2024-09-19",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen-2.5-7b-instruct",
@@ -9716,7 +10094,10 @@
       "reference_price": null,
       "released_at": "2024-10-16",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen-2.5-coder-32b-instruct",
@@ -9859,7 +10240,10 @@
       "reference_price": null,
       "released_at": "2024-11-11",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3-14b",
@@ -10047,7 +10431,10 @@
       "reference_price": null,
       "released_at": "2025-04-28",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3-235b-a22b-thinking-2507",
@@ -10190,7 +10577,10 @@
       "reference_price": null,
       "released_at": "2025-07-25",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3-30b-a3b",
@@ -10347,7 +10737,10 @@
       "reference_price": null,
       "released_at": "2025-04-28",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3-32b",
@@ -10566,7 +10959,10 @@
       "reference_price": null,
       "released_at": "2025-04-28",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3-coder",
@@ -10777,7 +11173,10 @@
       "reference_price": null,
       "released_at": "2025-07-23",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3-coder-30b-a3b-instruct",
@@ -10941,7 +11340,10 @@
       "reference_price": null,
       "released_at": "2025-07-31",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3-coder-next",
@@ -11096,7 +11498,10 @@
       "reference_price": null,
       "released_at": "2026-02-04",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3-next-80b-a3b-instruct",
@@ -11372,7 +11777,10 @@
       "reference_price": null,
       "released_at": "2025-09-11",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3-next-80b-a3b-thinking",
@@ -11498,7 +11906,10 @@
       "reference_price": null,
       "released_at": "2025-09-11",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3.8-2.4t-a95b",
@@ -11790,7 +12201,10 @@
       },
       "released_at": "2026-08-12",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "recursive/flint-v1.0:free",
@@ -11904,7 +12318,10 @@
       "reference_price": null,
       "released_at": "2026-10-21",
       "legacy": false,
-      "free_tier": true
+      "free_tier": true,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "stepfun/step-3.5-flash",
@@ -12054,7 +12471,10 @@
       },
       "released_at": "2026-01-29",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "tencent/hunyuan-a13b-instruct",
@@ -12193,7 +12613,10 @@
       "reference_price": null,
       "released_at": "2025-07-08",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "tencent/hy-mt2-1.8b",
@@ -12320,7 +12743,10 @@
       "reference_price": null,
       "released_at": "2026-08-20",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "tencent/hy-mt2-30b-a3b",
@@ -12453,7 +12879,10 @@
       "reference_price": null,
       "released_at": "2026-08-20",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "tencent/hy-mt2-7b",
@@ -12586,7 +13015,10 @@
       "reference_price": null,
       "released_at": "2026-08-19",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "tencent/hy3",
@@ -12868,7 +13300,10 @@
       },
       "released_at": "2026-07-06",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "value",
+      "aa_index": 25
     },
     {
       "id": "tencent/hy3-preview",
@@ -13007,7 +13442,10 @@
       "reference_price": null,
       "released_at": "2026-04-22",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "tencent/hy4-preview",
@@ -13287,7 +13725,10 @@
       "reference_price": null,
       "released_at": "2026-08-28",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "thinkingmachines/inkling",
@@ -13438,7 +13879,10 @@
       "reference_price": null,
       "released_at": "2026-07-17",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "xiaomi/mimo-v2.5",
@@ -13589,7 +14033,10 @@
       "reference_price": null,
       "released_at": "2026-04-22",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "xiaomi/mimo-v2.6-flash",
@@ -14034,7 +14481,10 @@
       },
       "released_at": "2026-09-21",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "frontier",
+      "aa_index": 38
     },
     {
       "id": "xingchen-agi/xing4.0-29b-a4b:free",
@@ -14157,7 +14607,10 @@
       "reference_price": null,
       "released_at": "2026-10-16",
       "legacy": false,
-      "free_tier": true
+      "free_tier": true,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "z-ai/glm-4.5",
@@ -14296,7 +14749,10 @@
       "reference_price": null,
       "released_at": "2025-07-25",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "z-ai/glm-4.5-air",
@@ -14490,7 +14946,10 @@
       "reference_price": null,
       "released_at": "2025-07-25",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "z-ai/glm-4.6",
@@ -14757,7 +15216,10 @@
       "reference_price": null,
       "released_at": "2025-09-30",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "z-ai/glm-4.7",
@@ -15087,7 +15549,10 @@
       "reference_price": null,
       "released_at": "2025-12-22",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "z-ai/glm-4.7-flash",
@@ -15277,7 +15742,10 @@
       "reference_price": null,
       "released_at": "2026-01-19",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "z-ai/glm-5",
@@ -15648,7 +16116,10 @@
       },
       "released_at": "2026-02-11",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "cohere/command-a-plus",
@@ -15703,7 +16174,7 @@
       },
       "rate_limits": null,
       "regions": [],
-      "hf_repo": null,
+      "hf_repo": "CohereLabs/command-a-plus-05-2026-bf16",
       "endpoints": [
         {
           "provider": "Cohere",
@@ -15796,7 +16267,10 @@
       "reference_price": null,
       "released_at": null,
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "deepseek/deepseek-v4-flash-vision-exp",
@@ -16010,7 +16484,10 @@
       "reference_price": null,
       "released_at": "2026-08-21",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "google/gemma-4-26b-a4b-it",
@@ -16529,7 +17006,10 @@
       "reference_price": null,
       "released_at": "2026-04-03",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "small",
+      "aa_index": 17
     },
     {
       "id": "google/gemma-4-31b-it",
@@ -17104,7 +17584,10 @@
       "reference_price": null,
       "released_at": "2026-04-02",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "small",
+      "aa_index": 15
     },
     {
       "id": "inclusionai/ling-3.0-flash-vl",
@@ -17262,7 +17745,10 @@
       "reference_price": null,
       "released_at": "2026-09-10",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "meta-llama/llama-4-maverick",
@@ -17469,7 +17955,10 @@
       "reference_price": null,
       "released_at": "2025-04-05",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "meta-llama/llama-4-scout",
@@ -17705,7 +18194,10 @@
       "reference_price": null,
       "released_at": "2025-04-05",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "meta/muse-glimmer-30b",
@@ -17897,7 +18389,10 @@
       "reference_price": null,
       "released_at": "2026-08-09",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "small",
+      "aa_index": 17
     },
     {
       "id": "minimax/minimax-01",
@@ -18023,7 +18518,10 @@
       "reference_price": null,
       "released_at": "2025-01-15",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "mistralai/ministral-14b-2512",
@@ -18232,7 +18730,10 @@
       },
       "released_at": "2025-12-02",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "mistralai/ministral-3b-2512",
@@ -18441,7 +18942,10 @@
       },
       "released_at": "2025-12-02",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "mistralai/ministral-8b-2512",
@@ -18650,7 +19154,10 @@
       },
       "released_at": "2025-12-02",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "mistralai/mistral-large-2512",
@@ -18703,7 +19210,7 @@
       },
       "rate_limits": null,
       "regions": [],
-      "hf_repo": "",
+      "hf_repo": "mistralai/Mistral-Large-3-675B-Instruct-2512",
       "endpoints": [
         {
           "provider": "Mistral",
@@ -18819,10 +19326,24 @@
       "key_env": "OPENROUTER_API_KEY",
       "license": "apache-2.0",
       "group": "western_labs.retry",
-      "reference_price": null,
+      "reference_price": {
+        "maker": "Mistral AI",
+        "maker_model_id": "mistral-large-3",
+        "usd_per_1m": {
+          "input": 0.5,
+          "output": 1.5,
+          "cached_input": 0.05
+        },
+        "tiers": null,
+        "source": "https://docs.mistral.ai/inference/pricing",
+        "fetched_at": "2026-10-24"
+      },
       "released_at": null,
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "mistralai/mistral-medium-3-5",
@@ -18878,7 +19399,7 @@
       },
       "rate_limits": null,
       "regions": [],
-      "hf_repo": null,
+      "hf_repo": "mistralai/Mistral-Medium-3.5-128B",
       "endpoints": [
         {
           "provider": "Mistral",
@@ -19029,10 +19550,24 @@
       "key_env": "OPENROUTER_API_KEY",
       "license": "other (Modified MIT)",
       "group": "western_labs",
-      "reference_price": null,
+      "reference_price": {
+        "maker": "Mistral AI",
+        "maker_model_id": "mistral-medium-3.5",
+        "usd_per_1m": {
+          "input": 1.5,
+          "output": 7.5,
+          "cached_input": 0.15
+        },
+        "tiers": null,
+        "source": "https://docs.mistral.ai/inference/pricing",
+        "fetched_at": "2026-10-24"
+      },
       "released_at": null,
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "mistralai/mistral-small-2603",
@@ -19282,7 +19817,10 @@
       },
       "released_at": "2026-03-16",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "specialist",
+      "aa_index": 11
     },
     {
       "id": "moondream/moondream3.1-9b-a2b",
@@ -19414,7 +19952,10 @@
       "reference_price": null,
       "released_at": "2026-10-15",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "moonshotai/kimi-k2.5",
@@ -19686,7 +20227,10 @@
       "reference_price": null,
       "released_at": "2026-01-27",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "nex-agi/nex-n2.5-mini",
@@ -19828,7 +20372,10 @@
       "reference_price": null,
       "released_at": "2026-09-08",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "nex-agi/nex-n2.5-pro",
@@ -19976,7 +20523,10 @@
       "reference_price": null,
       "released_at": "2026-09-08",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "prism-ml/ternary-bonsai-2-27b",
@@ -20136,7 +20686,10 @@
       "reference_price": null,
       "released_at": "2026-09-18",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen2.5-vl-72b-instruct",
@@ -20286,7 +20839,10 @@
       "reference_price": null,
       "released_at": "2025-02-01",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3-vl-235b-a22b-instruct",
@@ -20499,7 +21055,10 @@
       "reference_price": null,
       "released_at": "2025-09-23",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3-vl-30b-a3b-instruct",
@@ -20709,7 +21268,10 @@
       "reference_price": null,
       "released_at": "2025-10-06",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3-vl-30b-a3b-thinking",
@@ -20855,7 +21417,10 @@
       "reference_price": null,
       "released_at": "2025-10-06",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3-vl-8b-instruct",
@@ -21011,7 +21576,10 @@
       "reference_price": null,
       "released_at": "2025-10-14",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3.5-122b-a10b",
@@ -21269,7 +21837,10 @@
       },
       "released_at": "2026-02-25",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3.5-27b",
@@ -21592,7 +22163,10 @@
       },
       "released_at": "2026-02-25",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3.5-35b-a3b",
@@ -21944,7 +22518,10 @@
       },
       "released_at": "2026-02-25",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3.5-9b",
@@ -22224,7 +22801,10 @@
       "reference_price": null,
       "released_at": "2026-03-10",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3.6-27b",
@@ -22573,7 +23153,10 @@
       },
       "released_at": "2026-04-27",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "qwen/qwen3.6-35b-a3b",
@@ -23016,7 +23599,10 @@
       },
       "released_at": "2026-04-27",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "small",
+      "aa_index": 18
     },
     {
       "id": "qwen/qwen3.8-flash",
@@ -23203,7 +23789,10 @@
       "reference_price": null,
       "released_at": "2026-08-26",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "frontier",
+      "aa_index": 40
     },
     {
       "id": "rekaai/reka-edge",
@@ -23353,7 +23942,10 @@
       "reference_price": null,
       "released_at": "2026-03-20",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "stepfun/step-3.7-flash",
@@ -23552,7 +24144,10 @@
       },
       "released_at": "2026-05-28",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "stepfun/step-5-preview",
@@ -23851,7 +24446,10 @@
       },
       "released_at": "2026-10-08",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "frontier",
+      "aa_index": 44
     },
     {
       "id": "thinkingmachines/inkling-small",
@@ -24005,7 +24603,10 @@
       "reference_price": null,
       "released_at": "2026-07-30",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "value",
+      "aa_index": 26
     },
     {
       "id": "xiaomi/mimo-v2.5-pro",
@@ -24197,7 +24798,10 @@
       "reference_price": null,
       "released_at": "2026-04-22",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "xiaomi/mimo-v2.6-pro",
@@ -24490,7 +25094,10 @@
       },
       "released_at": "2026-09-21",
       "legacy": false,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": true,
+      "role": "frontier",
+      "aa_index": 46
     },
     {
       "id": "z-ai/glm-4.5v",
@@ -24664,7 +25271,10 @@
       "reference_price": null,
       "released_at": "2025-08-11",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     },
     {
       "id": "z-ai/glm-4.6v",
@@ -24837,7 +25447,10 @@
       "reference_price": null,
       "released_at": "2025-12-08",
       "legacy": true,
-      "free_tier": false
+      "free_tier": false,
+      "shortlist": false,
+      "role": null,
+      "aa_index": null
     }
   ]
 }
