@@ -3,7 +3,9 @@ import { Link, useParams } from 'react-router-dom'
 import Leaderboard from '@/components/Leaderboard'
 import ParetoChart from '@/components/ParetoChart'
 import ResultsViewer from '@/components/ResultsViewer'
-import { Badge, Button, ErrorNote, Loading, Panel, Section, StatusPill } from '@/components/ui'
+import { Badge, Button, ErrorNote, Panel, Section, StatusPill } from '@/components/ui'
+import RunSkeleton from '@/components/run/RunSkeleton'
+import { Line, Skeleton } from '@/components/Skeleton'
 import VerdictCard from '@/components/VerdictCard'
 import { api } from '@/lib/api'
 import { ago, effortOf, pct, usd } from '@/lib/format'
@@ -44,7 +46,7 @@ export default function RunPage() {
     onSuccess: (r: Run) => qc.setQueryData(['run', id], r),
   })
 
-  if (run.isLoading) return <Loading label="Loading run" />
+  if (run.isLoading) return <RunSkeleton />
   if (run.error) return <ErrorNote error={run.error} />
   const r = run.data!
   const live = !TERMINAL.has(r.status)
@@ -68,12 +70,14 @@ export default function RunPage() {
     <div className="space-y-14">
       <div>
         {uc.data && <Link to={`/use-cases/${uc.data.id}`} className="rounded-md border border-line bg-panel px-2.5 py-1 text-xs text-muted hover:text-fg">{uc.data.name}</Link>}
+        {uc.isLoading && <Skeleton className="h-[26px] w-[136px] rounded-md" />}
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <Badge tone={live ? 'signal' : r.status === 'done' ? 'win' : 'bad'}>Benchmark run</Badge>
           <StatusPill status={r.status} />
           {live && <Button variant="danger" className="ml-auto" onClick={() => cancel.mutate()} disabled={cancel.isPending}>Cancel run</Button>}
         </div>
         {uc.data && <h1 className="display mt-3 text-3xl text-balance sm:text-4xl">{uc.data.name}</h1>}
+        {uc.isLoading && <Line lh="mt-3 h-[30px] sm:h-10" bar="h-[60%]" className="w-[340px] max-w-full" />}
         <p className="mt-3 text-muted">
           {r.candidates.length} open-weight {r.candidates.length === 1 ? 'candidate' : 'candidates'}, {r.repeats} repeats per case, {live ? `estimated ${usd(r.est_cost_usd)}` : `${usd(r.actual_cost_usd)} spent`}
           {r.finished_at && `, finished ${ago(r.finished_at)}`}

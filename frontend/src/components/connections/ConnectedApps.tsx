@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button, Tag } from '@/components/ui'
+import { LoadingRegion, Skeleton } from '@/components/Skeleton'
 import { ConfirmDialog, Toaster, toast } from '@/components/usecases/kit'
 import { GrantsUnavailable, connectedAgo, hostOf, knownIcon, listGrants, revokeGrant, type OAuthGrant } from '@/components/connections/grants'
 
@@ -24,7 +25,25 @@ export function ConnectedApps() {
 
   let body
   if (grants.isPending) {
-    body = <Note>Loading connected apps…</Note>
+    body = (
+      <LoadingRegion label="Loading connected apps">
+        <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-panel" aria-hidden>
+          {[0, 1].map((i) => (
+            <li key={i} className="flex items-center gap-4 px-4 py-3.5">
+              <Skeleton className="size-9 shrink-0 rounded-lg" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2.5"><Skeleton className="h-3 w-24" /><Skeleton className="h-2 w-20" /></div>
+                <div className="mt-2 flex items-center gap-1.5">
+                  {[46, 42, 50].map((w) => <Skeleton key={w} className="h-[22px] rounded-md" style={{ width: w }} />)}
+                  <Skeleton className="ml-1 h-2 w-24" />
+                </div>
+              </div>
+              <Skeleton className="h-8 w-[74px] shrink-0 rounded-md" />
+            </li>
+          ))}
+        </ul>
+      </LoadingRegion>
+    )
   } else if (grants.error instanceof GrantsUnavailable) {
     body = <Note>Connected apps show up here once OAuth sign-in is on for this server.</Note>
   } else if (grants.isError) {

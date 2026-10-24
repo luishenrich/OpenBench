@@ -15,6 +15,11 @@ import type {
 import type { Workspace, WorkspacePatch } from '@/types'
 
 const clone = <T,>(x: T): T => structuredClone(x)
+// ?slow=3000 adds 3 s to every fixture response, to look at loading states; ?slow=3000&slow_only=cases,runs
+// slows only those calls (the api method names), so a page loads and its sub-queries stay pending.
+const slowQ = (() => { try { return new URLSearchParams(window.location.search) } catch { return new URLSearchParams() } })()
+const SLOW_ONLY = slowQ.get('slow_only')?.split(',')
+export const slowFor = (name: string) => (!SLOW_ONLY || SLOW_ONLY.includes(name) ? Number(slowQ.get('slow')) || 0 : 0)
 const wait = <T,>(x: T, delay = 180): Promise<T> => new Promise((r) => setTimeout(() => r(clone(x)), delay))
 
 // contract/fixtures has three use cases; a real scan finds ~40. These extras (dashboard-only, not in the
@@ -197,7 +202,7 @@ function findUseCase(id: string): UseCase {
 // The signed-in user; updateWorkspace edits its workspace in memory.
 const me = clone(meJson) as unknown as Me
 
-export const fixtureApi: typeof import('./api').api = {
+const unslowed: typeof import('./api').api = {
   me: () => wait(me),
   updateWorkspace: async (patch: WorkspacePatch): Promise<Workspace> => {
     Object.assign(me.workspace, patch)
@@ -299,3 +304,10 @@ export const fixtureApi: typeof import('./api').api = {
   results: (_id: string, _params: { candidate_key?: string; case_id?: string; cursor?: string } = {}) =>
     wait(results),
 }
+
+export const fixtureApi = Object.fromEntries(Object.entries(unslowed).map(([name, fn]) => [name, async (...args: unknown[]) => {
+  const res = await (fn as (...a: unknown[]) => Promise<unknown>)(...args)
+  const ms = slowFor(name)
+  if (ms) await new Promise((r) => setTimeout(r, ms))
+  return res
+}])) as typeof unslowed

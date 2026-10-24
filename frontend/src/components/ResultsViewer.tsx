@@ -3,7 +3,8 @@ import { useState } from 'react'
 import { api } from '@/lib/api'
 import { effortOf, ms, pct, usd } from '@/lib/format'
 import type { CandidateResult, ResultJudge } from '@/types'
-import { Loading, Tag } from './ui'
+import { Tag } from './ui'
+import { LoadingRegion, Skeleton } from './Skeleton'
 import { EffortChip, ModelName, prettyModel, rowEffort } from './run/ModelName'
 
 // Both jurors: score and reasoning each, abstentions marked. Falls back to the single reasoning string.
@@ -63,7 +64,16 @@ export default function ResultsViewer({ runId, candidates }: { runId: string; ca
           })}
         </select>
       </label>
-      {q.isLoading && <Loading />}
+      {q.isLoading && (
+        <LoadingRegion label="Loading outputs" className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="rounded-xl border border-line bg-panel p-4">
+              <div className="flex items-center gap-4"><Skeleton className="h-3 w-32" /><Skeleton className="h-2.5 w-28" /><Skeleton className="h-2.5 w-10" /><Skeleton className="ml-auto h-2.5 w-36" /></div>
+              <Skeleton className="mt-3 h-16 rounded-lg" />
+            </div>
+          ))}
+        </LoadingRegion>
+      )}
       <ul className="space-y-2">
         {items.map((r) => {
           const scores = Object.entries(r.scores)

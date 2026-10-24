@@ -49,21 +49,13 @@ export function ListSkeleton({ rows = 6 }: { rows?: number }) {
   )
 }
 
-/** Where the live status line and the toolbar sit once the list arrives. */
-export function StatusLineSkeleton() {
-  return <Line lh="mt-5 h-5" bar="h-2.5" className="w-[420px] max-w-full" />
-}
-
 export function ToolbarSkeleton() {
+  // search and the status filters; sort and grouping sit in the page header
   return (
-    <div className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-2.5" aria-hidden>
+    <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2.5" aria-hidden>
       <Skeleton className="h-[34px] min-w-[180px] flex-1 rounded-md sm:max-w-xs" />
       <div className="flex gap-1">
-        {[52, 70, 84, 64].map((w) => <Skeleton key={w} className="h-[30px] rounded-md" style={{ width: w }} />)}
-      </div>
-      <div className="ml-auto flex items-center gap-2">
-        <Skeleton className="h-[30px] w-[150px] rounded-md" />
-        <Skeleton className="h-[30px] w-[106px] rounded-md" />
+        {[58, 96, 104, 80, 92, 120].map((w) => <Skeleton key={w} className="h-[30px] rounded-md" style={{ width: w }} />)}
       </div>
     </div>
   )
