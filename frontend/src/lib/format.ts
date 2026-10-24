@@ -17,8 +17,27 @@ export function ms(x: number | null | undefined): string {
   return x >= 1000 ? `${(x / 1000).toFixed(x >= 10000 ? 0 : 1)} s` : `${Math.round(x)} ms`
 }
 
-// "nebius:zai-org/GLM-5.3-Flash" → "GLM-5.3-Flash"
-export const shortModel = (keyOrModel: string) => keyOrModel.split(':').pop()!.split('/').pop()!
+// "nebius:zai-org/GLM-5.3-Flash" → "GLM-5.3-Flash"; a reasoning-effort suffix ("…@medium") is dropped
+export const shortModel = (keyOrModel: string) => keyOrModel.split('@')[0].split(':').pop()!.split('/').pop()!
+
+// Reasoning effort is part of a model's identity: "openrouter:openai/gpt-6.1-sol@medium", or params.reasoning_effort.
+export function effortOf(keyOrModel: string | null | undefined, params?: Record<string, unknown> | null): string | null {
+  const p = params?.reasoning_effort
+  if (typeof p === 'string' && p) return p
+  const at = keyOrModel?.lastIndexOf('@') ?? -1
+  return keyOrModel && at > 0 ? keyOrModel.slice(at + 1) : null
+}
+
+// Effort from the run's candidate list when the key itself doesn't carry it
+export function effortIn(key: string, candidates: { provider: string; model: string; params?: Record<string, unknown> }[] = []): string | null {
+  const own = effortOf(key)
+  if (own) return own
+  const bare = key.split('@')[0]
+  const c = candidates.find((m) => `${m.provider}:${m.model}` === bare)
+  return effortOf(null, c?.params)
+}
+
+export const compact = (n: number) => (n >= 10_000 ? `${Math.round(n / 1000)}k` : n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(Math.round(n)))
 
 export const providerOf = (key: string) => key.split(':')[0]
 

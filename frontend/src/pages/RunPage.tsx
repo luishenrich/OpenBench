@@ -6,9 +6,11 @@ import ResultsViewer from '@/components/ResultsViewer'
 import { Badge, Button, ErrorNote, Loading, Panel, Section, StatusPill } from '@/components/ui'
 import VerdictCard from '@/components/VerdictCard'
 import { api } from '@/lib/api'
-import { ago, shortModel, usd } from '@/lib/format'
+import { ago, effortOf, pct, usd } from '@/lib/format'
 import { runVerdict } from '@/lib/verdict'
 import type { Run } from '@/types'
+import { EffortChip, isReference, juryNames, prettyModel, rowEffort } from '@/components/run/ModelName'
+import { hasJudgeMetric } from '@/components/usecase/readiness'
 
 const TERMINAL = new Set(['done', 'failed', 'cancelled'])
 
@@ -36,6 +38,7 @@ export default function RunPage() {
   })
   const uc = useQuery({ queryKey: ['use-case', run.data?.use_case_id], queryFn: () => api.useCase(run.data!.use_case_id), enabled: !!run.data })
   const metrics = useQuery({ queryKey: ['metrics'], queryFn: api.metrics })
+  const me = useQuery({ queryKey: ['me'], queryFn: api.me })
   const cancel = useMutation({
     mutationFn: () => api.cancelRun(id),
     onSuccess: (r: Run) => qc.setQueryData(['run', id], r),
@@ -47,8 +50,16 @@ export default function RunPage() {
   const live = !TERMINAL.has(r.status)
   const p = r.progress
   const frac = p.total ? p.done / p.total : 0
-  const baseline = r.leaderboard.find((c) => c.is_baseline)
   const verdict = runVerdict(r)
+  const reference = r.leaderboard.find((c) => c.candidate_key === r.recommendation?.reference_key)
+  const refRows = r.leaderboard.filter(isReference)
+  // references as run (incl. "today"); while the leaderboard is empty, fall back to the request
+  const refs = refRows.length
+    ? refRows.map((c) => ({ key: c.candidate_key, name: c.reference_label === 'today' ? `${prettyModel(c.model)} (today)` : c.reference_label ?? prettyModel(c.model), effort: rowEffort(c) }))
+    : (r.references ?? []).map((m) => ({ key: `${m.provider}:${m.model}`, name: prettyModel(m.model), effort: effortOf(m.model, m.params) }))
+  const judged = uc.data ? hasJudgeMetric(uc.data) : false
+  const jury = judged ? juryNames(uc.data, me.data?.workspace.default_judge) : null
+  const efforts = Object.fromEntries(r.leaderboard.map((c) => [c.candidate_key, rowEffort(c)]))
   // On "keep", the recommendation names the closest challenger, not a pick: nothing is highlighted as the choice.
   const pickKey = verdict === 'keep' ? null : r.recommendation?.candidate_key ?? null
   const closestKey = verdict === 'keep' ? r.recommendation?.candidate_key ?? null : null
@@ -62,10 +73,32 @@ export default function RunPage() {
           <StatusPill status={r.status} />
           {live && <Button variant="danger" className="ml-auto" onClick={() => cancel.mutate()} disabled={cancel.isPending}>Cancel run</Button>}
         </div>
-        <p className="mt-4 text-muted">
-          {r.candidates.length} models, {r.repeats} repeats per case, {live ? `estimated ${usd(r.est_cost_usd)}` : `${usd(r.actual_cost_usd)} spent`}
+        {uc.data && <h1 className="display mt-3 text-3xl text-balance sm:text-4xl">{uc.data.name}</h1>}
+        <p className="mt-3 text-muted">
+          {r.candidates.length} open-weight {r.candidates.length === 1 ? 'candidate' : 'candidates'}, {r.repeats} repeats per case, {live ? `estimated ${usd(r.est_cost_usd)}` : `${usd(r.actual_cost_usd)} spent`}
           {r.finished_at && `, finished ${ago(r.finished_at)}`}
         </p>
+        {(refs.length > 0 || jury) && (
+          <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-3 text-sm">
+            {refs.length > 0 && (
+              <div>
+                <dt className="text-xs text-faint">Closed references, never ranked</dt>
+                <dd className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted">
+                  {refs.map((x) => <span key={x.key} className="inline-flex items-center gap-1.5">{x.name}<EffortChip effort={x.effort} /></span>)}
+                </dd>
+              </div>
+            )}
+            {jury && (
+              <div>
+                <dt className="text-xs text-faint">Judged by</dt>
+                <dd className="mt-1 text-muted">
+                  {jury}
+                  {r.judge_agreement != null && <span className="ml-2 text-faint">· jurors agree on {pct(r.judge_agreement, 0)}</span>}
+                </dd>
+              </div>
+            )}
+          </dl>
+        )}
 
         {live && (
           <div className="mt-8">
@@ -84,20 +117,20 @@ export default function RunPage() {
 
       {r.recommendation && verdict && (
         <VerdictCard
-          rec={r.recommendation} verdict={verdict} baselineName={baseline ? shortModel(baseline.model) : null}
-          pick={r.leaderboard.find((c) => c.candidate_key === r.recommendation!.candidate_key)} base={baseline}
+          rec={r.recommendation} verdict={verdict} reference={reference} judgedBy={jury}
+          pick={r.leaderboard.find((c) => c.candidate_key === r.recommendation!.candidate_key)}
         />
       )}
 
       {r.pareto_points.length > 0 && (
-        <Section title="Quality against cost" aside="The coral staircase is the Pareto front: for each model on it, no other model is both better and cheaper.">
+        <Section title="Quality against cost" aside="Coral staircase: the Pareto front of open-weight candidates. Grey dashed rings: closed references.">
           <Panel className="p-4">
-            <ParetoChart points={r.pareto_points} recommended={pickKey} />
+            <ParetoChart points={r.pareto_points} recommended={pickKey} efforts={efforts} />
           </Panel>
         </Section>
       )}
 
-      <Section title="Leaderboard" aside="Gates first, then the Pareto front, then your weights.">
+      <Section title="Leaderboard" aside="Open-weight candidates only. Gates first, then the Pareto front, then your weights.">
         {r.leaderboard.length === 0 ? (
           <p className="rounded-xl border border-dashed border-line-strong px-5 py-8 text-sm text-muted">Waiting for the first results.</p>
         ) : (

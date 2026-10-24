@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import ConnectAgent from '@/components/ConnectAgent'
+import { Link } from 'react-router-dom'
 import { ErrorNote, Loading } from '@/components/ui'
 import { ProjectList } from '@/components/usecases/ProjectList'
 import { LiveDot, WaitingForAgent, useFreshIds } from '@/components/usecases/live'
@@ -19,10 +19,20 @@ export default function UseCases() {
   const savings = q.data ? savingsOf(q.data) : 0
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
+    // full width now that connecting lives on /connections; capped so rows don't stretch into emptiness
+    <div className="mx-auto max-w-6xl">
       <div className="min-w-0">
-        <h1 className="display text-4xl text-balance sm:text-5xl">Use cases</h1>
-        <p className="mt-3 max-w-lg text-muted">Every place your product calls an LLM, the model it uses today, and what the benchmark says.</p>
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+          <div>
+            <h1 className="display text-4xl sm:text-5xl">Use cases</h1>
+            <p className="mt-3 max-w-lg text-muted">Every place your product calls an LLM, the model it uses today, and what the benchmark says.</p>
+          </div>
+          {!!q.data?.length && (
+            <Link to="/connections" className="rounded-md border border-line bg-panel px-3 py-1.5 text-sm text-muted transition-colors hover:border-line-strong hover:text-fg">
+              Connect another repo
+            </Link>
+          )}
+        </div>
         {!!q.data?.length && (
           <p className="mt-5 flex flex-wrap items-center gap-x-2 text-sm text-faint" role="status">
             <LiveDot className="mr-0.5" />
@@ -40,9 +50,6 @@ export default function UseCases() {
         </div>
       </div>
 
-      <aside className="lg:pt-2">
-        <ConnectAgent />
-      </aside>
     </div>
   )
 }

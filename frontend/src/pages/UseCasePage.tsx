@@ -5,10 +5,29 @@ import StartRun from '@/components/StartRun'
 import { Badge, Button, ErrorNote, Loading, Panel, Section, StatusPill, Tag } from '@/components/ui'
 import Weights from '@/components/Weights'
 import { api } from '@/lib/api'
-import { ago, shortModel, usd } from '@/lib/format'
+import { ago, effortOf, usd } from '@/lib/format'
 import { briefVerdict } from '@/lib/verdict'
 import type { Case, Gate, MetricInfo, Profile } from '@/types'
-import { ModelIcon, ProviderIcon } from '@/components/ModelIcon'
+import { ProviderIcon } from '@/components/ModelIcon'
+import { ModelName, juryNames } from '@/components/run/ModelName'
+import SetupPanel from '@/components/usecase/SetupPanel'
+import { hasJudgeMetric, readiness } from '@/components/usecase/readiness'
+
+// Clamped to three lines; "Show more" only when it actually overflows
+function Description({ text }: { text: string }) {
+  const [open, setOpen] = useState(false)
+  const long = text.length > 260
+  return (
+    <div className="mt-3 max-w-[70ch]">
+      <p className={`text-[15px] leading-relaxed text-pretty text-muted ${open || !long ? '' : 'line-clamp-3'}`}>{text}</p>
+      {long && (
+        <button type="button" onClick={() => setOpen(!open)} className="mt-1 text-sm text-fg/80 underline-offset-4 hover:underline">
+          {open ? 'Show less' : 'Show more'}
+        </button>
+      )}
+    </div>
+  )
+}
 
 function preview(x: unknown, max = 140): string {
   if (x == null) return '–'
@@ -100,45 +119,57 @@ export default function UseCasePage() {
   const u = uc.data!
   const profile = draft ?? u.profile ?? me.data?.workspace.default_profile ?? { weights: { quality: 60, speed: 20, cost: 20 }, targets: {} }
   const metricName = (mid: string) => metrics.data?.find((m: MetricInfo) => m.id === mid || m.aliases.includes(mid))?.name ?? mid
-  const needsVision = (cases.data ?? []).some((c) => (c.input.images?.length ?? 0) > 0)
+  const ready = readiness(u, cases.data)
   const totalWeight = u.metrics.reduce((s, m) => s + m.weight, 0) || 1
   const ref = u.source_refs[0]
+  const moreRefs = u.source_refs.length - 1
+  const judged = hasJudgeMetric(u)
 
   return (
     <div>
       <Link to="/" className="rounded-md border border-line bg-panel px-2.5 py-1 text-xs text-muted hover:text-fg">Use cases</Link>
 
-      <div className="mt-8 flex flex-wrap items-center gap-2">
+      <div className="mt-6 flex flex-wrap items-center gap-2">
         <Badge tone="front">{u.kind}</Badge>
         {u.created_by === 'mcp' && <Badge tone="signal">Found by agent</Badge>}
       </div>
-      <h1 className="display mt-4 max-w-4xl text-4xl text-balance sm:text-6xl">{u.name}</h1>
-      {u.description && <p className="mt-4 max-w-2xl text-lg text-muted">{u.description}</p>}
+      <h1 className="display mt-3 line-clamp-2 text-3xl text-pretty sm:text-4xl xl:text-5xl" title={u.name}>{u.name}</h1>
+      {u.description && <Description text={u.description} />}
 
-      <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-4">
-        <div className="bg-panel p-4">
+      <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-4">
+        <div className="min-w-0 bg-panel px-4 py-3">
           <dt className="text-xs text-faint">Called from</dt>
-          <dd className="mt-1 truncate font-mono text-[12.5px]" title={ref ? `${ref.path}:${ref.line ?? ''}` : ''}>
+          <dd className="mt-1 truncate font-mono text-[12.5px]" title={u.source_refs.map((r) => `${r.path}:${r.line ?? ''}`).join('\n')}>
             {ref ? `${ref.path}${ref.line ? `:${ref.line}` : ''}` : '–'}
           </dd>
-          {ref?.symbol && <dd className="text-xs text-muted">{ref.symbol}</dd>}
+          <dd className="mt-0.5 truncate text-xs text-muted">
+            {[ref?.symbol, moreRefs > 0 ? `+${moreRefs} more call ${moreRefs === 1 ? 'site' : 'sites'}` : null].filter(Boolean).join(' · ') || ' '}
+          </dd>
         </div>
-        <div className="bg-panel p-4">
+        <div className="min-w-0 bg-panel px-4 py-3">
           <dt className="text-xs text-faint">Model today</dt>
-          <dd className="mt-1 flex items-center gap-2 font-medium">{u.current_model && <ModelIcon model={u.current_model.model} size={16} />}{u.current_model ? shortModel(u.current_model.model) : 'not set'}</dd>
-          {u.current_model && <dd className="mt-1 flex items-center gap-1.5 text-xs text-muted"><ProviderIcon provider={u.current_model.provider} size={11} />via {u.current_model.provider}</dd>}
+          <dd className="mt-1">
+            {u.current_model
+              ? <ModelName model={u.current_model.model} effort={effortOf(u.current_model.model, u.current_model.params)} size={15} nameClass="font-medium text-[15px]" />
+              : <span className="text-muted">not set</span>}
+          </dd>
+          {u.current_model && <dd className="mt-0.5 flex items-center gap-1.5 text-xs text-muted"><ProviderIcon provider={u.current_model.provider} size={11} />via {u.current_model.provider}</dd>}
         </div>
-        <div className="bg-panel p-4">
+        <div className="bg-panel px-4 py-3">
           <dt className="text-xs text-faint">Test cases</dt>
-          <dd className="title mt-1 text-2xl">{cases.data?.length ?? u.case_count}</dd>
+          <dd className={`title mt-1 text-2xl ${(cases.data?.length ?? u.case_count) === 0 ? 'text-front' : ''}`}>{cases.data?.length ?? u.case_count}</dd>
         </div>
-        <div className="bg-panel p-4">
+        <div className="bg-panel px-4 py-3">
           <dt className="text-xs text-faint">Must pass</dt>
-          <dd className="title mt-1 text-2xl">{u.gates.length} <span className="text-sm font-normal text-muted">gates</span></dd>
+          <dd className="title mt-1 text-2xl">{u.gates.length} <span className="text-sm font-normal text-muted">{u.gates.length === 1 ? 'gate' : 'gates'}</span></dd>
         </div>
       </dl>
 
-      <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_380px]">
+      <div className="mt-6">
+        <SetupPanel uc={u} cases={cases.data} />
+      </div>
+
+      <div className="mt-10 grid gap-12 lg:grid-cols-[1fr_380px]">
         <div className="min-w-0 space-y-12">
           <Section
             title="What matters for this job"
@@ -147,7 +178,7 @@ export default function UseCasePage() {
                 <Button variant="ghost" onClick={() => setDraft(null)}>Discard</Button>
                 <Button onClick={() => save.mutate(draft)} disabled={save.isPending}>{save.isPending ? 'Saving…' : 'Save weights'}</Button>
               </span>
-            ) : 'Drag the borders. The ranking uses these weights.'}
+            ) : 'Drag the dot or pick a preset. The ranking uses these weights.'}
           >
             <Panel className="p-5 sm:p-6">
               <Weights profile={profile} onChange={setDraft} />
@@ -158,12 +189,13 @@ export default function UseCasePage() {
           <div className="grid gap-6 md:grid-cols-2">
             <Section title="Must pass">
               <Panel className="divide-y divide-line">
-                {u.gates.length === 0 && <p className="p-4 text-sm text-muted">No gates.</p>}
+                {u.gates.length === 0 && <p className="p-4 text-sm text-muted">No gates yet. Every model is ranked on the weights alone.</p>}
                 {u.gates.map((g) => <GateRow key={g.metric_id + g.op} gate={g} name={metricName(g.metric_id)} />)}
               </Panel>
             </Section>
             <Section title="Quality is measured by">
               <Panel className="divide-y divide-line">
+                {u.metrics.length === 0 && <p className="p-4 text-sm text-muted">Your agent is still choosing metrics.</p>}
                 {u.metrics.map((m) => (
                   <div key={m.metric_id} className="p-4">
                     <div className="flex justify-between gap-3 text-sm">
@@ -175,6 +207,11 @@ export default function UseCasePage() {
                     </div>
                   </div>
                 ))}
+                {judged && (
+                  <p className="p-4 text-xs leading-relaxed text-muted">
+                    Judged by <span className="text-fg">{juryNames(u, me.data?.workspace.default_judge)}</span>. Each judge abstains on its own model family; the score is the mean of the judges that vote.
+                  </p>
+                )}
               </Panel>
             </Section>
           </div>
@@ -183,7 +220,7 @@ export default function UseCasePage() {
             {cases.isLoading && <Loading />}
             {cases.data?.length === 0 && (
               <p className="rounded-xl border border-dashed border-line-strong px-5 py-8 text-sm text-muted">
-                No cases yet. Ask your agent to add cases from the repo's tests or fixtures, or to generate synthetic ones.
+                No cases yet. Add them under Action required above, or ask your agent to pull them from the repo's tests and fixtures.
               </p>
             )}
             {!!cases.data?.length && (
@@ -210,7 +247,7 @@ export default function UseCasePage() {
         </div>
 
         <div className="min-w-0 space-y-10">
-          <StartRun useCase={u} needsVision={needsVision} />
+          <StartRun useCase={u} needsVision={ready.vision} blocked={ready.blocked} />
           <Section title="Past runs">
             {runs.data?.length === 0 && <p className="text-sm text-muted">No runs yet.</p>}
             <ul className="space-y-2">

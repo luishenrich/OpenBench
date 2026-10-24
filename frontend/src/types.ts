@@ -8,8 +8,28 @@ export type CaseSource = 'repo' | 'synthetic' | 'upload' | 'trace' | 'public'
 export type Axis = 'quality' | 'speed' | 'cost'
 
 export interface Profile { weights: Record<Axis, number>; targets: Record<string, number> }
-export interface JudgeConfig { provider: Provider; model: string; mode: 'rubric' | 'pairwise'; rubric: string | null }
-export interface Workspace { id: string; name: string; default_profile: Profile; default_judge: JudgeConfig }
+/** One juror. params.reasoning_effort is pinned. */
+export interface JudgeModel { provider: Provider; model: string; params?: Record<string, unknown> }
+/** A jury (default GPT-6 Luna + DeepSeek-V4.1-Flash, effort low). Each juror abstains on its own model family. */
+export interface JudgeConfig { judges: JudgeModel[]; mode: 'rubric' | 'pairwise'; rubric: string | null }
+export interface Workspace {
+  id: string
+  name: string
+  default_profile: Profile
+  default_judge: JudgeConfig
+  // Requested from Raphaël, not in the backend yet: optional until PATCH /api/workspace ships.
+  /** closed comparison models; absent → GPT-6.1 Sol + GPT-6 Luna at medium */
+  default_references?: ModelRef[]
+  candidate_pool?: CandidatePool
+  /** absent → 3 */
+  default_repeats?: number
+  /** absent → no cap */
+  max_run_cost_usd?: number | null
+}
+/** Which open-weight models get picked automatically as candidates. */
+export interface CandidatePool { shortlist_only: boolean; exclude_providers: Provider[]; max_output_usd_per_1m: number | null }
+export type WorkspacePatch = Partial<Pick<Workspace,
+  'name' | 'default_profile' | 'default_judge' | 'default_references' | 'candidate_pool' | 'default_repeats' | 'max_run_cost_usd'>>
 export interface Me { user_id: string; email: string; workspace: Workspace; mcp_key_last4: string | null }
 
 export interface SourceRef { repo: string | null; path: string; line: number | null; symbol: string | null }
@@ -59,6 +79,14 @@ export interface Case {
   source: CaseSource
 }
 
+export interface CaseIn {
+  input: { vars?: Record<string, unknown>; messages?: unknown[]; images?: string[] }
+  reference?: unknown
+  tags?: string[]
+  source?: CaseSource
+}
+export interface GenerateCasesIn { n?: number; strategy?: 'auto' | 'schema_first' | 'persona_grid' }
+
 export interface CatalogModel {
   id: string
   provider: Provider
@@ -98,8 +126,10 @@ export interface MetricInfo {
 export interface RunIn {
   use_case_id: string
   candidates: ModelRef[]
-  repeats: number
-  include_baseline: boolean
+  repeats?: number
+  /** closed frontier models, same cases × repeats, comparison only. Server default: Sol + Luna at medium. */
+  references?: ModelRef[]
+  include_references?: boolean
   confirm_cost_usd?: number | null
 }
 export interface EstimateLine { provider: Provider; model: string; calls: number; est_cost_usd: number }
@@ -117,10 +147,14 @@ export interface Stat { mean: number; std: number; ci_low: number; ci_high: numb
 export interface Pct { p50: number; p95: number }
 export interface Scores { quality: number; speed: number; cost: number; utility: number }
 export interface CandidateResult {
-  candidate_key: string
+  candidate_key: string // "openrouter:openai/gpt-6.1-sol@medium"
   provider: Provider
   model: string
-  is_baseline: boolean
+  /** closed reference (incl. "today"): measured, never ranked, never recommended; failed_gates informative only */
+  is_reference: boolean
+  reference_label?: string | null // "GPT-6.1 Sol", "GPT-6 Luna", "today"
+  reasoning_effort?: string | null // pinned effort; "default" = the provider's own default
+  avg_reasoning_tokens?: number | null
   n: number
   quality: Stat
   metrics: Record<string, Stat>
@@ -142,7 +176,8 @@ export interface ParetoPoint {
   quality: number
   cost_per_success_usd: number | null
   latency_ms: number
-  is_baseline: boolean
+  /** grey reference point, never on the front; label = reference label */
+  is_reference: boolean
   pareto: boolean
 }
 export interface Recommendation {
@@ -151,11 +186,13 @@ export interface Recommendation {
   model: string
   headline: string
   reasons: string[]
-  quality_vs_baseline_pct: number | null
-  cost_multiple_vs_baseline: number | null
-  latency_delta_ms: number | null
+  /** the best reference by quality (usually GPT-6.1 Sol) */
+  reference_key?: string | null
+  quality_vs_reference_pct: number | null
+  cost_multiple_vs_reference: number | null // 0.05 = 20× cheaper
+  latency_delta_ms: number | null // candidate − reference, p95
   statistical_tie_with: string[]
-  est_monthly_savings_usd: number | null
+  est_monthly_savings_usd?: number | null // vs the "today" reference
 }
 export interface Progress { done: number; total: number; errors: number; judged: number; judge_total: number }
 export interface Run {
@@ -164,6 +201,7 @@ export interface Run {
   status: RunStatus
   progress: Progress
   candidates: ModelRef[]
+  references?: ModelRef[] // as run, incl. "today"
   repeats: number
   est_cost_usd: number
   actual_cost_usd: number
@@ -174,6 +212,8 @@ export interface Run {
   leaderboard: CandidateResult[]
   pareto_points: ParetoPoint[]
   recommendation: Recommendation | null
+  /** share of judged results where both jurors agree; null if fewer than 2 judged */
+  judge_agreement?: number | null
 }
 export interface ResultOut {
   id: string
@@ -186,6 +226,17 @@ export interface ResultOut {
   cost_usd: number | null
   error: string | null
   scores: Record<string, number>
-  judge: { mode?: string; score?: number; reasoning?: string; winner?: string } | null
+  judge: ResultJudge | null
+}
+export interface Juror { key: string; reasoning_effort?: string | null; score?: number | null; reasoning?: string | null; winner?: string | null }
+export interface ResultJudge {
+  mode?: string
+  score?: number | null
+  winner?: string | null
+  /** all non-abstaining jurors agree; null when fewer than two voted */
+  agreement?: boolean | null
+  abstained?: string[]
+  reasoning?: string | null // all jurors in one string
+  jurors?: Juror[]
 }
 export interface ResultsPage { items: ResultOut[]; next_cursor: string | null }
