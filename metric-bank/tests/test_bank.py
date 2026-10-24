@@ -23,10 +23,19 @@ def test_bank_matches_schema_and_catalogue():
     ).validate(bank)
     ids = {item["id"] for item in bank["metrics"]}
     assert CATALOG_IDS <= ids
-    assert len(bank["metrics"]) == 158
+    by_id = {item["id"]: item for item in bank["metrics"]}
+    assert "field_f1" not in by_id["field_accuracy"]["aliases"]
+    assert by_id["field_f1"]["utility_axis"] == "quality"
+    assert len(bank["metrics"]) == 159
     assert len(bank["categories"]) == 22
     on_disk = json.loads((ROOT / "data" / "metric-bank.json").read_text(encoding="utf-8"))
     assert on_disk == bank
+
+
+def test_catalogue_names_every_bank_id():
+    catalogue = (Path(__file__).resolve().parents[2] / "docs" / "metrics-catalog.md").read_text(encoding="utf-8")
+    missing = [item["id"] for item in build_bank()["metrics"] if f"`{item['id']}`" not in catalogue]
+    assert missing == []
 
 
 def test_quality_axis_is_higher_better_unit_interval():
@@ -121,17 +130,71 @@ def test_scanned_page_uses_vision_metrics():
     assert card["quality"] == [
         "character_accuracy",
         "bbox_f1",
-        "bbox_iou",
         "field_accuracy",
         "json_schema_valid",
     ]
-    assert card["also_report"] == ["cer", "wer"]
+    assert card["also_report"] == ["cer", "wer", "bbox_iou"]
+    assert "bbox_iou" not in card["quality"]
     assert "cer" not in card["quality"]
     assert "wer" not in card["quality"]
 
 
+def test_numeric_fields_survive_a_scanned_page():
+    card = select(
+        {
+            "kind": "extraction",
+            "ocr": True,
+            "layout_boxes": True,
+            "has_schema": True,
+            "numeric_fields": True,
+        }
+    )
+    assert "numeric_tolerance_accuracy" in card["quality"]
+    assert "bbox_iou" not in card["quality"]
+    assert "bbox_f1" in card["quality"]
+
+
+def test_select_does_not_require_id_title_or_narrative():
+    card = select({"kind": "classification"})
+    assert card["example_id"] == "brief"
+    assert card["title"] == "classification"
+    assert card["narrative"] == ""
+    assert card["quality"] == ["classification_f1"]
+
+
+def test_fintech_with_secrets_keeps_refusal_gates():
+    card = select(
+        {
+            "kind": "chat",
+            "industry": "finance",
+            "user_facing": True,
+            "regulated_advice": True,
+            "secrets_possible": True,
+            "phi_or_customer_data": True,
+        }
+    )
+    ids = [item["id"] for item in card["risk_gates"]]
+    assert ids[:3] == ["safety_violation", "over_refusal", "non_advice_compliance"]
+    assert "secret_leakage_rate" in ids
+    promoted = select(
+        {
+            "kind": "chat",
+            "user_facing": True,
+            "regulated_advice": True,
+            "secrets_possible": True,
+            "phi_or_customer_data": True,
+            "risk_priorities": ["secret_leakage_rate"],
+        }
+    )
+    assert promoted["risk_gates"][0]["id"] == "secret_leakage_rate"
+
+
 def test_formula_sketches():
     assert sketch.exact_match("The Cat.", "the cat")
+    assert sketch.exact_match("北京", "上海") is False
+    assert sketch.token_f1("北京", "上海") == 0
+    assert sketch.exact_match("Ärger", "Rger") is False
+    assert sketch.exact_match("Ärger", "ärger")
     assert sketch.token_f1("the cat sat", "cat sat") == 0.8
     assert sketch.classification_f1(["a", "b", "a"], ["a", "a", "a"]) == 0.4
     assert sketch.faithfulness_from_verdicts([True, True, False]) == 2 / 3

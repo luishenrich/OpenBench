@@ -194,8 +194,26 @@ def main() -> None:
     notebook.metadata["language_info"] = {"name": "python", "pygments_lexer": "ipython3"}
     namespace: dict = {"__name__": "__main__"}
     cells = []
+    # Fixed ids so a rebuild does not churn the notebook diff.
+    cell_ids = [
+        "mb-intro",
+        "mb-load",
+        "mb-categories",
+        "mb-category-table",
+        "mb-axes",
+        "mb-axis-table",
+        "mb-scorecards",
+        "mb-scorecard-run",
+        "mb-formulas",
+        "mb-formula-run",
+        "mb-priors",
+        "mb-prior-table",
+    ]
+    next_id = iter(cell_ids)
     for markdown, code in zip(MARKDOWN, CODE):
-        cells.append(new_markdown_cell(markdown.strip() + "\n"))
+        markdown_cell = new_markdown_cell(markdown.strip() + "\n")
+        markdown_cell["id"] = next(next_id)
+        cells.append(markdown_cell)
         text, error = execute(code, namespace)
         outputs = []
         if text:
@@ -211,6 +229,7 @@ def main() -> None:
             print(error, file=sys.stderr)
             raise SystemExit(1)
         cell = new_code_cell(code.strip() + "\n")
+        cell["id"] = next(next_id)
         cell.outputs = outputs
         cell.execution_count = len([item for item in cells if item.cell_type == "code"]) + 1
         cells.append(cell)

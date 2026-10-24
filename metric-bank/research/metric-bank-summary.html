@@ -73,7 +73,7 @@
   <h1>A metric bank for client-specific LLM benchmarks</h1>
   <p class="lede">Companies do not need another copy of MMLU. They need a small scorecard, chosen from a library, that measures the task they actually run. This note is the research decision behind that library, and a map of what is in it.</p>
   <div class="statrow">
-    <div class="stat"><b>158</b><span>metrics</span></div>
+    <div class="stat"><b>159</b><span>metrics</span></div>
     <div class="stat"><b>22</b><span>categories</span></div>
     <div class="stat"><b>53</b><span>core rows</span></div>
     <div class="stat"><b>40</b><span>catalogue ids kept</span></div>
@@ -90,11 +90,11 @@
 </header>
 <main>
   <h2 id="decision">How many metrics are warranted</h2>
-  <p>The bank has one row per measurement a client benchmark can actually run. Public exams (MMLU, BIG-bench, GSM8K, HELM scenarios, Arena Elo) are priors, not metrics. Where Ragas and DeepEval name the same construct, one row is kept and the other name is an alias. Metrics marked avoid_as_primary exist so a selector can refuse BLEU, ROUGE, BERTScore, fluency, or embedding cosine as the sole quality score. Operational metrics are measured on the same run as quality. Only utility_axis=quality scores enter the 0–1 quality average, and they must already be higher-better. Lower-better risk rates are gates. A client scorecard should contain the always-on operational metrics, one speed metric chosen from the use-case kind, one to five quality metrics, and zero to three risk gates. Document vision is included for pages and scans: character and word error, plus box overlap. Speech, image aesthetics, and caption preference are not. The bank is a library, not a list to run in full.</p>
-  <p>158 metrics sit in 22 categories (5 avoid_as_primary, 53 core, 24 diagnostic, 76 supporting). Core rows are the ones a selector should consider first when the brief matches. The avoid-as-primary rows exist so BLEU, ROUGE-L, BERTScore, summary fluency, and embedding cosine can be refused as the quality score. The remaining rows are supporting measurements or diagnostics.</p>
+  <p>The bank has one row per measurement a client benchmark can actually run. Public exams (MMLU, BIG-bench, GSM8K, HELM scenarios, Arena Elo) are priors, not metrics. Where Ragas and DeepEval name the same construct, one row is kept and the other name is an alias. Metrics marked avoid_as_primary exist so a selector can refuse BLEU, ROUGE, BERTScore, fluency, or embedding cosine as the sole quality score. Operational metrics are measured on the same run as quality. Only utility_axis=quality scores enter the 0–1 quality average, and they must already be higher-better. Lower-better risk rates are gates. A client scorecard should contain the always-on operational metrics, one speed metric chosen from the use-case kind, one to five quality metrics, and zero to five risk gates. Document vision is included for pages and scans: character and word error, plus box overlap. Speech, image aesthetics, and caption preference are not. The bank is a library, not a list to run in full.</p>
+  <p>159 metrics sit in 22 categories (5 avoid_as_primary, 53 core, 24 diagnostic, 77 supporting). Core rows are the ones a selector should consider first when the brief matches. The avoid-as-primary rows exist so BLEU, ROUGE-L, BERTScore, summary fluency, and embedding cosine can be refused as the quality score. The remaining rows are supporting measurements or diagnostics.</p>
   <p>A row earned a place when three things were true. A client can compute it on their own cases. Two teams would otherwise implement it under different names. And the number can change a ship decision: quality, a hard gate, speed, cost, or a business outcome. A public exam fails the first test. An alias fails the second. A vanity score fails the third.</p>
   <p>The existing product catalogue, in <span class="mono">docs/metrics-catalog.md</span>, already fixed forty ids. Every one of those ids is in this bank with the same spelling, so a later <span class="mono">biy_metrics_list</span> can serve this file without a rename. This folder does not edit that catalogue. The bank is the superset.</p>
-  <p>A client scorecard is not the bank. It is the six always-on operational metrics, one speed metric chosen from the kind, one to five quality metrics, and zero to three risk gates. The reference selector in <span class="mono">src/metric_bank/selector.py</span> applies that budget. The five clients further down are its output.</p>
+  <p>A client scorecard is not the bank. It is the six always-on operational metrics, one speed metric chosen from the kind, one to five quality metrics, and zero to five risk gates. The reference selector in <span class="mono">src/metric_bank/selector.py</span> applies that budget. The five clients further down are its output.</p>
 
   <h2 id="studied">What was studied, and what was left out</h2>
   <p>HELM is the argument for the shape of the bank. Liang and colleagues scored accuracy together with calibration, robustness, fairness, toxicity, and efficiency, and they warned against a win rate that depends on who else was in the set. That is why quality here is an absolute 0–1 mean, not a rank against the other candidates, and why speed and cost stay on their own axes.</p>
@@ -129,8 +129,8 @@
 <tr><td>code</td><td>Code</td><td>6</td><td>1</td><td>Tests outrank every similarity metric. Add the insecure-code rate when generated code can be merged.</td></tr>
 <tr><td>conversation</td><td>Conversation</td><td>6</td><td>2</td><td>Lead with conversation completeness when a goal exists. Do not apply single-turn RAG metrics to a whole transcript.</td></tr>
 <tr><td>instruction_following</td><td>Instruction following</td><td>5</td><td>1</td><td>Write deterministic verifiers. A judge is a last resort. JSON schema is not this category.</td></tr>
-<tr><td>structured_output</td><td>Structured output</td><td>9</td><td>3</td><td>Gate on schema validity. Put field accuracy in the quality average. Do not also gate on raw JSON parse when the schema gate exists.</td></tr>
-<tr><td>vision</td><td>Document vision</td><td>6</td><td>4</td><td>Use character accuracy when a reference transcription exists, and report character and word error beside it. Add box F1 and IoU only when the task is to locate regions. Do not apply these to a text-only prompt.</td></tr>
+<tr><td>structured_output</td><td>Structured output</td><td>10</td><td>3</td><td>Gate on schema validity. Put field accuracy in the quality average. Do not also gate on raw JSON parse when the schema gate exists.</td></tr>
+<tr><td>vision</td><td>Document vision</td><td>6</td><td>4</td><td>Use character accuracy when a reference transcription exists, and report character and word error beside it. Put bbox_f1 in the quality average and report bbox_iou. Do not apply these to a text-only prompt.</td></tr>
 <tr><td>agents_tools</td><td>Agents and tool use</td><td>11</td><td>3</td><td>Single-step products use tool-call match. Multi-step products with a sandbox use task success. Do not exact-match a trajectory when several paths are legal.</td></tr>
 <tr><td>multilingual</td><td>Multilinguality</td><td>6</td><td>2</td><td>Gate on language match when a locale is required. Rank translation with COMET, not BLEU.</td></tr>
 <tr><td>safety</td><td>Safety</td><td>9</td><td>3</td><td>These are gates, not quality-average terms. Always pair harmful compliance with over-refusal on user-facing assistants.</td></tr>
@@ -299,6 +299,7 @@
 <tr><td>structured_output</td><td>enum_adherence</td><td>Enum adherence</td><td>supporting</td><td>quality</td><td>quality</td></tr>
 <tr><td>structured_output</td><td>extraneous_field_rate</td><td>Extraneous-field rate</td><td>diagnostic</td><td>gate_only</td><td>risk</td></tr>
 <tr><td>structured_output</td><td>field_accuracy</td><td>Field accuracy</td><td>core</td><td>quality</td><td>quality</td></tr>
+<tr><td>structured_output</td><td>field_f1</td><td>Field F1</td><td>supporting</td><td>quality</td><td>quality</td></tr>
 <tr><td>structured_output</td><td>format_valid</td><td>Format validity</td><td>supporting</td><td>quality</td><td>quality</td></tr>
 <tr><td>structured_output</td><td>json_schema_valid</td><td>JSON Schema validity</td><td>core</td><td>quality</td><td>quality</td></tr>
 <tr><td>structured_output</td><td>json_valid</td><td>JSON parse rate</td><td>supporting</td><td>quality</td><td>quality</td></tr>
@@ -438,7 +439,7 @@
   <p>Within the repo, the constraints this bank respects are the metric catalogue, the scoring section of the architecture note, and the research brief on metrics. Those files are the product's. This summary does not replace them.</p>
 </main>
 <footer>
-  Generated from the metric bank so the counts cannot drift. 158 metrics, 22 categories. Selector notes for the first category, accuracy: Prefer these over a judge whenever a gold string, label, or list exists. Lead classification with F1 unless the client named precision or recall.
+  Generated from the metric bank so the counts cannot drift. 159 metrics, 22 categories. Selector notes for the first category, accuracy: Prefer these over a judge whenever a gold string, label, or list exists. Lead classification with F1 unless the client named precision or recall.
 </footer>
 </body>
 </html>
