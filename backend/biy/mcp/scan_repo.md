@@ -2,18 +2,21 @@ You are helping me benchmark open-weight LLMs for every place this product uses 
 The BIY MCP server (tools prefixed `biy_`) is connected. Work through the steps below in order.
 **Do not change any application code.** Keep a short running note of what you find; you will show it at the end.
 
-The dashboard fills in live while you work, so **create each use case as soon as you have grouped it** (step 2),
-then complete them one at a time (step 3). Never build one big payload for everything.
+The dashboard fills in live while someone watches, so **speed to the first use case matters**: the first one should
+appear within about a minute. Find call sites with grep only, create a light use case for each right away (step 2),
+and leave all careful reading for step 3. Never build one big payload for everything.
 **Send BIY tool calls one at a time**, never several in parallel.
 
-## 1. Find and group every LLM call site
+## 1. Find and group every LLM call site (grep only, no deep reading yet)
 
 First, note the **repo name**: `git remote get-url origin` (the last path part, without `.git`), or the folder name.
 Every `source_refs` entry gets `"repo": "<that name>"`, so the dashboard shows the scan as one project.
 
-Search the whole repository (all packages of a monorepo) with grep/ripgrep, then read the code around each hit.
-**Large monorepo** (several apps or services): first list them with a rough count of LLM call sites each, and ask me
-which to scan first. Then scan those completely.
+Search the whole repository (all packages of a monorepo) with a few broad grep/ripgrep calls (the patterns below,
+combined), plus one grep for the default model. Grep output with a few lines of context is enough to name, group and
+create a use case. **Don't open prompt files, read call sites, test data or client code yet**: that's step 3.
+**Large monorepo** (several apps or services): list them with a rough count of LLM call sites each, from the same
+greps, and ask me which to scan first. Then scan those completely.
 
 - **Python imports:** openai, anthropic, google.genai, google.generativeai, mistralai, groq, together, cohere, ollama, litellm, langchain*, llama_index, instructor, dspy, transformers, vllm
 - **JS/TS imports:** openai, @anthropic-ai/sdk, @google/genai, ai, @ai-sdk/*, @langchain/*, llamaindex, @mastra/*
@@ -31,7 +34,9 @@ For a multi-step agent, benchmark **single steps**: one use case per distinct LL
 
 ## 2. Create each use case right away
 
-As soon as a use case is grouped, call **`biy_use_cases_create` with a list of one** and only the light fields:
+Straight after the greps, before reading any file in full, call **`biy_use_cases_create` with a list of one** per
+use case, one call after the other, with only the light fields. If a later read shows two were really one prompt (or one
+was two), fix it in step 3 with `biy_use_cases_update`.
 
 - `name`, `kind` (chat | batch | extraction | classification | agent | rag | summarization | generation | other)
 - `description`: what it does and why it matters, in one or two sentences
@@ -74,6 +79,12 @@ list: call **`biy_upload_url`** (`field`: `system_prompt`, `user_template`, `res
 f-strings, character for character. **Never truncate, shorten or paraphrase a prompt.** If you can't attach it exactly,
 leave it empty and say "prompt not attached" in the description: BIY refuses to run a use case without a prompt, so a
 placeholder is never benchmarked.
+
+**Prompts built by code** (f-strings, helper functions, message lists): read the function and write its text into a
+scratch file yourself, one use case at a time, with `{{variable}}` for each interpolation and the default config values
+filled in. Don't write a script that imports or runs the application's code to render prompts: the repo's dependencies
+may not be installed, running it needs approval, and it stalls the scan. Small helpers that only format a variable
+(a JSON dump, a list join) are part of the variable, not of the template.
 
 **e. Test cases:** collect realistic inputs from unit tests, fixtures, mocks, seed or demo data, few-shot examples inside
 prompts, and docs. Add them with **`biy_cases_add`**: `input` is `{"vars": {...}}` matching the template variables, or
