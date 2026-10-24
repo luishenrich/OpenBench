@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BIY — 2 minute pitch</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #09090b;
+    --panel: #121214;
+    --line: #26262a;
+    --fg: #ededef;
+    --muted: #9a9aa3;
+    --faint: #62626b;
+    --win: #3dd68c;
+    --bad: #f2555a;
+    --front: #ff6b3d;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); }
+  body {
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "tnum" 1;
+    -webkit-font-smoothing: antialiased;
+  }
+  .slide {
+    display: none;
+    height: 100vh;
+    padding: 4.2vh 5.2vw 7vh;
+    position: relative;
+    overflow: hidden;
+    background-color: var(--bg);
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 72px 72px;
+  }
+  .slide.active { display: flex; flex-direction: column; }
+  .kicker {
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 2.2vh;
+  }
+  .kicker .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--win);
+    margin-right: 10px;
+    vertical-align: 1px;
+  }
+  h1 {
+    font-size: 68px;
+    line-height: 0.96;
+    letter-spacing: -0.045em;
+    font-weight: 650;
+    margin: 0;
+    max-width: 16ch;
+  }
+  .lede {
+    margin: 2.4vh 0 0;
+    font-size: 26px;
+    line-height: 1.35;
+    color: var(--muted);
+    max-width: 34ch;
+    font-weight: 450;
+  }
+  .stats {
+    display: flex;
+    gap: 4vw;
+    margin-top: auto;
+    padding-bottom: 2vh;
+  }
+  .stat b {
+    display: block;
+    font-size: 64px;
+    letter-spacing: -0.04em;
+    font-weight: 650;
+    line-height: 1;
+  }
+  .stat b.win { color: var(--win); }
+  .stat b.bad { color: var(--bad); }
+  .stat span {
+    display: block;
+    margin-top: 10px;
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    max-width: 22ch;
+    line-height: 1.4;
+  }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-top: auto;
+    padding-bottom: 3vh;
+  }
+  .step {
+    border: 1px solid var(--line);
+    background: rgba(18,18,20,0.86);
+    border-radius: 14px;
+    padding: 22px 20px 26px;
+    min-height: 28vh;
+  }
+  .step em {
+    font-family: ui-monospace, monospace;
+    font-style: normal;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    color: var(--win);
+  }
+  .step strong {
+    display: block;
+    margin-top: 18px;
+    font-size: 32px;
+    letter-spacing: -0.03em;
+    font-weight: 650;
+    line-height: 1.05;
+  }
+  .cmd {
+    margin-top: 3vh;
+    font-family: ui-monospace, monospace;
+    font-size: 20px;
+    color: var(--fg);
+  }
+  .cmd small { color: var(--faint); margin-left: 16px; font-size: 14px; }
+  .split { display: flex; gap: 4vw; align-items: center; margin-top: 5vh; flex: 1; padding-bottom: 5vh; }
+  .bigpair b { font-size: 92px; letter-spacing: -0.05em; line-height: 0.9; font-weight: 650; display: block; }
+  .bigpair span {
+    display: block;
+    margin-top: 8px;
+    font-family: ui-monospace, monospace;
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .rules { margin: 0; padding: 0; list-style: none; flex: 1; }
+  .rules li {
+    border-top: 1px solid var(--line);
+    padding: 16px 0;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+  }
+  .rules li:last-child { border-bottom: 1px solid var(--line); }
+  .rules small {
+    display: block;
+    margin-top: 4px;
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .proof { display: grid; grid-template-columns: 1.62fr 0.58fr; gap: 36px; margin-top: 1vh; min-height: 0; flex: 1; align-items: stretch; }
+  .aside { display: flex; flex-direction: column; min-height: 0; }
+  .shot {
+    width: 100%;
+    max-height: 74vh;
+    object-fit: contain;
+    object-position: left center;
+    border-radius: 16px;
+  }
+  .aside h1 { font-size: 48px; max-width: 11ch; }
+  .aside .nums { margin-top: auto; padding-bottom: 1vh; }
+  .aside .nums div { margin-bottom: 14px; }
+  .aside .nums b { font-size: 36px; letter-spacing: -0.04em; }
+  .aside .nums span {
+    display: block;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .foot {
+    margin-top: auto;
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .trust { display: flex; gap: 6vw; margin-top: 6vh; }
+  .trust b { font-size: 108px; letter-spacing: -0.055em; line-height: 0.85; color: var(--win); }
+  .trust span {
+    display: block;
+    margin-top: 12px;
+    font-family: ui-monospace, monospace;
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .caveat {
+    margin-top: auto;
+    max-width: 46ch;
+    color: var(--muted);
+    font-size: 22px;
+    line-height: 1.35;
+  }
+  .team { display: flex; gap: 3vw; margin-top: auto; padding-bottom: 2vh; }
+  .team div { flex: 1; border-top: 1px solid var(--line); padding-top: 16px; }
+  .team b { display: block; font-size: 28px; letter-spacing: -0.03em; }
+  .team span {
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .nav {
+    position: fixed;
+    right: 28px;
+    bottom: 22px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--faint);
+    z-index: 2;
+  }
+  @media print {
+    .nav { display: none; }
+    .slide {
+      display: flex !important;
+      flex-direction: column;
+      height: 7.5in;
+      page-break-after: always;
+      break-after: page;
+    }
+    .shot { max-height: 5.5in; }
+    @page { size: 13.333in 7.5in; margin: 0; }
+  }
+</style>
+</head>
+<body>
+  <section class="slide active" id="s1">
+    <p class="kicker"><span class="dot"></span>The problem</p>
+    <h1>Models get picked by vibes.</h1>
+    <p class="lede">Leaderboards score someone else’s prompts. The closed model you started with keeps the bill.</p>
+    <div class="stats">
+      <div class="stat"><b>15+</b><span>strong model families</span></div>
+      <div class="stat"><b>5–25</b><span>providers serving each family</span></div>
+      <div class="stat"><b class="bad">72–100%</b><span>same weights, tool-call accuracy, by provider</span></div>
+    </div>
+  </section>
+
+  <section class="slide" id="s2">
+    <p class="kicker"><span class="dot"></span>BIY</p>
+    <h1>One command in the coding agent.</h1>
+    <p class="cmd">/mcp__biy__scan_repo <small>nothing runs until the cost is confirmed</small></p>
+    <div class="steps">
+      <div class="step"><em>01</em><strong>Find every LLM call</strong></div>
+      <div class="step"><em>02</em><strong>Classify the job</strong></div>
+      <div class="step"><em>03</em><strong>Pick the metrics</strong></div>
+      <div class="step"><em>04</em><strong>Build the cases</strong></div>
+    </div>
+  </section>
+
+  <section class="slide" id="s3">
+    <p class="kicker"><span class="dot"></span>How a run is scored</p>
+    <div class="split">
+      <div>
+        <div class="bigpair"><b class="win">159</b><span>metrics in the bank</span></div>
+        <div class="bigpair" style="margin-top:28px"><b>118</b><span>computed on the run</span></div>
+      </div>
+      <ul class="rules">
+        <li>Three-family jury<small>Each judge abstains on its own family. Pairwise, both orders, or it is a tie.</small></li>
+        <li>Mean and a 95% interval<small>Cases times repeats. Overlapping intervals are a statistical tie.</small></li>
+        <li>Gates, then Pareto, then a recommendation<small>A failed gate is not ranked. Closed models are references, never the pick.</small></li>
+        <li>134 models, called for real<small>29 on the default shortlist. Listings were wrong. We measured.</small></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" id="s4">
+    <p class="kicker"><span class="dot"></span>StudyPDF · Luis’s product</p>
+    <div class="proof">
+      <img class="shot" src="verdict.png" alt="Verdict card from the StudyPDF run: switch to DeepSeek-V4-Flash-0731, 100% of GPT-6.1 Sol quality at one eighth of the cost, 8.4 times cheaper, 11 seconds slower at p95, passes every gate.">
+      <div class="aside">
+        <h1>Luis is implementing it.</h1>
+        <p class="lede">Concrete suggestions from a run on his product, not a sample app.</p>
+        <div class="nums">
+          <div><b>29</b><span>use cases on gpt-researcher. Nobody named them in advance.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="s5">
+    <p class="kicker"><span class="dot"></span>Why trust the judge</p>
+    <div class="trust">
+      <div><b>80%</b><span>agreed with a person · 8 of 10</span></div>
+      <div><b>0.68</b><span>rubric Spearman · n = 10</span></div>
+    </div>
+    <p class="caveat">Where both judges scored the same answer, they disagreed. We flag that. The judge is not the label until a person has looked.</p>
+  </section>
+
+  <section class="slide" id="s6">
+    <p class="kicker"><span class="dot"></span>BIY</p>
+    <h1>Which open model should do each job.</h1>
+    <p class="lede">On your cases.</p>
+    <div class="team">
+      <div><b>Luis</b><span>Product and dashboard</span></div>
+      <div><b>Raphaël</b><span>Backend and MCP</span></div>
+      <div><b>Jad</b><span>Metrics and the judge</span></div>
+    </div>
+  </section>
+  <div class="nav" id="count">01 / 06</div>
+<script>
+  const slides = Array.from(document.querySelectorAll(".slide"));
+  const count = document.getElementById("count");
+  function indexFromLocation() {
+    const q = new URLSearchParams(location.search).get("slide");
+    const raw = q || String(location.hash).replace("#", "");
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) ? Math.min(slides.length, Math.max(1, n)) - 1 : 0;
+  }
+  let i = indexFromLocation();
+  function show(n) {
+    i = (n + slides.length) % slides.length;
+    slides.forEach((slide, k) => slide.classList.toggle("active", k === i));
+    count.textContent = String(i + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+    const next = "#" + (i + 1);
+    if (location.hash !== next) history.replaceState(null, "", next);
+  }
+  addEventListener("keydown", (event) => {
+    const next = ["ArrowRight", "ArrowDown", "PageDown", " "];
+    const prev = ["ArrowLeft", "ArrowUp", "PageUp", "Backspace"];
+    if (next.includes(event.key)) { event.preventDefault(); show(i + 1); }
+    else if (prev.includes(event.key)) { event.preventDefault(); show(i - 1); }
+    else if (event.key === "Home") { show(0); }
+    else if (event.key === "End") { show(slides.length - 1); }
+  });
+  addEventListener("click", (event) => {
+    if (event.target.closest("a")) return;
+    show(event.clientX > innerWidth * 0.72 ? i + 1 : event.clientX < innerWidth * 0.28 ? i - 1 : i);
+  });
+  addEventListener("hashchange", () => show(indexFromLocation()));
+  show(i);
+</script>
+</body>
+</html>
