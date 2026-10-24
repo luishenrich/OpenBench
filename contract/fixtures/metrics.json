@@ -1,0 +1,308 @@
+[
+  {
+    "id": "json_schema_valid",
+    "name": "JSON Schema validity",
+    "category": "structured_output",
+    "description": "The share of outputs that validate against the JSON Schema the product uses. This is the catalogue metric json_schema_valid and the default gate for extraction. Take the schema from the pydantic or zod model in the repo so the benchmark matches production.",
+    "measures": "Schema compliance of the JSON payload, including types, required fields, and additionalProperties.",
+    "method": "deterministic",
+    "direction": "higher_better",
+    "unit": "ratio",
+    "score_min": 0.0,
+    "score_max": 1.0,
+    "utility_axis": "quality",
+    "gate_suitable": true,
+    "suggested_gate": ">= 0.99 for extraction and for tool arguments.",
+    "default_for_kinds": [
+      "extraction",
+      "agent"
+    ],
+    "required_inputs": [
+      "model_output",
+      "json_schema"
+    ],
+    "selector_priority": "core",
+    "aliases": [
+      "schema_validity"
+    ]
+  },
+  {
+    "id": "field_accuracy",
+    "name": "Field accuracy",
+    "category": "structured_output",
+    "description": "The share of schema fields whose values match the reference under a per-field matcher: exact, casefold, numeric tolerance, date, enum, or set. This is the catalogue metric field_accuracy and the default quality metric for extraction once the payload parses.",
+    "measures": "Correctness of extracted values, field by field.",
+    "method": "deterministic",
+    "direction": "higher_better",
+    "unit": "ratio",
+    "score_min": 0.0,
+    "score_max": 1.0,
+    "utility_axis": "quality",
+    "gate_suitable": true,
+    "suggested_gate": null,
+    "default_for_kinds": [
+      "extraction"
+    ],
+    "required_inputs": [
+      "model_output",
+      "reference_answer",
+      "json_schema"
+    ],
+    "selector_priority": "core",
+    "aliases": [
+      "field_accuracy_micro",
+      "field_f1"
+    ]
+  },
+  {
+    "id": "classification_accuracy",
+    "name": "Classification accuracy",
+    "category": "accuracy",
+    "description": "Share of items whose predicted label equals the gold label. It is the headline number for balanced routing and intent tasks, and it hides failure on rare classes, which is why imbalanced tasks should lead with classification_f1 or precision and recall.",
+    "measures": "Top-1 label correctness against a gold label set.",
+    "method": "deterministic",
+    "direction": "higher_better",
+    "unit": "ratio",
+    "score_min": 0.0,
+    "score_max": 1.0,
+    "utility_axis": "quality",
+    "gate_suitable": true,
+    "suggested_gate": null,
+    "default_for_kinds": [
+      "classification"
+    ],
+    "required_inputs": [
+      "model_output",
+      "labels"
+    ],
+    "selector_priority": "supporting",
+    "aliases": [
+      "top1_accuracy",
+      "label_accuracy"
+    ]
+  },
+  {
+    "id": "character_accuracy",
+    "name": "Character accuracy",
+    "category": "vision",
+    "description": "One minus character error rate, clipped at 0 so insertions cannot make the score negative. Higher is better, on 0–1, which is what the quality average requires. Report cer next to it so a clipped zero is not confused with a mild error.",
+    "measures": "Clipped character-level accuracy of a transcription against a reference.",
+    "method": "deterministic",
+    "direction": "higher_better",
+    "unit": "ratio",
+    "score_min": 0.0,
+    "score_max": 1.0,
+    "utility_axis": "quality",
+    "gate_suitable": false,
+    "suggested_gate": null,
+    "default_for_kinds": [],
+    "required_inputs": [
+      "model_output",
+      "reference_answer"
+    ],
+    "selector_priority": "core",
+    "aliases": [
+      "ocr_character_accuracy"
+    ]
+  },
+  {
+    "id": "cer",
+    "name": "Character error rate",
+    "category": "vision",
+    "description": "Levenshtein distance between the predicted transcription and the reference transcription, divided by the number of characters in the reference. Lower is better. Insertions can push the rate above 1. This is the usual OCR headline and it is reported beside character accuracy, which is the 0–1 term that can enter the quality average.",
+    "measures": "Character edits per reference character on a transcription.",
+    "method": "deterministic",
+    "direction": "lower_better",
+    "unit": "ratio",
+    "score_min": 0.0,
+    "score_max": null,
+    "utility_axis": "none",
+    "gate_suitable": true,
+    "suggested_gate": "<= 0.05 on clean printed scans when a bad transcription cannot be reviewed.",
+    "default_for_kinds": [],
+    "required_inputs": [
+      "model_output",
+      "reference_answer"
+    ],
+    "selector_priority": "core",
+    "aliases": [
+      "character_error_rate"
+    ]
+  },
+  {
+    "id": "bbox_iou",
+    "name": "Box IoU",
+    "category": "vision",
+    "description": "Mean intersection-over-union between predicted boxes and their matched reference boxes. Higher is better, on 0–1. A box is axis-aligned, in the image coordinate system the client publishes. This grades localization once a match exists. Detection, including misses and extras, is bbox_f1.",
+    "measures": "Overlap of matched predicted regions with reference regions.",
+    "method": "deterministic",
+    "direction": "higher_better",
+    "unit": "ratio",
+    "score_min": 0.0,
+    "score_max": 1.0,
+    "utility_axis": "quality",
+    "gate_suitable": false,
+    "suggested_gate": null,
+    "default_for_kinds": [],
+    "required_inputs": [
+      "model_output",
+      "labels"
+    ],
+    "selector_priority": "core",
+    "aliases": [
+      "mean_iou"
+    ]
+  },
+  {
+    "id": "rubric_score",
+    "name": "Rubric score",
+    "category": "judging",
+    "description": "A judge scores the output against a rubric written for this use case, and the score is normalized to 0–1. This is the catalogue metric rubric_score and the default for open-ended work that has no tighter metric. The discovery agent drafts the rubric from the system prompt, with three to six criteria.",
+    "measures": "The use case's own criteria, as a weighted rubric, not a generic notion of quality.",
+    "method": "llm_judge",
+    "direction": "higher_better",
+    "unit": "ratio",
+    "score_min": 0.0,
+    "score_max": 1.0,
+    "utility_axis": "quality",
+    "gate_suitable": false,
+    "suggested_gate": null,
+    "default_for_kinds": [
+      "chat",
+      "generation",
+      "batch"
+    ],
+    "required_inputs": [
+      "model_output",
+      "prompt_or_input",
+      "llm_judge"
+    ],
+    "selector_priority": "core",
+    "aliases": [
+      "rubric"
+    ]
+  },
+  {
+    "id": "pairwise_vs_baseline",
+    "name": "Pairwise win rate versus baseline",
+    "category": "judging",
+    "description": "The rate at which a judge prefers the candidate's output to the baseline model's output on the same input, with the two orders averaged so a position bias becomes a tie. This is the catalogue metric pairwise_vs_baseline. Use it for open-ended quality when the question is 'is this as good as what we run today', not when an absolute rubric exists.",
+    "measures": "Preference against the current production model on identical inputs.",
+    "method": "llm_judge",
+    "direction": "higher_better",
+    "unit": "ratio",
+    "score_min": 0.0,
+    "score_max": 1.0,
+    "utility_axis": "quality",
+    "gate_suitable": false,
+    "suggested_gate": null,
+    "default_for_kinds": [
+      "chat",
+      "generation"
+    ],
+    "required_inputs": [
+      "model_output",
+      "prompt_or_input",
+      "llm_judge"
+    ],
+    "selector_priority": "core",
+    "aliases": [
+      "pairwise_win_rate",
+      "baseline_win_rate"
+    ]
+  },
+  {
+    "id": "error_rate",
+    "name": "Error rate",
+    "category": "reliability",
+    "description": "The share of calls that fail: HTTP errors, timeouts, and empty completions. This is the catalogue metric error_rate. It is always measured and it is the default reliability gate. Timeouts and empty bodies are also broken out so a single rate is diagnosable.",
+    "measures": "Calls that did not return a usable completion.",
+    "method": "log_derived",
+    "direction": "lower_better",
+    "unit": "ratio",
+    "score_min": 0.0,
+    "score_max": 1.0,
+    "utility_axis": "gate_only",
+    "gate_suitable": true,
+    "suggested_gate": "<= 0.02 for chat and <= 0.01 when a failure breaks a user-visible action. Batch may use <= 0.05.",
+    "default_for_kinds": [
+      "chat",
+      "batch",
+      "extraction",
+      "agent",
+      "classification",
+      "rag",
+      "summarization",
+      "generation"
+    ],
+    "required_inputs": [
+      "server_logs",
+      "model_output"
+    ],
+    "selector_priority": "core",
+    "aliases": [
+      "failure_rate"
+    ]
+  },
+  {
+    "id": "e2e_ms",
+    "name": "End-to-end latency",
+    "category": "efficiency",
+    "description": "Milliseconds from request send to the final token. This is the catalogue metric e2e_ms. It is the speed metric for synchronous extraction and classification, where the caller cannot use a partial result. Report p50, p95, and p99.",
+    "measures": "Full wait from request send until the response is complete.",
+    "method": "log_derived",
+    "direction": "lower_better",
+    "unit": "milliseconds",
+    "score_min": 0.0,
+    "score_max": null,
+    "utility_axis": "speed",
+    "gate_suitable": true,
+    "suggested_gate": "p95 <= the profile maximum for synchronous calls.",
+    "default_for_kinds": [
+      "extraction",
+      "classification",
+      "summarization"
+    ],
+    "required_inputs": [
+      "timestamps"
+    ],
+    "selector_priority": "core",
+    "aliases": [
+      "end_to_end_latency"
+    ]
+  },
+  {
+    "id": "cost_per_success_usd",
+    "name": "Cost per successful case",
+    "category": "cost",
+    "description": "Total spend divided by the number of cases that passed the quality checks and the gates. This is the catalogue metric cost_per_success_usd and the cost number used for ranking. It charges the model for failures, retries, and judge-free waste. Lower is better.",
+    "measures": "Dollars per case that actually succeeded.",
+    "method": "log_derived",
+    "direction": "lower_better",
+    "unit": "usd",
+    "score_min": 0.0,
+    "score_max": null,
+    "utility_axis": "cost",
+    "gate_suitable": false,
+    "suggested_gate": null,
+    "default_for_kinds": [
+      "chat",
+      "batch",
+      "extraction",
+      "agent",
+      "classification",
+      "rag",
+      "summarization",
+      "generation"
+    ],
+    "required_inputs": [
+      "usage_tokens",
+      "price_table",
+      "labels"
+    ],
+    "selector_priority": "core",
+    "aliases": [
+      "cost_per_success"
+    ]
+  }
+]

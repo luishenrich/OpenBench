@@ -1,0 +1,57 @@
+{
+  "kind": "extraction",
+  "always_on": [
+    "error_rate",
+    "truncation_rate",
+    "throttle_rate",
+    "cost_per_case_usd",
+    "cost_per_success_usd",
+    "tokens_out_per_case"
+  ],
+  "speed_ranking": "e2e_ms",
+  "speed_also_report": [],
+  "quality": [
+    "field_accuracy",
+    "numeric_tolerance_accuracy",
+    "json_schema_valid"
+  ],
+  "quality_alternates": [],
+  "judging": [],
+  "also_report": [],
+  "reliability_extra": [],
+  "notes": [],
+  "metrics": [
+    {
+      "metric_id": "field_accuracy",
+      "weight": 1.0,
+      "config": {}
+    },
+    {
+      "metric_id": "numeric_tolerance_accuracy",
+      "weight": 1.0,
+      "config": {}
+    },
+    {
+      "metric_id": "json_schema_valid",
+      "weight": 1.0,
+      "config": {}
+    }
+  ],
+  "gates": [
+    {
+      "metric_id": "error_rate",
+      "op": "<=",
+      "value": 0.01
+    },
+    {
+      "metric_id": "truncation_rate",
+      "op": "<=",
+      "value": 0.01
+    },
+    {
+      "metric_id": "json_schema_valid",
+      "op": ">=",
+      "value": 0.99
+    }
+  ]
+}

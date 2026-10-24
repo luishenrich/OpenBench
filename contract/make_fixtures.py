@@ -10,6 +10,7 @@ from pathlib import Path
 from uuid import UUID
 
 from contract import schemas as s
+from contract.metric_bank_mapping import list_metrics, scorecard
 
 OUT = Path(__file__).parent / "fixtures"
 T0 = datetime(2026, 10, 24, 12, 0, tzinfo=timezone.utc)
@@ -54,7 +55,7 @@ extract = s.UseCase(
     profile=s.Profile(weights={"quality": 60, "speed": 25, "cost": 15},
                       targets={"e2e_ms_p95": 2000, "e2e_ms_p95_max": 8000, "cost_per_call_usd": 0.0005, "cost_per_call_usd_max": 0.005}),
     gates=[s.Gate(metric_id="json_schema_valid", op=">=", value=0.99), s.Gate(metric_id="error_rate", op="<=", value=0.02)],
-    metrics=[s.MetricSpec(metric_id="json_schema_valid", weight=1), s.MetricSpec(metric_id="field_f1", weight=3)],
+    metrics=[s.MetricSpec(metric_id="json_schema_valid", weight=1), s.MetricSpec(metric_id="field_accuracy", weight=3)],
     judge=None,
     io_spec=s.IOSpec(system_prompt="Extract the invoice fields. Answer with JSON only.",
                      user_template="Invoice:\n{{text}}", response_schema=invoice_schema, params={"temperature": 0}),
@@ -71,7 +72,7 @@ classify = s.UseCase(
     current_model=s.ModelRef(provider="openrouter", model="openai/gpt-4.1-mini"),
     profile=s.Profile(weights={"quality": 50, "speed": 30, "cost": 20}),
     gates=[s.Gate(metric_id="error_rate", op="<=", value=0.02)],
-    metrics=[s.MetricSpec(metric_id="label_accuracy", weight=1)],
+    metrics=[s.MetricSpec(metric_id="classification_accuracy", weight=1)],
     io_spec=s.IOSpec(system_prompt="Answer with one label: billing, bug, how_to, account.", user_template="{{ticket}}"),
     case_count=50, latest_run=s.RunBrief(id=RUN_LIVE, status="running"),
     created_by="mcp", created_at=T0 - timedelta(hours=1),
@@ -81,7 +82,7 @@ receipt = s.UseCase(
     description="Reads merchant and total from a photo of a receipt (image input).",
     source_refs=[s.SourceRef(repo="example/app", path="src/expenses/receipt.ts", line=8)],
     current_model=s.ModelRef(provider="openrouter", model="google/gemini-2.5-flash"),
-    metrics=[s.MetricSpec(metric_id="json_schema_valid"), s.MetricSpec(metric_id="field_f1", weight=3)],
+    metrics=[s.MetricSpec(metric_id="json_schema_valid"), s.MetricSpec(metric_id="field_accuracy", weight=3)],
     io_spec=s.IOSpec(user_template="Read merchant and total from this receipt.",
                      response_schema={"type": "object", "properties": {"merchant": {"type": "string"}, "total": {"type": "number"}},
                                       "required": ["merchant", "total"], "additionalProperties": False}),
@@ -142,7 +143,7 @@ def cand_result(provider, model, base, q, std, ttft, e2e, cost, rank, pareto, n=
         quality=s.Stat(mean=q, std=std, ci_low=round(q - 1.96 * std / n ** 0.5 * 2, 3), ci_high=round(min(1, q + 1.96 * std / n ** 0.5 * 2), 3), n=n),
         metrics={
             "json_schema_valid": s.Stat(mean=0.97 if disq else 1.0, std=0.17 if disq else 0.0, ci_low=0.94 if disq else 1.0, ci_high=0.99 if disq else 1.0, n=n),
-            "field_f1": s.Stat(mean=q, std=std, ci_low=round(q - 0.02, 3), ci_high=round(min(1, q + 0.02), 3), n=n),
+            "field_accuracy": s.Stat(mean=q, std=std, ci_low=round(q - 0.02, 3), ci_high=round(min(1, q + 0.02), 3), n=n),
         },
         ttft_ms=s.Pct(p50=ttft, p95=round(ttft * 1.8)), e2e_ms=s.Pct(p50=e2e, p95=round(e2e * 1.7)), tokens_per_s=round(180000 / e2e, 1),
         cost_per_call_usd=cost, cost_per_success_usd=round(cost / q, 6), error_rate=0.0 if not disq else 0.013,
@@ -161,7 +162,7 @@ rec = s.Recommendation(
     candidate_key="nebius:zai-org/GLM-5.3-Flash", provider="nebius", model="zai-org/GLM-5.3-Flash",
     headline="Switch to GLM-5.3-Flash: 98% of today's quality at 1/5 of the cost",
     reasons=["Passes every gate (schema valid 100%, no errors)",
-             "Field F1 0.962 vs 0.981 for gpt-4.1-mini; CIs overlap with DeepSeek-V4.1-Flash, so the cheaper one wins",
+             "Field accuracy 0.962 vs 0.981 for gpt-4.1-mini; CIs overlap with DeepSeek-V4.1-Flash, so the cheaper one wins",
              "p95 latency 2.8 s vs 3.0 s today"],
     quality_vs_baseline_pct=98.1, cost_multiple_vs_baseline=0.2, latency_delta_ms=-170,
     statistical_tie_with=["nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017"], est_monthly_savings_usd=412.0,
@@ -186,12 +187,12 @@ results = s.ResultsPage(items=[
                         "json": {"vendor": "Müller & Söhne", "invoice_number": "88-17", "date": "2026-10-03", "total": 89.0, "currency": "EUR"}},
                 timing={"ttft_ms": 402, "e2e_ms": 1611, "tokens_per_s": 96.0},
                 usage={"prompt_tokens": 212, "completion_tokens": 61, "reasoning_tokens": 0}, cost_usd=0.000062, error=None,
-                scores={"json_schema_valid": 1.0, "field_f1": 1.0}, judge=None),
+                scores={"json_schema_valid": 1.0, "field_accuracy": 1.0}, judge=None),
     s.ResultOut(id=uid(301), candidate_key="nebius:MiniMaxAI/MiniMax-M3.1-Flash", case_id=uid(101), repeat_idx=0,
                 output={"text": "Here are the fields: vendor Müller & Söhne, …", "json": None},
                 timing={"ttft_ms": 340, "e2e_ms": 2050, "tokens_per_s": 71.0},
                 usage={"prompt_tokens": 212, "completion_tokens": 88}, cost_usd=0.000085, error=None,
-                scores={"json_schema_valid": 0.0, "field_f1": 0.0}, judge=None),
+                scores={"json_schema_valid": 0.0, "field_accuracy": 0.0}, judge=None),
     s.ResultOut(id=uid(302), candidate_key="nebius:openai/gpt-oss-120b", case_id=uid(102), repeat_idx=1,
                 output={}, timing={"ttft_ms": None, "e2e_ms": 30000, "tokens_per_s": None}, usage={}, cost_usd=None,
                 error="timeout after 30 s", scores={}, judge=None),
@@ -213,4 +214,11 @@ dump("estimate", estimate)
 dump("run_running", run_running)
 dump("run_done", run_done)
 dump("results", results)
+
+DEMO_METRICS = ["json_schema_valid", "field_accuracy", "classification_accuracy", "character_accuracy", "cer",
+                "bbox_iou", "rubric_score", "pairwise_vs_baseline", "error_rate", "e2e_ms", "cost_per_success_usd"]
+by_id = {m.id: m for m in list_metrics()}
+dump("metrics", [by_id[i] for i in DEMO_METRICS])
+dump("scorecard", scorecard(s.ScorecardBrief(kind="extraction", has_schema=True, has_reference=True, numeric_fields=True,
+                                              narrative="Extracts invoice fields into a JSON schema; the caller waits.")))
 print("wrote", sorted(p.name for p in OUT.glob("*.json")))

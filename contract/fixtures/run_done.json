@@ -65,7 +65,7 @@
           "ci_high": 1.0,
           "n": 150
         },
-        "field_f1": {
+        "field_accuracy": {
           "mean": 0.962,
           "std": 0.031,
           "ci_low": 0.942,
@@ -117,7 +117,7 @@
           "ci_high": 1.0,
           "n": 150
         },
-        "field_f1": {
+        "field_accuracy": {
           "mean": 0.971,
           "std": 0.027,
           "ci_low": 0.951,
@@ -169,7 +169,7 @@
           "ci_high": 1.0,
           "n": 150
         },
-        "field_f1": {
+        "field_accuracy": {
           "mean": 0.975,
           "std": 0.024,
           "ci_low": 0.955,
@@ -221,7 +221,7 @@
           "ci_high": 1.0,
           "n": 150
         },
-        "field_f1": {
+        "field_accuracy": {
           "mean": 0.918,
           "std": 0.048,
           "ci_low": 0.898,
@@ -273,7 +273,7 @@
           "ci_high": 0.99,
           "n": 150
         },
-        "field_f1": {
+        "field_accuracy": {
           "mean": 0.884,
           "std": 0.061,
           "ci_low": 0.864,
@@ -327,7 +327,7 @@
           "ci_high": 1.0,
           "n": 150
         },
-        "field_f1": {
+        "field_accuracy": {
           "mean": 0.981,
           "std": 0.022,
           "ci_low": 0.961,
@@ -422,7 +422,7 @@
     "headline": "Switch to GLM-5.3-Flash: 98% of today's quality at 1/5 of the cost",
     "reasons": [
       "Passes every gate (schema valid 100%, no errors)",
-      "Field F1 0.962 vs 0.981 for gpt-4.1-mini; CIs overlap with DeepSeek-V4.1-Flash, so the cheaper one wins",
+      "Field accuracy 0.962 vs 0.981 for gpt-4.1-mini; CIs overlap with DeepSeek-V4.1-Flash, so the cheaper one wins",
       "p95 latency 2.8 s vs 3.0 s today"
     ],
     "quality_vs_baseline_pct": 98.1,
