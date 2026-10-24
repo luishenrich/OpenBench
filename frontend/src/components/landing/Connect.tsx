@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Code, Container, SectionHead, linkPrimary } from './shared'
 
-const PARTS = ['claude mcp add', '--transport http', 'biy', 'https://biy.studypdf.net/mcp/', '--header', '"Authorization: Bearer biy_…"']
+const PARTS = ['claude mcp add', '--transport http', 'biy', 'https://biy.studypdf.net/mcp', '--header', '"Authorization: Bearer biy_…"']
 const COMMAND = PARTS.join(' ')
 
 export default function Connect() {

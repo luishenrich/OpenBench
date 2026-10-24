@@ -13,7 +13,7 @@ export default function ConnectAgent() {
   const shownKey = key ?? (me.data?.mcp_key_last4 ? `biy_…${me.data.mcp_key_last4}` : '<create a key>')
   // Local dev and prod share one database, so a key works against prod either way: always point agents at prod.
   const origin = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? PROD_ORIGIN : window.location.origin
-  const command = `claude mcp add --transport http biy ${origin}/mcp/ --header "Authorization: Bearer ${shownKey}"`
+  const command = `claude mcp add --transport http biy ${origin}/mcp --header "Authorization: Bearer ${shownKey}"`
 
   async function copy() {
     try {
