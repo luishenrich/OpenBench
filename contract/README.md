@@ -6,8 +6,8 @@ Shared shapes for the REST API, the MCP tools and the frontend. **Owner: Raphaë
 |---|---|
 | `schemas.py` | Pydantic models. JSON field names = attribute names |
 | `fixtures/*.json` | One example response per endpoint, built through `schemas.py` (`python3 -m contract.make_fixtures`). The frontend builds on these before the API exists |
-| `api.md` | Endpoints, with request and response shapes *(coming next)* |
-| `services.md` | Python signatures the REST routes and MCP tools both call, including the metric interface *(coming next)* |
+| `api.md` | Endpoints, auth, errors, MCP tools |
+| `services.md` | Python signatures the REST routes and MCP tools both call, including the metric interface (Jad) |
 | `schema.sql` | Supabase tables *(coming next)* |
 
 Fixture → endpoint:
