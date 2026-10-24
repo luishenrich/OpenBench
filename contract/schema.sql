@@ -105,3 +105,9 @@ alter table use_case  add column if not exists pinned     boolean     not null d
 alter table use_case  add column if not exists pinned_at  timestamptz;
 alter table use_case  add column if not exists updated_at timestamptz not null default now();
 alter table test_case add column if not exists updated_at timestamptz not null default now();
+
+-- 2026-10-24: workspace defaults that use cases and runs inherit (additive, idempotent)
+alter table workspace add column if not exists default_references jsonb;            -- ModelRef[]; null = built-in (Sol, Luna)
+alter table workspace add column if not exists candidate_pool     jsonb not null default '{}';  -- CandidatePool
+alter table workspace add column if not exists default_repeats    int   not null default 3;
+alter table workspace add column if not exists max_run_cost_usd   numeric(12,4);    -- null = no cap

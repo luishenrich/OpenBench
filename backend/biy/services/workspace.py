@@ -7,7 +7,7 @@ import secrets
 import time
 from uuid import UUID
 
-from contract.schemas import JudgeConfig, Me, Profile, Workspace
+from contract.schemas import CandidatePool, JudgeConfig, Me, ModelRef, Profile, Workspace, WorkspacePatch
 
 from .. import db
 from .errors import NotFound
@@ -48,13 +48,34 @@ async def workspace_for_key(key: str) -> UUID | None:
     return ws
 
 
+_WS_COLS = ("id, name, default_profile, default_judge, default_references, candidate_pool, default_repeats, "
+            "max_run_cost_usd")
+
+
 async def get_workspace(workspace_id: UUID) -> Workspace:
-    r = await db.fetchrow("select id, name, default_profile, default_judge from workspace where id = $1",
-                          workspace_id)
+    r = await db.fetchrow(f"select {_WS_COLS} from workspace where id = $1", workspace_id)
     if not r:
         raise NotFound("workspace not found")
+    extra = {"default_references": [ModelRef(**x) for x in r["default_references"]]} \
+        if r["default_references"] is not None else {}  # null = the built-in references
     return Workspace(id=r["id"], name=r["name"], default_profile=Profile(**r["default_profile"]),
-                     default_judge=JudgeConfig(**r["default_judge"]))
+                     default_judge=JudgeConfig(**r["default_judge"]),
+                     candidate_pool=CandidatePool(**(r["candidate_pool"] or {})),
+                     default_repeats=r["default_repeats"], max_run_cost_usd=r["max_run_cost_usd"], **extra)
+
+
+async def update_workspace(workspace_id: UUID, patch: WorkspacePatch) -> Workspace:
+    """Change company defaults. Sending a field as null resets it to the built-in default."""
+    fields = patch.model_dump(mode="json", exclude_unset=True)
+    resets = {"default_profile": Profile().model_dump(mode="json"), "default_judge": {"mode": "rubric"},
+              "candidate_pool": {}, "default_repeats": 3}
+    if fields.get("name", "") is None:
+        fields.pop("name")
+    values = {k: (resets[k] if v is None and k in resets else v) for k, v in fields.items()}
+    if values:
+        sets = ", ".join(f"{k} = ${i}" for i, k in enumerate(values, start=2))
+        await db.execute(f"update workspace set {sets} where id = $1", workspace_id, *values.values())
+    return await get_workspace(workspace_id)
 
 
 async def get_me(workspace_id: UUID, user_id: UUID | None, email: str | None) -> Me:

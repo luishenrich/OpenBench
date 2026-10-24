@@ -64,7 +64,8 @@ ROLE_ORDER = ("frontier", "value", "small", "specialist")
 
 
 async def auto_candidates(workspace_id: UUID, use_case_id: UUID, n: int = 6) -> list[ModelRef]:
-    """Pick n candidates from the shortlist that can do this use case, verified capabilities only.
+    """Pick n candidates within the workspace's candidate pool that can do this use case, verified
+    capabilities only.
 
     Needs come from the use case: image input → vision, tools → tools, response schema →
     json_schema. Round-robin over roles (frontier, value, small, …), best AA index first, so
@@ -80,9 +81,13 @@ async def auto_candidates(workspace_id: UUID, use_case_id: UUID, n: int = 6) -> 
     if uc.io_spec.response_schema:
         needs.add("json_schema")
     current = (uc.current_model.provider, uc.current_model.model) if uc.current_model else None
+    rules = (await get_workspace(workspace_id)).candidate_pool
     pool = [m for m in catalog.all_models()
-            if m.get("shortlist") and m.get("available") and not m.get("legacy") and m["type"] != "embedding"
-            and m.get("role") != "baseline" and (m["provider"], m["id"]) != current
+            if (m.get("shortlist") or not rules.shortlist_only) and m.get("available") and not m.get("legacy")
+            and m["type"] != "embedding" and m.get("role") != "baseline" and (m["provider"], m["id"]) != current
+            and m["provider"] not in rules.exclude_providers
+            and (rules.max_output_usd_per_1m is None
+                 or ((m.get("pricing") or {}).get("usd_per_1m") or {}).get("output", 0) <= rules.max_output_usd_per_1m)
             and all((m.get("verified") or {}).get(k) for k in needs)]
     by_role = {r: sorted((m for m in pool if m.get("role") == r), key=lambda m: -(m.get("aa_index") or 0))
                for r in ROLE_ORDER}
@@ -92,7 +97,8 @@ async def auto_candidates(workspace_id: UUID, use_case_id: UUID, n: int = 6) -> 
             if by_role[r] and len(picked) < n:
                 picked.append(by_role[r].pop(0))
     if not picked:
-        raise Invalid(f"no shortlisted model has verified {sorted(needs)}; pick candidates from GET /api/models")
+        raise Invalid(f"no model in the workspace's candidate pool has verified {sorted(needs)}; "
+                      "widen the pool (PATCH /api/workspace) or pick candidates from GET /api/models")
     return [ModelRef(provider=m["provider"], model=m["id"], params=default_params(m)) for m in picked]
 
 
@@ -122,7 +128,18 @@ def references_for(uc: UseCase, req: RunIn) -> list[dict]:
     return [r for r in out if ranking.key_of(r) not in cand_keys]
 
 
-async def estimate_run(workspace_id: UUID, req: RunIn) -> Estimate:
+async def resolve(workspace_id: UUID, req: RunIn, auto: int = 6) -> RunIn:
+    """Apply the workspace defaults to what the request leaves out (contract RunIn)."""
+    ws = await get_workspace(workspace_id)
+    return req.model_copy(update={
+        "candidates": req.candidates or await auto_candidates(workspace_id, req.use_case_id, auto),
+        "repeats": req.repeats or ws.default_repeats,
+        "references": req.references if req.references is not None else ws.default_references,
+    })
+
+
+async def estimate_run(workspace_id: UUID, req: RunIn, auto: int = 6) -> Estimate:
+    req = await resolve(workspace_id, req, auto)
     uc = await get_use_case(workspace_id, req.use_case_id)
     cases = await list_cases(workspace_id, req.use_case_id)
     if not cases:
@@ -163,15 +180,22 @@ async def estimate_run(workspace_id: UUID, req: RunIn) -> Estimate:
             judge_cost += calls * (per_call_in * (jp.get("input") or 0)
                                    + JUDGE_OUTPUT_TOKENS * (jp.get("output") or 0)) / 1e6
 
+    cap = (await get_workspace(workspace_id)).max_run_cost_usd
+    total = round(cand_cost + judge_cost, 6)
     return Estimate(
         calls=sum(l.calls for l in lines), est_input_tokens=total_in, est_output_tokens=total_out,
         est_cost_usd=round(cand_cost, 6), judge_cost_usd=round(judge_cost, 6),
-        total_usd=round(cand_cost + judge_cost, 6), per_candidate=lines,
+        total_usd=total, per_candidate=lines, candidates=req.candidates, references=req.references,
+        repeats=req.repeats, max_run_cost_usd=cap, over_cap=cap is not None and total > cap,
     )
 
 
-async def start_run(workspace_id: UUID, req: RunIn) -> Run:
+async def start_run(workspace_id: UUID, req: RunIn, auto: int = 6) -> Run:
+    req = await resolve(workspace_id, req, auto)
     est = await estimate_run(workspace_id, req)
+    if est.over_cap:
+        raise Invalid(f"estimated ${est.total_usd:.4f} is above the workspace cap of ${est.max_run_cost_usd:.4f} "
+                      "(max_run_cost_usd); use fewer candidates, cases or repeats, or raise the cap")
     if req.confirm_cost_usd is None or req.confirm_cost_usd + 1e-9 < est.total_usd:
         raise CostNotConfirmed(est)
     uc = await get_use_case(workspace_id, req.use_case_id)

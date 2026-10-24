@@ -66,11 +66,35 @@ class JudgeConfig(BaseModel):
         return data
 
 
+class CandidatePool(BaseModel):
+    """Where automatic candidates come from (runs with no candidates given)."""
+    shortlist_only: bool = True
+    exclude_providers: list[Provider] = Field(default_factory=list)
+    max_output_usd_per_1m: float | None = None  # skip models whose output price is above this
+
+
 class Workspace(BaseModel):
+    """Company defaults. Use cases and runs inherit them: use case field → workspace → built-in default.
+    A use case's profile / judge = null means "inherit"; runs inherit references, repeats and the pool."""
     id: UUID
     name: str
     default_profile: Profile
     default_judge: JudgeConfig
+    default_references: list[ModelRef] = Field(default_factory=lambda: _default_references())
+    candidate_pool: CandidatePool = Field(default_factory=CandidatePool)
+    default_repeats: int = 3
+    max_run_cost_usd: float | None = None  # a run whose estimate is above this is refused (null = no cap)
+
+
+class WorkspacePatch(BaseModel):
+    """PATCH /api/workspace: any subset. default_references: null resets to the built-in references."""
+    name: str | None = None
+    default_profile: Profile | None = None
+    default_judge: JudgeConfig | None = None
+    default_references: list[ModelRef] | None = None
+    candidate_pool: CandidatePool | None = None
+    default_repeats: int | None = Field(default=None, ge=1, le=10)
+    max_run_cost_usd: float | None = Field(default=None, ge=0)
 
 
 class Me(BaseModel):
@@ -306,11 +330,14 @@ class RunIn(BaseModel):
     references: closed frontier models, run on the same cases × repeats for comparison only, never
     ranked or recommended. use_case.current_model is added as one more reference ("today") when it
     is a closed model. The first reference is the pairwise opponent (pairwise_vs_baseline).
+
+    Omitted fields inherit the workspace: candidates [] → auto-pick within workspace.candidate_pool,
+    repeats null → default_repeats, references null → default_references.
     """
     use_case_id: UUID
-    candidates: list[ModelRef]
-    repeats: int = 3
-    references: list[ModelRef] = Field(default_factory=_default_references)
+    candidates: list[ModelRef] = Field(default_factory=list)
+    repeats: int | None = Field(default=None, ge=1, le=10)
+    references: list[ModelRef] | None = None
     include_references: bool = True
     confirm_cost_usd: float | None = None  # required by POST /api/runs; must be ≥ estimate
 
@@ -330,6 +357,12 @@ class Estimate(BaseModel):
     judge_cost_usd: float  # every juror
     total_usd: float
     per_candidate: list[EstimateLine]
+    # what the run would use after inheritance (so the caller sees and can confirm the same run)
+    candidates: list[ModelRef] = Field(default_factory=list)
+    references: list[ModelRef] = Field(default_factory=list)
+    repeats: int = 3
+    max_run_cost_usd: float | None = None  # the workspace cap
+    over_cap: bool = False  # total_usd > max_run_cost_usd: POST /api/runs will refuse it (422)
 
 
 class Stat(BaseModel):
@@ -452,3 +485,7 @@ class ResultOut(BaseModel):
 class ResultsPage(BaseModel):
     items: list[ResultOut]
     next_cursor: str | None
+
+
+Workspace.model_rebuild()  # ModelRef / _default_references are defined after Workspace
+Me.model_rebuild()
