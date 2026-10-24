@@ -1,136 +1,127 @@
-# Hackathon plan (4h30, 3 people, each with Claude Code)
+# Hackathon plan (final 4 hours)
 
-With Claude Code writing most of the code, the bottleneck is no longer typing. It is **people waiting on each other** and **integration**. So the plan is built around three rules:
+> Replaces the 48h / 3-person plan. Written 2026-10-24 with ~4h left.
+> Done so far: concept docs, research, and a **verified model catalogue** ([catalog/](../catalog/README.md)). It has 134 models probed for text, vision, tools and JSON, and a 29-model default shortlist ranked by the Artificial Analysis index.
 
-1. **Freeze the contract in the first 20 minutes.** After that, everyone builds against shared schemas and fixture JSON, never against someone else's unfinished code.
-2. **Each person owns folders, not features.** Two Claudes never edit the same file.
-3. **Integrate at fixed checkpoints**, not continuously. Between checkpoints, merge your own small PRs into `main` whenever your part works.
+## The demo (3 minutes)
 
-## The demo we're building toward (3 minutes)
-
-1. **Setup.** A sample fintech "support + document" app in `/demo-app` uses GPT for:
-   - **support chat**: user-facing, streaming
+1. **Setup.** A small demo repo (fintech "support + documents" app) that calls GPT in 4 places:
+   - **support chat**: user-facing
    - **invoice extraction**: JSON schema
-   - **nightly ticket summarisation**: batch
+   - **nightly ticket summary**: batch
    - **intent classification**
-2. **Discovery.** In Claude Code, run `/mcp__biy__scan_repo`. The agent finds the 4 use cases, sets weights (chat favours speed, batch favours cost), seeds cases from fixtures, generates synthetic ones, and shows the cost estimate. We say "yes".
-3. **Dashboard.** The use cases appear and the runs fill in on **Nebius Token Factory**. We open the extraction use case and show the leaderboard and the Pareto chart, with the current GPT model as the baseline dot and the cheap `-Flash` models next to the big ones.
-4. **Recommendations.** "Move 3 of 4 use cases to open models: −84% cost, quality within noise. Keep chat on X because of the TTFT gate…".
-5. **MCP parity.** In Claude Code: "make cost more important for summarisation and re-run". The slider moves in the dashboard.
+2. **Discovery.** In Claude Code, run `/mcp__biy__scan_repo`. The agent finds the 4 use cases, sets the trade-off weights (chat favours speed, batch favours cost), seeds cases from fixtures plus synthetic ones, and shows the cost estimate. We say "yes".
+3. **Dashboard.** Log in (Supabase). The use cases are there, and the run fills in as the dashboard **polls every 2 s**. Open the extraction use case and show the leaderboard (**mean ± std, 95% bootstrap CI**) and the Pareto chart, with the current GPT model as the baseline dot.
+4. **Recommendation.** For example: "Move 3 of 4 use cases to open models: −84% cost, quality within CI. Keep chat on X because of the TTFT gate."
+5. **MCP parity.** In Claude Code: "make cost more important for the summary and re-run". The dashboard shows the new weights and the new ranking.
 
-**Pre-recorded results as a backup.** Live runs depend on provider rate limits.
+**Backup.** Record one finished run before the demo. A seed script can load it if a provider rate-limits us live.
 
-## Scope for 4h30
+## Who does what
 
-Already done: the verified model catalogue ([catalog/models.json](../catalog/README.md)) with prices, capabilities and rate limits. The backend reads it directly; there is no catalogue sync to build.
-
-| In | Out (cut up front) |
+| Person | Owns |
 |---|---|
-| Nebius only for candidates; OpenAI only for the baseline | OpenRouter, other providers, provider comparison |
-| SQLite (one file), no migrations | Postgres, Alembic |
-| In-process `asyncio` runner | Redis / arq worker |
-| No auth: one hard-coded demo workspace | Login, OAuth, MCP API keys |
-| Dashboard polls every 2 s | SSE / websockets |
-| Deterministic metrics + **one** rubric judge | Pairwise judge, bootstrap CIs (show mean ± std dev) |
-| ~15–20 cases per use case, **1 repeat**, 5–6 candidates | Upload, trace import, public suites |
-| Runs locally on a laptop | Deploy |
+| **Luis** | **Frontend** (React + Vite + shadcn + Recharts) and **every connection**: Supabase (Postgres + Auth), Upstash Redis, the Coolify app on the `studypdf` VPS, env vars, domain |
+| **Claude** | **Backend**: FastAPI app, DB schema SQL, providers, runner, metrics, judge, aggregation, recommendation, FastMCP tools, demo repo and discovery prompt, seed/backup script |
 
-**Suggested candidates** (all on Nebius, all in [catalog/shortlist.json](../catalog/shortlist.json), all verified for tools + JSON schema): `DeepSeek-V4.1-Flash-1017`, `GLM-5.3`, `MiniMax-M3.1-Flash`, `GLM-5.3-Flash`, `DeepSeek-V4-Flash-0731`, `Qwen3.8-27B`. **Judge:** `Kimi-K3` (top of the shortlist that is not a candidate).
+Luis builds against the **API contract** (T+0:30). The contract is the source of truth; neither side waits for the other.
 
-## Who owns what
+## Stack (final)
 
-| Person | Owns (folders) | In one line |
+| Piece | Choice | Notes |
 |---|---|---|
-| **A: Frontend** | `/frontend` | The dashboard, built on fixture JSON first, then on the real API |
-| **B: Backend + runner** | `/backend` (except `backend/app/mcp/`), `/contract` | API, SQLite, Nebius client, runner, metrics, scoring, recommendation |
-| **C: MCP + discovery + data** | `/demo-app`, `backend/app/mcp/`, `/prompts` | Demo repo, MCP tools, `scan_repo` prompt, synthetic cases, pitch |
+| Hosting | **Coolify on Luis's VPS** (`ssh studypdf`) | Docker Compose app built from the GitHub repo; Traefik (already running) handles TLS on a subdomain. The VPS has 12 vCPUs and ~13 GB of free RAM, and it also runs other production apps, so **set memory limits** (api 1 GB, worker 1 GB) |
+| Containers | **One image, two services** | `api`: uvicorn running FastAPI. It serves REST at `/api/*`, MCP at `/mcp` and the **built Vite frontend** as static files (one domain, no CORS). `worker`: the same image running the arq worker. Multi-stage `Dockerfile` (node builds the frontend, python runs both) |
+| DB | **Supabase Postgres** | Plain SQL migration (`backend/schema.sql`) run in the Supabase SQL editor; no Alembic. Use the **session pooler** URL: the direct connection is IPv6-only, and long-running containers don't need the transaction pooler |
+| Auth | **Supabase Auth** | The dashboard logs in with Supabase, and the API verifies the Supabase JWT. **MCP uses a workspace API key** (bearer), stored hashed |
+| Queue + worker | **Upstash Redis + arq** | A normal long-running worker: no function time limits, no self-chaining. `POST /api/runs` enqueues one job per run; the worker fans out candidates × cases × repeats with a **per-connection concurrency limit** and writes progress counters to Redis. Connects with the Upstash `rediss://` URL (TCP), not the REST API |
+| Progress | **Polling every 2 s** | `GET /api/runs/{id}` returns done/total, partial leaderboard and errors. No SSE or WebSocket |
+| Inference | **Nebius + OpenRouter**, keys from Coolify env | Candidate list comes from `catalog/models.json` (`shortlist: true` by default). OpenRouter calls pin the provider (`provider.only`, `allow_fallbacks: false`). Baseline: OpenAI, only if `OPENAI_API_KEY` is set |
+| MCP | **FastMCP, Streamable HTTP**, mounted at `/mcp` | Same service functions as REST |
 
-**Shared and frozen after 0:20:** `/contract` — owned by B. Anyone who needs a change asks B in the chat; B makes it and says so.
+## Scope
 
-## Timeline
+**In:**
+- Discovery over MCP, creating use cases + cases.
+- Synthetic case generation (`cases_generate`).
+- Cost estimate with confirmation before every run.
+- **More cases and repeats:** default **50 cases per use case and 3 repeats**.
+- Streaming calls with real TTFT.
+- Deterministic metrics: `json_schema_valid`, `field_f1`, `exact_match`, `label_accuracy`.
+- **Rubric judge and pairwise judge**, with pairwise running both orders against the baseline.
+- Aggregation: **mean, std, p50/p95, 95% bootstrap CI** over cases × repeats.
+- Gates → Pareto → utility, and a recommendation text with a "statistical tie" check.
+- Supabase login.
+- Deploy on Coolify.
 
-T = time since kickoff.
+**Out:**
+- BYO keys stored per workspace (the demo uses our env keys; the data model keeps `connection`).
+- Trace import and CSV upload.
+- Cross-provider comparison.
+- Scheduled re-runs.
+- `apply_recommendation` PRs.
 
-### 0:00–0:20 · Kickoff: freeze the contract (everyone)
+**Default judge:** DeepSeek-V4.1-Flash-1017 on Nebius. It has AA 45, the same score as GLM-5.3, at about 1/5 of the price: about $5 instead of ~$23 for the pairwise pass of the demo run. If DeepSeek is a candidate, the judge falls back to GLM-5.3-Flash.
 
-All three in the same room, 20 minutes, no coding outside of this:
+## API contract (T+0:30, Claude delivers `docs/api.md` + OpenAPI at `/api/openapi.json`)
 
-- **B** writes, with Claude, `/contract`:
-  - `schemas.py`: Pydantic models for `UseCase`, `Case`, `Candidate`, `Run`, `Result`, `RunSummary`, `Recommendation`, `Profile` (from [architecture.md](architecture.md#data-model)).
-  - `api.md`: the list of REST endpoints with one example request and response each.
-  - `services.md`: the Python signatures of the service functions MCP will call (e.g. `create_use_cases(items) -> list[UseCase]`, `start_run(use_case_id, candidate_ids, confirm_cost_usd) -> Run`).
-  - `fixtures/`: one JSON file per endpoint response, including **one finished run** with realistic numbers.
-- **A** scaffolds `/frontend` (Vite + React + TS + shadcn + Recharts + TanStack Query) while B writes.
-- **C** scaffolds `/demo-app`: the 4 call sites and their fixtures.
-- **0:15** everyone reads the contract together, fixes names, B merges it to `main`. **Contract frozen.**
-
-### 0:20–1:45 · Build alone, against the contract
-
-| A: Frontend | B: Backend + runner | C: MCP + discovery + data |
+| Method | Path | For |
 |---|---|---|
-| Overview page (use cases, current model, recommendation, savings) | FastAPI app + SQLite tables from `schemas.py` | Finish `/demo-app`: realistic prompts, schemas and test fixtures per call site |
-| Use case page: profile sliders, gates, metrics, dataset table | Services for use cases, cases, candidates, runs (CRUD) | `backend/app/mcp/`: FastMCP tools (`biy_*`) calling the service functions from `services.md` (stubbed until B's land) |
-| Run page: leaderboard, Pareto chart, recommendation card | Nebius client: streaming, TTFT / E2E / tokens, cost from `catalog/models.json` prices | `scan_repo` prompt in `/prompts` (from [discovery-prompt.md](discovery-prompt.md)) |
-| All on `fixtures/` through one `api.ts` client | Async runner: candidates × cases, concurrency within Nebius rate limits | Synthetic case generation (`schema_first` for extraction, persona grid for chat) |
-| | Deterministic metrics: `json_schema_valid`, field accuracy, label accuracy | Test the MCP server from Claude Code against B's stub app |
+| GET | `/api/me` | Workspace of the logged-in user, plus the MCP key's last 4 characters |
+| GET | `/api/models?shortlist=true&type=vision` | Catalogue (from `catalog/models.json`) |
+| GET / POST / PATCH | `/api/use-cases`, `/api/use-cases/{id}` | Use cases incl. profile weights, gates, metrics, judge |
+| GET / POST | `/api/use-cases/{id}/cases` | Dataset |
+| POST | `/api/use-cases/{id}/cases/generate` | Synthetic cases |
+| POST | `/api/runs/estimate` | Cost and call count before a run |
+| POST | `/api/runs` | Start a run; requires `confirm_cost_usd` |
+| GET | `/api/runs/{id}` | Status, progress, leaderboard (mean, std, CI), Pareto points, recommendation. **Polled every 2 s** |
+| GET | `/api/runs/{id}/results?candidate=&case=` | Per-case outputs + judge reasoning |
+| — | `/mcp` | MCP: `scan_repo` prompt; tools for use cases, cases, cases_generate, estimate, run, run_status, set_profile |
 
-**Goal at 1:45:** each part works on its own. One script runs 1 use case × 3 candidates on Nebius and stores results.
+## Timeline (T = now)
 
-### 1:45–2:00 · Checkpoint 1: first integration (everyone)
+| Time | Luis | Claude | Checkpoint |
+|---|---|---|---|
+| **T+0:00–0:30** | Supabase project + Auth, Upstash Redis, Coolify app from the GitHub repo (Docker Compose) + subdomain, env vars ([list below](#env-vars)); scaffold Vite + shadcn | `docs/api.md` + OpenAPI, `backend/schema.sql`, repo layout (`backend/`, `frontend/`, `demo-app/`), `Dockerfile` + `docker-compose.yml` | Contract agreed; Luis runs `schema.sql`; first Coolify deploy is green |
+| **T+0:30–1:30** | Pages against mock JSON: login, overview, use case (sliders, gates, dataset table), run view with 2 s polling | Use case + case CRUD, catalogue endpoint, estimate, arq worker with per-connection limits, streaming client (reuses `scripts/probe_models.py`), deterministic metrics | **T+1:30: one real run end-to-end on Coolify** (curl: 1 use case, 3 candidates, results in Supabase) |
+| **T+1:30–2:30** | Leaderboard (mean ± std, CI bars), Pareto chart, recommendation card, per-case output viewer; switch mock → real API | Rubric + pairwise judge, bootstrap CIs, gates/Pareto/utility, recommendation text; FastMCP tools + `scan_repo`; demo repo with 4 call sites + fixtures | **T+2:30: feature freeze.** Discovery in Claude Code creates the 4 use cases |
+| **T+2:30–3:15** | Integration fixes, empty/error states | Full demo run (4 use cases × ~8 candidates × 50 cases × 3 repeats); record the backup run + seed script | Demo flow works **twice in a row** |
+| **T+3:15–3:45** | Polish, pitch slides | Fix demo blockers; write the README "how to run" | Video recorded |
+| **T+3:45–4:00** | Buffer, submit | Buffer | Submitted |
 
-- Everyone merges their PR into `main`, pulls, and runs the app.
-- A switches `api.ts` from fixtures to the real API.
-- C mounts the MCP server into B's FastAPI app at `/mcp`.
-- **Done when:** Claude Code, through MCP, creates 1 use case with cases, starts a run, and the run appears in the dashboard.
+## Cut list (in this order if we fall behind)
 
-### 2:00–3:15 · Build the rest
+1. Per-case side-by-side diff (keep a plain output list)
+2. `cases_generate` (seed cases from fixtures only)
+3. MCP parity step in the demo (show it in the dashboard instead)
+4. Rubric judge for chat (keep pairwise only)
+5. Baseline run (compare against the best candidate instead)
+6. Supabase login (single demo workspace, no auth)
 
-| A: Frontend | B: Backend + runner | C: MCP + discovery + data |
-|---|---|---|
-| Live progress (poll the run every 2 s) | Rubric judge metric (`Kimi-K3`) for chat and summarisation | Make `scan_repo` reliable on `/demo-app`: 4 use cases found, every time |
-| Per-case output viewer: candidate vs baseline, judge reasoning | Scoring: per-axis 0–1 vs targets, weighted utility, gates, Pareto flag | `biy_runs_start` with the cost confirmation; `biy_use_cases_update` for the profile |
-| Sliders and gates save to the API; re-run button | Cost estimate before a run; recommendation text per use case | OpenAI baseline: make sure the current GPT model runs as the baseline candidate |
-| Models page from the catalogue (verified capabilities, prices) | Monthly savings estimate on the overview | **Run all 4 use cases for real** and save the results as the backup |
-
-### 3:15–3:30 · Checkpoint 2: full demo, first run (everyone)
-
-- Merge, pull, run the whole 3-minute demo once, end to end.
-- Write down every bug. **Feature freeze: from here, fixes only.**
-
-### 3:30–4:10 · Fix and polish
-
-- **A:** UI bugs, empty and loading states, make the Pareto chart and recommendation card look great.
-- **B:** backend bugs, speed up the runner if the demo is slow, make sure the backup results load from the DB.
-- **C:** pitch deck (problem → demo → differentiation → business) and the demo script. **Record a backup video** of the full flow.
-
-### 4:10–4:30 · Rehearse and submit
-
-- Run the demo twice in a row from a clean state.
-- Submit, with the video and the repo link.
-
-## Working with Claude Code in parallel
-
-- **Each person runs Claude in their own folders only.** The [CLAUDE.md](../CLAUDE.md) ownership table tells your Claude what it may touch.
-- **Small PRs, merged by their author.** No waiting for review between checkpoints; just say "merged X" in the team chat.
-- **`git pull` before you start anything new**, and always at checkpoints.
-- **Point Claude at the contract**, not at someone else's code: "build the run page from `contract/api.md` and `contract/fixtures/run.json`".
-- **Never paste keys into prompts or files other than `.env`.**
-
-## If we fall behind (cut in this order)
-
-1. Models page in the dashboard
-2. Monthly savings estimate (show cost per call instead)
-3. Synthetic generation for chat (keep schema-first extraction + repo fixtures)
-4. Rubric judge (keep deterministic metrics only: extraction + classification still make the demo)
-5. Live discovery in the demo (show the result of a pre-recorded `scan_repo` run)
-
-## Stretch (only if everything works at 3:15)
-
-- `apply_recommendation`: the agent opens a PR that swaps the model at the call site
-- OpenRouter candidates, with a pinned upstream provider
+Pairwise judge and bootstrap CIs are **not** on the cut list. They are what makes the recommendation trustworthy.
 
 ## Budget
 
-- Full demo run: 4 use cases × 6 candidates × ~20 cases × 1 repeat, plus judging. Roughly **$1–5** on Nebius.
-- Check the Nebius credit and rate limits at 0:20 (the catalogue already records rate limits per model).
-- A small OpenAI budget for the baseline. **Cap the spend on the key.**
+- **Demo run:** 4 use cases × 8 candidates × 50 cases × 3 repeats = 4,800 calls per candidate set.
+  - About **$3** with the 8 cheapest shortlist models, **$8** with mid-priced ones, and **$46** with the 8 most expensive (Kimi-K3 alone ~$17).
+  - Pick a mix: 2–3 frontier models plus cheap ones.
+- **Judge:** about $5 per demo run with DeepSeek-V4.1-Flash-1017.
+- **Funding:**
+  - Nebius models run on the hackathon credits.
+  - OpenRouter is real money; the key is capped at $50 and $0.04 is used so far.
+  - The OpenAI baseline needs its own capped key.
+- These figures assume ~2K input and 1.5K output tokens per call. Reasoning models can write more, so trust the runner's estimate before each run.
+
+## Env vars
+
+All set in Coolify (both services), except the MCP key.
+
+| Var | Used by | Set by |
+|---|---|---|
+| `DATABASE_URL` | api, worker | Luis: Supabase **session pooler** URL |
+| `REDIS_URL` | api, worker | Luis: Upstash `rediss://default:<token>@<host>:6379` |
+| `SUPABASE_URL`, `SUPABASE_ANON_KEY` | frontend build (`VITE_` prefix, as build args) | Luis |
+| `SUPABASE_JWT_SECRET` | api | Luis: for verifying dashboard tokens |
+| `NEBIUS_API_KEY`, `OPENROUTER_API_KEY` | api, worker + local `.env` | Luis (already in local `.env`) |
+| `OPENAI_API_KEY` | worker, optional | Luis: only for the baseline; cap the spend |
+| `BIY_MCP_KEY` | Claude Code config | Created by the API (`/api/me`); only its hash is stored |

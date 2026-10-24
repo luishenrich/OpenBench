@@ -17,6 +17,16 @@
 | Hackathon provider | **Nebius Token Factory** (OpenAI-compatible; hackathon credits). OpenRouter is the fallback. Azure is out of scope for the demo |
 | Default judge | **The strongest open model on the connected providers**, skipping any model or family that is a candidate in the run |
 | Candidates | **One per model.** No cross-provider comparison yet. Nebius `-fast` variants count as separate candidates |
+| Timeline (2026-10-24) | **4 hours left, 2 roles**: Luis = frontend + all connections; Claude = backend, runner, scoring, MCP, demo repo. See [hackathon plan](hackathon-plan.md) |
+| Infra | Supabase (Postgres + Auth), Upstash Redis, **Coolify on our VPS** (`studypdf`). No Vercel. Dashboard polls every 2 s |
+| Worker (was Q6) | `arq` worker container on Upstash Redis |
+| Hosting (was Q7) | Coolify on our VPS: one image, `api` (FastAPI + static frontend) and `worker` services |
+| Repeats (was Q8) | 3 repeats, 50 cases per use case by default |
+| Statistics | Show mean ± std **and** 95% bootstrap CI. Pairwise judge stays (both orders) |
+| Default judge | DeepSeek-V4.1-Flash-1017 on Nebius (AA 45, ~1/5 of GLM-5.3's price); GLM-5.3-Flash if DeepSeek is a candidate |
+| Model set | `catalog/models.json` with `shortlist: true` (29 models) as the default candidate pool |
+| Repo name (was Q4) | Renamed to `BIY` |
+| Nebius details (was Q5) | `?verbose=true` returns prices, context, modality, features, rate limits. Tools/JSON support verified per model in the catalogue |
 
 ## Still open
 
@@ -24,16 +34,8 @@
 1. **Monthly volume.** Should the agent infer it, the user enter it, or should we skip savings in $?
 2. **Who reviews synthetic cases?** Is draft → approve in the dashboard required before a run, or optional?
 3. **One repo or many per workspace?** (`source_refs` already carries the repo.)
-4. **Domain / handle for BIY.** Rename the GitHub repo from `OpenBench` to `BIY`?
 
 ### Technical
-5. **Nebius details to check on day 1** (needs a key):
-   - Does `/v1/models?verbose=true` return prices and context length? If not, we need a price YAML.
-   - What are the rate limits and the credit amount?
-   - Which models support tools and JSON schema?
-6. **Worker.** In-process asyncio for the demo, or Redis + arq from the start?
-7. **Hosting.** Run the API on Nebius AI Cloud compute (if the credits cover it), or on Fly.io / Railway with Vercel for the frontend?
-8. **Repeats.** Use 3 repeats by default, or 1 for the demo to save time and credits?
 9. **Agent use cases.** Benchmarking multi-step agents means replaying tool results. For the hackathon, single-step tool-call correctness only?
 
 ### Business / pitch

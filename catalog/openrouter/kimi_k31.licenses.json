@@ -1,0 +1,10 @@
+[
+  {
+    "id": "moonshotai/kimi-k3.1-pro",
+    "hf_repo": "moonshotai/Kimi-K3.1-Pro",
+    "license": null,
+    "gated": null,
+    "open_weight": null,
+    "note": "Released 2026-10-23. OpenRouter calls it open-weight, but the HF repo returns 401 (checked 2026-10-24), only Moonshot serves it, and the AA open-source page doesn't list it. Re-check before shortlisting."
+  }
+]

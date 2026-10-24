@@ -6,15 +6,15 @@
 React dashboard (Vite + TS)
         │  REST (JSON)
         ▼
-FastAPI app ──────────────┬── /api/*   REST for the dashboard
-  │                       └── /mcp     FastMCP (Streamable HTTP), same services
+FastAPI app ──────────────┬── /api/*   REST for the dashboard (+ serves the built frontend)
+  │  (Coolify, Docker)    └── /mcp     FastMCP (Streamable HTTP), same services
   │
   ├── services/            one service layer shared by REST and MCP
   │     use_cases, datasets, connections, catalog, runs, scoring, synth
   ├── providers/           OpenAI-compatible client + auth adapters
-  ├── runner/              async worker: executes runs, streams results
+  ├── runner/              arq worker (own container): runs jobs from Upstash Redis
   ├── metrics/             metric implementations (catalogue)
-  └── Postgres             all state; secrets encrypted at rest
+  └── Supabase Postgres    all state; secrets encrypted at rest
 ```
 
 **Rule:** REST and MCP are thin layers over the same `services/` functions. **No feature exists in only one of them.** This is how we get "everything in the dashboard is also in MCP".
@@ -25,12 +25,12 @@ FastAPI app ──────────────┬── /api/*   REST fo
 |---|---|---|
 | API | FastAPI + Pydantic v2 | Async, typed, auto OpenAPI |
 | MCP | FastMCP, mounted into FastAPI at `/mcp` | One deploy, same auth and services |
-| DB | Postgres (Supabase or Neon) via SQLAlchemy 2 + Alembic | JSONB for flexible case and result payloads |
-| Worker | `arq` (Redis) or an in-process asyncio task queue for the demo | Runs take minutes; stream progress |
+| DB | **Supabase Postgres**, plain SQL schema (`backend/schema.sql`), session pooler | JSONB for flexible case and result payloads; no migrations tool for the hackathon |
+| Worker | **`arq` on Upstash Redis**, its own container | Runs take minutes; a long-running worker with per-connection concurrency |
 | LLM calls | `openai` Python SDK with a per-connection `base_url` | Every provider is OpenAI-compatible |
 | Frontend | React + Vite + TS, TanStack Query, shadcn/ui, Recharts | Fast to build, good charts |
-| Auth | Workspace API key (bearer) for MCP and API; simple email login for the dashboard | OAuth for MCP is post-hackathon |
-| Deploy | Fly.io / Railway (API + worker) + Vercel (frontend) | Quick |
+| Auth | **Supabase Auth** for the dashboard (API verifies the JWT); workspace API key (bearer, stored hashed) for MCP | OAuth for MCP is post-hackathon |
+| Deploy | **Coolify on our VPS** (`studypdf`): Docker Compose with `api` (FastAPI + static frontend) and `worker` (arq) from one image; Traefik for TLS | One domain, no CORS, no function time limits |
 
 **We are not using LiteLLM as a dependency.** Versions 1.82.7 and 1.82.8 shipped a credential stealer, and we hold customers' keys. We can reuse its price JSON as data. Pin every dependency with hashes (`uv lock`).
 
@@ -113,7 +113,7 @@ class ProviderAdapter(Protocol):
 
 1. **Estimate.** Tokens are estimated from the case inputs × expected output length × endpoint price. Show the total, and **block the run until the user confirms** (in MCP, the agent has to pass `confirm_cost_usd`).
 2. **Warm-up.** One discarded request per candidate.
-3. **Execute** candidates × cases × repeats (default 3) with bounded concurrency. Write each `result` as soon as it arrives, and push progress over SSE to the dashboard.
+3. **Execute** candidates × cases × repeats (default 3) with bounded concurrency. Write each `result` as soon as it arrives and bump the progress counters in Redis. The dashboard **polls `GET /api/runs/{id}` every 2 s** (no SSE or WebSocket).
 4. **Score.**
    - Deterministic metrics run inline.
    - LLM-judge metrics run as a second pass, in batches, through the judge connection.
