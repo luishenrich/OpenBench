@@ -15,6 +15,8 @@ const verdictWord = { switch: 'Switch', keep: 'Keep', use: 'Use' } as const
 // menu (right) cells sit outside this grid with fixed widths: SELECT_W and MENU_W.
 export const ROW_GRID = 'md:grid-cols-[minmax(0,1fr)_150px_64px_150px] lg:grid-cols-[minmax(0,1fr)_180px_64px_170px]'
 export const SELECT_W = 'w-10'
+// rows sit under their section label: chevron (14px) + gap (12px)
+export const ROW_INDENT = 'pl-[26px]'
 export const MENU_W = 'w-11'
 
 export interface RowActions {
@@ -126,9 +128,9 @@ export function UseCaseRow({ uc, fresh, actions }: { uc: UseCase; fresh: boolean
         />
       </div>
       {renaming ? (
-        <div className="min-w-0 flex-1 py-2.5 pr-1">{cells}</div>
+        <div className={`min-w-0 flex-1 py-2.5 pr-1 ${ROW_INDENT}`}>{cells}</div>
       ) : (
-        <Link to={`/use-cases/${uc.id}`} className={`block min-w-0 flex-1 rounded-sm py-2.5 pr-1 ${focusRing}`}>
+        <Link to={`/use-cases/${uc.id}`} className={`block min-w-0 flex-1 rounded-sm py-2.5 pr-1 ${ROW_INDENT} ${focusRing}`}>
           {cells}
           {run?.status === 'done' && run.recommendation_headline && (
             <p className="mt-1 truncate text-[12.5px] text-muted lg:hidden" title={run.recommendation_headline}>

@@ -5,7 +5,7 @@ import {
   type KindGroup, type ProjectGroup, type SortKey, STATE_ORDER, countStates, groupUseCases, kindLabel, projectOf, savingsOf, setupState, stateDot, stateShort,
 } from './group'
 import { Checkbox, Icon } from './kit'
-import { MENU_W, ROW_GRID, SELECT_W, UseCaseRow } from './UseCaseRow'
+import { MENU_W, ROW_GRID, ROW_INDENT, SELECT_W, UseCaseRow } from './UseCaseRow'
 
 const STORE = 'biy:use-case-sections'
 const OPEN_ALL_UP_TO = 12 // at or below this many use cases every section starts open
@@ -89,7 +89,7 @@ function ColumnHeader() {
   return (
     <div className="hidden border-b border-line bg-bg py-2 text-xs text-faint md:flex">
       <span className={`shrink-0 ${SELECT_W}`} />
-      <div className={`grid min-w-0 flex-1 gap-x-4 pr-1 ${ROW_GRID}`}>
+      <div className={`grid min-w-0 flex-1 gap-x-4 pr-1 ${ROW_INDENT} ${ROW_GRID}`}>
         <span>Use case</span><span>Today</span><span className="text-right">Cases</span><span>Status</span>
       </div>
       <span className={`shrink-0 ${MENU_W}`} />
