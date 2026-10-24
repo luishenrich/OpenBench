@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import secrets
+import time
 from uuid import UUID
 
 from contract.schemas import JudgeConfig, Me, Profile, Workspace
@@ -30,8 +31,21 @@ async def ensure_workspace(user_id: UUID, email: str | None) -> UUID:
     return ws
 
 
+_KEY_TTL_S = 60
+_key_cache: dict[str, tuple[float, UUID]] = {}  # key hash → (expiry, workspace id)
+
+
 async def workspace_for_key(key: str) -> UUID | None:
-    return await db.fetchval("select id from workspace where mcp_key_hash = $1", hash_key(key))
+    """Workspace of an MCP key. Cached for a minute: an agent makes many calls in a row, and each one
+    would otherwise take a pooled DB connection just to authenticate (the session pooler caps us at 15)."""
+    h = hash_key(key)
+    hit = _key_cache.get(h)
+    if hit and hit[0] > time.monotonic():
+        return hit[1]
+    ws = await db.fetchval("select id from workspace where mcp_key_hash = $1", h)
+    if ws:
+        _key_cache[h] = (time.monotonic() + _KEY_TTL_S, ws)
+    return ws
 
 
 async def get_workspace(workspace_id: UUID) -> Workspace:
@@ -54,4 +68,5 @@ async def rotate_mcp_key(workspace_id: UUID) -> str:
     key = "biy_" + secrets.token_urlsafe(32)
     await db.execute("update workspace set mcp_key_hash = $2, mcp_key_last4 = $3 where id = $1",
                      workspace_id, hash_key(key), key[-4:])
+    _key_cache.clear()  # the replaced key stops working here at once (other api replicas: within a minute)
     return key

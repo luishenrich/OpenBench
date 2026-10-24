@@ -11,7 +11,7 @@ from contract.schemas import (Case, CaseIn, Estimate, GenerateCasesIn, Me, Metri
                               Scorecard, ScorecardBrief, UseCase, UseCaseIn, UseCasePatch)
 
 from .auth import Caller, current_caller
-from .services import CostNotConfirmed, Invalid, NotFound, metrics, runs, use_cases, workspace
+from .services import CostNotConfirmed, Invalid, NotFound, metrics, runs, uploads, use_cases, workspace
 
 router = APIRouter(prefix="/api")
 
@@ -108,6 +108,19 @@ async def generate_cases(use_case_id: UUID, body: GenerateCasesIn, c: Caller = D
 @router.get("/use-cases/{use_case_id}/runs", response_model=list[RunBrief])
 async def list_runs(use_case_id: UUID, c: Caller = Depends(current_caller)):
     return await runs.list_runs(c.workspace_id, use_case_id)
+
+
+# --- uploads (agents: biy_upload_url, then curl) -----------------------------
+
+@router.post("/use-cases/{use_case_id}/upload-url")
+async def create_upload_url(use_case_id: UUID, field: str, c: Caller = Depends(current_caller)) -> dict:
+    return await uploads.create_upload_url(c.workspace_id, use_case_id, field)
+
+
+@router.post("/uploads/{token}")
+async def receive_upload(token: str, request: Request) -> dict:
+    """No bearer token: the one-time URL is the credential."""
+    return await uploads.receive(token, await request.body())
 
 
 # --- runs --------------------------------------------------------------------

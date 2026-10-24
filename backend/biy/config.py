@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     # arq queue. Local workers must not share prod's queue (prod would pick up local runs, and the reverse).
     arq_queue: str = "arq:queue"
     supabase_url: str | None = None  # dashboard tokens are verified against its JWKS (ES256)
+    # Only for agent image uploads (biy_upload_url field "image") into the public bucket `cases`.
+    supabase_service_role_key: str | None = None
+    # Public address of this deployment, for links and upload URLs handed to agents.
+    public_base_url: str = "https://biy.studypdf.net"
     nebius_api_key: str | None = None
     openrouter_api_key: str | None = None
     openai_api_key: str | None = None
