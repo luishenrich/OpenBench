@@ -19,12 +19,15 @@
 
 ## Who does what
 
-| Person | Owns |
-|---|---|
-| **Luis** | **Frontend** (React + Vite + shadcn + Recharts) and **every connection**: Supabase (Postgres + Auth), Upstash Redis, the Coolify app on the `studypdf` VPS, env vars, domain |
-| **Claude** | **Backend**: FastAPI app, DB schema SQL, providers, runner, metrics, judge, aggregation, recommendation, FastMCP tools, demo repo and discovery prompt, seed/backup script |
+Three people, each with their own Claude Code. **Each person owns folders, not features**, so two Claudes never edit the same file.
 
-Luis builds against the **API contract** (T+0:30). The contract is the source of truth; neither side waits for the other.
+| Person | Owns (folders) | In one line |
+|---|---|---|
+| **A: Luis** | `/frontend`, `Dockerfile`, `docker-compose.yml` + **every connection** | Dashboard (React + Vite + shadcn + Recharts); Supabase (Postgres + Auth), Upstash Redis, the Coolify app on the `studypdf` VPS, env vars, domain |
+| **B: Backend + runner** | `/backend` (except `backend/biy/mcp/`), `/contract` | FastAPI app, `schema.sql`, providers, arq worker, metrics, rubric + pairwise judge, aggregation (mean ± std, bootstrap CI), gates/Pareto/utility, recommendation, seed/backup script |
+| **C: MCP + discovery + data** | `/demo-app`, `backend/biy/mcp/`, `/prompts` | Demo repo with 4 GPT call sites + fixtures, FastMCP tools, `scan_repo` prompt, synthetic cases, pitch + backup video |
+
+**The contract (`/contract`) is shared and frozen at T+0:30.** Luis's Claude drafts it at kickoff so nobody waits; B owns it from then on. Anyone who needs a change asks B, and B makes it and says so. Everyone builds against the contract and its fixture JSON, never against someone else's unfinished code.
 
 ## Stack (final)
 
@@ -32,7 +35,7 @@ Luis builds against the **API contract** (T+0:30). The contract is the source of
 |---|---|---|
 | Hosting | **Coolify on Luis's VPS** (`ssh studypdf`) | Docker Compose app built from the GitHub repo; Traefik (already running) handles TLS on a subdomain. The VPS has 12 vCPUs and ~13 GB of free RAM, and it also runs other production apps, so **set memory limits** (api 1 GB, worker 1 GB) |
 | Containers | **One image, two services** | `api`: uvicorn running FastAPI. It serves REST at `/api/*`, MCP at `/mcp` and the **built Vite frontend** as static files (one domain, no CORS). `worker`: the same image running the arq worker. Multi-stage `Dockerfile` (node builds the frontend, python runs both) |
-| DB | **Supabase Postgres** | Plain SQL migration (`backend/schema.sql`) run in the Supabase SQL editor; no Alembic. Use the **session pooler** URL: the direct connection is IPv6-only, and long-running containers don't need the transaction pooler |
+| DB | **Supabase Postgres** | Plain SQL migration (`contract/schema.sql`) run in the Supabase SQL editor; no Alembic. Use the **session pooler** URL: the direct connection is IPv6-only, and long-running containers don't need the transaction pooler |
 | Auth | **Supabase Auth** | The dashboard logs in with Supabase, and the API verifies the Supabase JWT. **MCP uses a workspace API key** (bearer), stored hashed |
 | Queue + worker | **Upstash Redis + arq** | A normal long-running worker: no function time limits, no self-chaining. `POST /api/runs` enqueues one job per run; the worker fans out candidates × cases × repeats with a **per-connection concurrency limit** and writes progress counters to Redis. Connects with the Upstash `rediss://` URL (TCP), not the REST API |
 | Progress | **Polling every 2 s** | `GET /api/runs/{id}` returns done/total, partial leaderboard and errors. No SSE or WebSocket |
@@ -63,7 +66,7 @@ Luis builds against the **API contract** (T+0:30). The contract is the source of
 
 **Default judge:** DeepSeek-V4.1-Flash-1017 on Nebius. It has AA 45, the same score as GLM-5.3, at about 1/5 of the price: about $5 instead of ~$23 for the pairwise pass of the demo run. If DeepSeek is a candidate, the judge falls back to GLM-5.3-Flash.
 
-## API contract (T+0:30, Claude delivers `docs/api.md` + OpenAPI at `/api/openapi.json`)
+## API contract (frozen at T+0:30 in `contract/api.md`; OpenAPI at `/api/openapi.json`)
 
 | Method | Path | For |
 |---|---|---|
@@ -80,14 +83,20 @@ Luis builds against the **API contract** (T+0:30). The contract is the source of
 
 ## Timeline (T = now)
 
-| Time | Luis | Claude | Checkpoint |
-|---|---|---|---|
-| **T+0:00–0:30** | Supabase project + Auth, Upstash Redis, Coolify app from the GitHub repo (Docker Compose) + subdomain, env vars ([list below](#env-vars)); scaffold Vite + shadcn | `docs/api.md` + OpenAPI, `backend/schema.sql`, repo layout (`backend/`, `frontend/`, `demo-app/`), `Dockerfile` + `docker-compose.yml` | Contract agreed; Luis runs `schema.sql`; first Coolify deploy is green |
-| **T+0:30–1:30** | Pages against mock JSON: login, overview, use case (sliders, gates, dataset table), run view with 2 s polling | Use case + case CRUD, catalogue endpoint, estimate, arq worker with per-connection limits, streaming client (reuses `scripts/probe_models.py`), deterministic metrics | **T+1:30: one real run end-to-end on Coolify** (curl: 1 use case, 3 candidates, results in Supabase) |
-| **T+1:30–2:30** | Leaderboard (mean ± std, CI bars), Pareto chart, recommendation card, per-case output viewer; switch mock → real API | Rubric + pairwise judge, bootstrap CIs, gates/Pareto/utility, recommendation text; FastMCP tools + `scan_repo`; demo repo with 4 call sites + fixtures | **T+2:30: feature freeze.** Discovery in Claude Code creates the 4 use cases |
-| **T+2:30–3:15** | Integration fixes, empty/error states | Full demo run (4 use cases × ~8 candidates × 50 cases × 3 repeats); record the backup run + seed script | Demo flow works **twice in a row** |
-| **T+3:15–3:45** | Polish, pitch slides | Fix demo blockers; write the README "how to run" | Video recorded |
-| **T+3:45–4:00** | Buffer, submit | Buffer | Submitted |
+| Time | A: Luis | B: Backend + runner | C: MCP + discovery + data | Checkpoint |
+|---|---|---|---|---|
+| **T+0:00–0:30** | Supabase project + Auth, Upstash Redis, Coolify app from the GitHub repo + subdomain, env vars ([list below](#env-vars)); scaffold Vite + shadcn. Luis's Claude drafts `/contract` (`api.md`, `schemas.py`, `services.md`, `schema.sql`, fixtures) + `Dockerfile` / `docker-compose.yml` + backend skeleton | Streaming client for Nebius + OpenRouter with TTFT / E2E / tokens / cost (reuse `scripts/probe_models.py`, prices from `catalog/models.json`); deterministic metrics (`json_schema_valid`, `field_f1`, `exact_match`, `label_accuracy`) | `/demo-app`: 4 call sites (support chat, invoice extraction, ticket summary, intent classification) with realistic prompts, JSON schemas, ~50 fixtures each; `scan_repo` prompt in `/prompts` from [discovery-prompt.md](discovery-prompt.md) | **T+0:30: contract frozen**; Luis runs `schema.sql`; first Coolify deploy is green |
+| **T+0:30–1:30** | Pages against the contract fixtures: login, overview, use case (sliders, gates, dataset table), run view with 2 s polling | Use case + case CRUD on Supabase, catalogue endpoint, estimate, arq worker with per-connection concurrency, results into Supabase | FastMCP tools in `backend/biy/mcp/` calling the service functions in `services.md` (stubbed until B's land); test from Claude Code | **T+1:30: one real run end-to-end on Coolify** (1 use case, 3 candidates, results in Supabase) |
+| **T+1:30–2:30** | Leaderboard (mean ± std, CI bars), Pareto chart, recommendation card, per-case output viewer; switch fixtures → real API | Rubric + pairwise judge (both orders), bootstrap CIs, gates/Pareto/utility, recommendation text | `scan_repo` reliable on `/demo-app` (4 use cases, every time); `cases_generate`; cost confirmation in the run tool; OpenAI baseline | **T+2:30: feature freeze.** Discovery in Claude Code creates the 4 use cases and starts a run |
+| **T+2:30–3:15** | Integration fixes, empty/error states | Full demo run (4 use cases × ~8 candidates × 50 cases × 3 repeats); seed script for the backup run | Record the backup run; demo script | Demo flow works **twice in a row** |
+| **T+3:15–3:45** | Polish | Fix demo blockers; README "how to run" | Pitch slides; **record the backup video** | Video recorded |
+| **T+3:45–4:00** | Buffer, submit | Buffer | Buffer | Submitted |
+
+**Working rules:**
+- Small PRs, merged by their author. Say "merged X" in the team chat.
+- `git pull` before starting anything new, and at every checkpoint.
+- Point your Claude at the contract, not at someone else's code. For example: "build the run page from `contract/api.md` and `contract/fixtures/run_done.json`".
+- Keys live only in `.env` / Coolify, never in prompts or other files.
 
 ## Cut list (in this order if we fall behind)
 

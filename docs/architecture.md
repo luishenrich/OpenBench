@@ -25,7 +25,7 @@ FastAPI app ──────────────┬── /api/*   REST fo
 |---|---|---|
 | API | FastAPI + Pydantic v2 | Async, typed, auto OpenAPI |
 | MCP | FastMCP, mounted into FastAPI at `/mcp` | One deploy, same auth and services |
-| DB | **Supabase Postgres**, plain SQL schema (`backend/schema.sql`), session pooler | JSONB for flexible case and result payloads; no migrations tool for the hackathon |
+| DB | **Supabase Postgres**, plain SQL schema (`contract/schema.sql`), session pooler | JSONB for flexible case and result payloads; no migrations tool for the hackathon |
 | Worker | **`arq` on Upstash Redis**, its own container | Runs take minutes; a long-running worker with per-connection concurrency |
 | LLM calls | `openai` Python SDK with a per-connection `base_url` | Every provider is OpenAI-compatible |
 | Frontend | React + Vite + TS, TanStack Query, shadcn/ui, Recharts | Fast to build, good charts |
