@@ -69,7 +69,7 @@ CATEGORIES = [
         "name": "Document vision",
         "description": "Transcription error on text read from an image, and overlap between predicted and reference regions.",
         "always_on": False,
-        "selector_notes": "Use character accuracy when a reference transcription exists, and report character and word error beside it. Add box F1 and IoU only when the task is to locate regions. Do not apply these to a text-only prompt.",
+        "selector_notes": "Use character accuracy when a reference transcription exists, and report character and word error beside it. Put bbox_f1 in the quality average and report bbox_iou. Do not apply these to a text-only prompt.",
     },
     {
         "id": "agents_tools",

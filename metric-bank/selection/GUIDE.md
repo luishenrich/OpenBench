@@ -11,7 +11,7 @@ Start from the brief, not from a leaderboard.
 1. **Always measure** `error_rate`, `truncation_rate`, `throttle_rate`, `cost_per_case_usd`, `cost_per_success_usd`, and `tokens_out_per_case`. They come off logs the runner already stores. Rank cost on cost per successful case. Monthly cost is reported only when the client entered a volume, and it is not a second cost axis.
 2. **One speed metric**, from the product kind. Chat and RAG: `ttft_ms`. Extraction, classification, summarization, generation: `e2e_ms`. Agents: `task_e2e_ms`. Batch, or any caller who is not waiting: none. If reasoning models are in a chat set, also report `ttfat_ms`. It does not replace time to first token as the ranking speed.
 3. **One to five quality metrics.** A metric may enter the quality average only when `utility_axis` is `quality`. Those scores are already higher-better on 0–1. Do not min-max them across candidates. Do not transform a gate into a quality term by subtracting it from 1 unless the row's `quality_transform` says so. In this bank, lower-better risk rates are gates, so their transform is `not_a_quality_input`.
-4. **Zero to three risk gates.** Use them for harmful compliance, over-refusal, privacy, insecure code, and injection on untrusted context. Do not turn a preference into a gate.
+4. **Zero to five risk gates.** Use them for harmful compliance, over-refusal, privacy, insecure code, and injection on untrusted context. Do not turn a preference into a gate. The default order keeps the user-facing refusal gates ahead of privacy, so a finance chat that also handles secrets does not lose over-refusal or the advice boundary. Pass `risk_priorities` to move a gate to the front.
 5. **Task gates** for requirements the client named as pass/fail: schema validity at or above 0.99, faithfulness at or above 0.9 when the source is binding, banned strings, a hard length window, a required language. `error_rate` is always a task gate. Chat and RAG default to at most 0.02, batch to at most 0.05, and other kinds to at most 0.01.
 6. **At most one generic judge**, and only when no named metric fits. Prefer `rubric_score`. Use `g_eval` when the kind is summarization and there is no claim or coverage check. Add `pairwise_vs_baseline` only when a baseline completion is in the run, and then it is the one judge, not a second one.
 7. **Agents also report `pass_hat_k`.** It is not part of the quality average. Task success already counts a success. pass^k asks whether that success is stable.
@@ -40,7 +40,7 @@ Use these fields, in this order.
 
 | If the brief says | Quality, in this order | Gate, not a quality term |
 |---|---|---|
-| Extraction with a schema | `field_accuracy`, `json_schema_valid`, and `numeric_tolerance_accuracy` when amounts have a tolerance | `json_schema_valid` ≥ 0.99. Do not also gate on `json_valid`. |
+| Extraction with a schema | `field_accuracy`, `json_schema_valid`, and `numeric_tolerance_accuracy` when amounts have a tolerance | `json_schema_valid` ≥ 0.99. Do not also gate on `json_valid`. Use `field_f1` instead of `field_accuracy` when an extra field should count against the model. |
 | Dollar, dose, or rate fields | `numeric_tolerance_accuracy` for those fields only | Leave them out of the exact `field_accuracy` denominator. |
 | Classification labels | `classification_f1` | Add precision or recall only if the client named that error. Do not average F1 and accuracy. |
 | Chat, a question, no gold answer | `answer_relevancy` | — |
@@ -65,7 +65,7 @@ Use these fields, in this order.
 | Untrusted documents or tool output | — | `prompt_injection_resistance` ≥ 0.95 for agents and RAG. |
 | Required locale | — | `language_is` must pass. Rank translation with `translation_comet`, not `bleu`. |
 | The model reads text from an image | `character_accuracy` (or `word_accuracy` if the client named words) | Report `cer` and `wer`. They are lower-better and can exceed 1, so they do not enter Q. |
-| The model returns regions on a page | `bbox_f1`, `bbox_iou` | Do not use box metrics on a text-only prompt. F1 counts misses. IoU only describes the matches. |
+| The model returns regions on a page | `bbox_f1` | Report `bbox_iou`. Do not put both in the quality average. F1 counts misses. IoU only describes the matches. |
 | Open-ended, and nothing above applies | `rubric_score` | One judge only. Pairwise only against a baseline. |
 
 Public exams are not in this table. MMLU, BIG-bench, GSM8K, HELM scenarios, and Arena Elo are priors in the bank's `priors` array. Use them to form a suspicion about a model family. Score the client's cases.
@@ -106,7 +106,7 @@ A streaming assistant answers account questions in the company's voice. A help-c
 | Risk gates | `safety_violation` ≤ 0.01, `over_refusal` ≤ 0.05, `non_advice_compliance` ≥ 0.98 |
 | Task gate | `error_rate` ≤ 0.02 |
 
-No rubric. The three quality metrics name the constructs the catalogue would otherwise have collapsed into `rubric_score`. Faithfulness is not a gate: grounding is not a hard requirement of this product. Three risk gates fill the cap, which is the point of pairing under-refusal with over-refusal.
+No rubric. The three quality metrics name the constructs the catalogue would otherwise have collapsed into `rubric_score`. Faithfulness is not a gate: grounding is not a hard requirement of this product. The risk gates are harmful compliance, over-refusal, and the advice boundary, paired so a finance bot that refuses every question does not look like a win.
 
 ### 3. Nightly ad-copy batch (`nightly_ad_copy`)
 
@@ -157,7 +157,7 @@ Paste this ahead of the bank, then the brief.
 ```
 You are choosing a benchmark scorecard from the BIY metric bank. Return only ids that exist in the bank.
 
-Include the always-on operational metrics. Pick one speed metric from the kind, or none for batch. Pick one to five quality metrics whose utility_axis is quality. Pick at most three risk gates. Pick task gates only for requirements the client stated as pass or fail, plus error_rate.
+Include the always-on operational metrics. Pick one speed metric from the kind, or none for batch. Pick one to five quality metrics whose utility_axis is quality. Pick at most five risk gates. Pick task gates only for requirements the client stated as pass or fail, plus error_rate.
 
 Do not select a metric marked avoid_as_primary as the quality score. Do not select a gate_form as a quality metric when the primary of that construct is already selected. Do not select two metrics from a double_count group. Do not select more than one of rubric_score and g_eval. Do not select pairwise_vs_baseline without a baseline. Do not select a metric whose required inputs the client cannot provide. Do not treat a public exam as a metric.
 
