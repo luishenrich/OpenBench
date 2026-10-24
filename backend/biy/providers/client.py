@@ -12,7 +12,7 @@ import os
 import re
 import time
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Callable
 
 import httpx
 
@@ -27,6 +27,7 @@ PROVIDERS = {
 
 DEFAULT_MAX_TOKENS = 4096  # reasoning models spend tokens before answering
 REASONING_HEADROOM = 2048  # added to a use case's own max_tokens for reasoning models
+SKIPPED = "skipped: the run reached its confirmed cost"
 TIMEOUT = httpx.Timeout(180.0, connect=15.0)
 RETRY_STATUS = {408, 429, 500, 502, 503, 504, 529}  # 529: Nebius "System is overloaded"
 MAX_ATTEMPTS = 4
@@ -225,6 +226,7 @@ class ProviderClient:
         tools: list[dict] | None = None,
         response_format: dict | None = None,
         openrouter_provider: str | None = None,
+        stop: Callable[[], bool] | None = None,
     ) -> CallResult:
         """Stream one chat completion. Never raises for provider errors: see CallResult.error.
 
@@ -232,6 +234,8 @@ class ProviderClient:
         openrouter_provider: upstream to pin (e.g. "DeepInfra"). Defaults to one picked from
         the catalogue; calls always run with fallbacks off, so the price and speed we measure
         belong to a single endpoint.
+        stop: checked once the call has a connection slot; when true, nothing is sent and the
+        result's error is SKIPPED (the run's budget, see worker.Budget).
         """
         params, _dropped, endpoint = prepare_params(self.provider, model, params, tools=tools,
                                                     response_format=response_format,
@@ -256,6 +260,8 @@ class ProviderClient:
             body["usage"] = {"include": True}  # real billed cost in the last chunk
 
         async with self.sem:
+            if stop and stop():
+                return CallResult(provider=self.provider, model=model, error=SKIPPED)
             result = await self._stream(model, body)
         if result.ok:
             result.cost_usd = call_cost(result.usage, catalog.price_per_1m(self.provider, model, endpoint))
