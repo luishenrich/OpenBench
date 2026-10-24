@@ -18,6 +18,7 @@ from contract.schemas import IOSpec
 from . import db, ranking, scoring
 from .config import settings
 from .providers import CallResult, ProviderClient, build_messages, response_format
+from .providers.client import strip_think
 
 log = logging.getLogger("biy.worker")
 
@@ -91,7 +92,9 @@ async def execute_run(ctx, run_id: str) -> None:
                 tools=io.get("tools"), response_format=response_format(io.get("response_schema")))
         except Exception as e:  # missing key, bad request shape, …
             res = CallResult(provider=ref["provider"], model=ref["model"], error=f"{type(e).__name__}: {e}")
-        out = scoring.OutputView(text=res.text, json=res.json, tool_calls=res.tool_calls)
+        # Score the answer without <think> blocks or surrounding whitespace (reasoning models often
+        # start with "\n\n"); the raw text is still what gets stored.
+        out = scoring.OutputView(text=strip_think(res.text), json=res.json, tool_calls=res.tool_calls)
         scores = _score_all(metric_specs, scoring.CaseView(case["input"], case["reference"], io_spec), out) \
             if res.ok else {}
         await db.execute(
@@ -167,7 +170,7 @@ async def _judge_pass(rid: UUID, snap: dict, io_spec: IOSpec, cases: list[dict],
         return res.text
 
     def view(o: dict | None) -> scoring.OutputView | None:
-        return scoring.OutputView(o.get("text"), o.get("json"), o.get("tool_calls")) if o else None
+        return scoring.OutputView(strip_think(o.get("text") or ""), o.get("json"), o.get("tool_calls")) if o else None
 
     async def one(r: dict) -> None:
         if cancelled.is_set() or r["candidate_key"] == baseline_key:
