@@ -1,0 +1,9 @@
+.env
+.env.*
+.git
+**/node_modules
+**/__pycache__
+frontend/dist
+catalog/openrouter
+scripts
+docs
