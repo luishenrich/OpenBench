@@ -60,9 +60,19 @@ async def judge(metric_id: str, case: CaseView, output: OutputView, baseline: Ou
 
 
 def score(metric_id: str, case: CaseView, output: OutputView, config: dict) -> float | None:
+    """Per-case value, or None when there is none to store for this case.
+
+    Ids the runtime doesn't compute per case (judge metrics, runner-measured ones, set-level ones
+    in CORPUS) are computed elsewhere, so None here. Use cases can't hold planned metrics: the
+    service layer rejects them on create/update.
+    """
+    if metric_id in CORPUS:
+        return None
     if _HAS_BANK:
         try:
             return _bank.score(metric_id, case, output, config)
+        except getattr(_bank, "UnimplementedMetricError", ()):
+            return None
         except KeyError:  # unknown to the bank: try the fallback
             pass
     fn = _FALLBACK.get(metric_id)
@@ -73,6 +83,49 @@ def aggregate(values: list[float]) -> Stat:
     if _HAS_BANK and callable(getattr(_bank, "aggregate", None)):
         return _bank.aggregate(values)
     return _bootstrap(values)
+
+
+# Metrics defined over the whole set of a candidate's outputs, not per case. The ranking computes
+# them from (prediction, reference) pairs; score() returns None for them.
+def _label_of(output: dict | None, reference: Any) -> tuple[str, str] | None:
+    ref = _ref_obj(reference)
+    gold = ref.get("label") if isinstance(ref, dict) else ref
+    if gold is None:
+        return None
+    out = output or {}
+    js = out.get("json")
+    pred = js.get("label") if isinstance(js, dict) and "label" in js else out.get("text")
+    return _norm(pred or ""), _norm(gold)
+
+
+def _macro_f1(pairs: list[tuple[str, str]]) -> float:
+    labels = {g for _, g in pairs}
+    f1s = []
+    for lab in labels:
+        tp = sum(1 for p, g in pairs if p == lab and g == lab)
+        fp = sum(1 for p, g in pairs if p == lab and g != lab)
+        fn = sum(1 for p, g in pairs if p != lab and g == lab)
+        f1s.append(0.0 if tp == 0 else 2 * tp / (2 * tp + fp + fn))
+    return sum(f1s) / len(f1s) if f1s else 0.0
+
+
+CORPUS = {"classification_f1": _macro_f1}
+
+
+def corpus_stat(metric_id: str, rows: list[dict], n_boot: int = 500, seed: int = 0) -> Stat | None:
+    """Set-level metric with a bootstrap CI over cases. rows: result rows with output + reference."""
+    fn = CORPUS.get(metric_id)
+    if not fn:
+        return None
+    pairs = [p for r in rows if not r.get("error") and (p := _label_of(r.get("output"), r.get("reference")))]
+    if not pairs:
+        return None
+    rng = random.Random(seed)
+    boots = sorted(fn(rng.choices(pairs, k=len(pairs))) for _ in range(n_boot))
+    mean = sum(boots) / n_boot
+    std = math.sqrt(sum((b - mean) ** 2 for b in boots) / (n_boot - 1))
+    return Stat(mean=round(fn(pairs), 6), std=round(std, 6), ci_low=round(_pct(boots, 2.5), 6),
+                ci_high=round(_pct(boots, 97.5), 6), n=len(pairs))
 
 
 def percentiles(values: list[float]) -> Pct:

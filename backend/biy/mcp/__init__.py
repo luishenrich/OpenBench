@@ -1,13 +1,243 @@
-"""MCP server (owner: Raphaël). Tools wrap biy.services; see contract/api.md#mcp-mcp."""
+"""MCP server (owner: Raphaël). Tools wrap biy.services, like the REST routes; see contract/api.md#mcp-mcp.
 
+Auth: the same bearer token as REST (the workspace key "biy_…" for agents). Every tool returns
+structured content plus a short text summary with names next to ids. Errors say how to fix the call.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+from uuid import UUID
+
+from fastapi import HTTPException
 from fastmcp import FastMCP
+from fastmcp.exceptions import ToolError
+from fastmcp.server.dependencies import get_http_headers
+from fastmcp.tools import ToolResult
+
+from contract.schemas import CaseIn, GenerateCasesIn, ModelRef, RunIn, ScorecardBrief, UseCaseIn, UseCasePatch
 
 from .. import catalog
+from ..auth import caller_from_token
+from ..services import CostNotConfirmed, Invalid, NotFound, metrics, runs, workspace
+from ..services import use_cases as uc_service
 
-mcp = FastMCP("biy", instructions="BIY: benchmark open-weight models on your own use cases.")
+SCAN_REPO = Path(__file__).with_name("scan_repo.md")
+
+mcp = FastMCP("biy", instructions=(
+    "BIY: benchmark open-weight models on your own use cases. Start with the scan_repo prompt "
+    "(/mcp__biy__scan_repo) to discover use cases in the current repo. Runs cost money: "
+    "biy_runs_start needs confirm_cost_usd from biy_runs_estimate, after the user agrees."))
+
+READ = {"readOnlyHint": True}
+
+
+async def _ws() -> UUID:
+    headers = get_http_headers(include={"authorization"})
+    auth = headers.get("authorization", "")
+    token = auth.split(" ", 1)[1].strip() if " " in auth else None
+    try:
+        return (await caller_from_token(token)).workspace_id
+    except HTTPException as e:
+        raise ToolError(f"{e.detail}. Connect with: claude mcp add --transport http biy <url>/mcp "
+                        "--header \"Authorization: Bearer biy_…\" (key from the dashboard, Settings → MCP)") from e
+
+
+def _result(text: str, data: Any) -> ToolResult:
+    if hasattr(data, "model_dump"):
+        data = data.model_dump(mode="json")
+    elif isinstance(data, list):
+        data = {"items": [d.model_dump(mode="json") if hasattr(d, "model_dump") else d for d in data]}
+    return ToolResult(content=text, structured_content=data)
+
+
+async def _call(coro):
+    """Service errors → actionable tool errors."""
+    try:
+        return await coro
+    except NotFound as e:
+        raise ToolError(f"{e}. List ids with biy_use_cases_list.") from e
+    except Invalid as e:
+        raise ToolError(str(e)) from e
+
+
+def _short(model: str) -> str:
+    return model.split("/")[-1]
+
+
+# --- workspace, catalogue, metrics --------------------------------------------
+
+@mcp.tool(annotations=READ)
+async def biy_workspace_get() -> ToolResult:
+    """The workspace: default trade-off profile (quality/speed/cost weights + targets) and default judge."""
+    ws = await workspace.get_workspace(await _ws())
+    w = ws.default_profile.weights
+    return _result(f"Workspace '{ws.name}': default weights quality {w['quality']} / speed {w['speed']} / "
+                   f"cost {w['cost']}; judge {ws.default_judge.model}.", ws)
+
+
+@mcp.tool(annotations=READ)
+async def biy_models_list(shortlist: bool = True, type: str | None = None, provider: str | None = None) -> ToolResult:
+    """Benchmarkable open-weight models with VERIFIED capabilities (text, vision, tools, json_schema) and prices.
+
+    type: text | vision | embedding. provider: nebius | openrouter. Candidates must come from this list.
+    """
+    await _ws()
+    ms = catalog.list_models(shortlist=shortlist, type=type, provider=provider)
+    lines = [f"{m.provider}:{m.id} ({m.role or '-'}, AA {m.aa_index or '-'}, "
+             f"${m.pricing_usd_per_1m.get('input')}/{m.pricing_usd_per_1m.get('output')} per 1M, "
+             f"{'+'.join(k for k, v in m.verified.items() if v)})" for m in ms]
+    return _result(f"{len(ms)} models:\n" + "\n".join(lines), ms)
+
+
+@mcp.tool(annotations=READ)
+async def biy_metrics_list(kind: str | None = None, category: str | None = None) -> ToolResult:
+    """Metrics from the metric bank. kind filters to the defaults for a use-case kind (e.g. extraction)."""
+    await _ws()
+    ms = metrics.list_metrics(kind=kind, category=category)
+    lines = [f"{m.id} [{m.utility_axis}, {m.method}]: {m.description[:90]}" for m in ms]
+    return _result(f"{len(ms)} metrics:\n" + "\n".join(lines), ms)
+
+
+@mcp.tool(annotations=READ)
+async def biy_metrics_select(brief: ScorecardBrief) -> ToolResult:
+    """Pick metrics + gates for ONE use case from what you saw in the code. Only `kind` is required;
+    set every flag you can tell (has_schema, has_reference, user_facing, tools, ocr, …).
+    Put the returned `metrics` and `gates` straight into biy_use_cases_create."""
+    await _ws()
+    try:
+        card = metrics.scorecard(brief)
+    except Exception as e:
+        raise ToolError(f"metric selection failed: {e}. Check the brief fields (kind is required).") from e
+    gates = ", ".join(f"{g.metric_id} {g.op} {g.value}" for g in card.gates) or "none"
+    return _result(f"{brief.kind}: quality metrics {', '.join(card.quality)}; gates {gates}; "
+                   f"speed ranked by {card.speed_ranking or 'n/a'}.", card)
+
+
+# --- use cases + cases --------------------------------------------------------
+
+@mcp.tool(annotations=READ)
+async def biy_use_cases_list() -> ToolResult:
+    """All use cases in the workspace, with case counts and the latest run's recommendation."""
+    ucs = await uc_service.list_use_cases(await _ws())
+    lines = [f"{u.id}  {u.name} ({u.kind}, {u.case_count} cases)"
+             + (f" — latest run {u.latest_run.status}: {u.latest_run.recommendation_headline or ''}" if u.latest_run else "")
+             for u in ucs]
+    return _result(f"{len(ucs)} use cases:\n" + "\n".join(lines) if ucs else "No use cases yet.", ucs)
 
 
 @mcp.tool
-def biy_models_list(shortlist: bool = True, type: str | None = None) -> list[dict]:
-    """List benchmarkable models (verified capabilities, prices). type: text | vision | embedding."""
-    return [m.model_dump() for m in catalog.list_models(shortlist=shortlist, type=type)]
+async def biy_use_cases_create(use_cases: list[UseCaseIn]) -> ToolResult:
+    """Create several use cases at once (discovery creates them all in one call).
+
+    current_model is today's model, benchmarked as the baseline. Closed models go through OpenRouter:
+    {"provider": "openrouter", "model": "openai/gpt-4.1-mini"} (or anthropic/…, google/…).
+    io_spec: system_prompt, user_template with {{var}} placeholders, response_schema (JSON schema),
+    tools (OpenAI format), params (temperature, max_tokens).
+    """
+    created = await _call(uc_service.create_use_cases(await _ws(), use_cases, created_by="mcp"))
+    return _result("Created:\n" + "\n".join(f"{u.id}  {u.name} ({u.kind}; metrics "
+                                             f"{', '.join(m.metric_id for m in u.metrics) or 'none'})" for u in created),
+                   created)
+
+
+@mcp.tool
+async def biy_use_cases_update(use_case_id: UUID, patch: UseCasePatch) -> ToolResult:
+    """Change part of a use case, e.g. the trade-off: {"profile": {"weights": {"quality": 50, "speed": 10, "cost": 40}}}.
+    Weights sum to 100. Re-run with biy_runs_estimate / biy_runs_start to see the new ranking."""
+    u = await _call(uc_service.update_use_case(await _ws(), use_case_id, patch))
+    w = (u.profile.weights if u.profile else None)
+    return _result(f"Updated {u.name}" + (f": weights q{w['quality']}/s{w['speed']}/c{w['cost']}" if w else ""), u)
+
+
+@mcp.tool
+async def biy_cases_add(use_case_id: UUID, cases: list[CaseIn]) -> ToolResult:
+    """Add test cases. input is {"vars": {...}} for io_spec.user_template, or {"messages": [...]};
+    reference is the expected output (JSON / label / text) when known. source: repo | synthetic.
+    Never send secrets or real customer data: replace them with realistic fakes."""
+    added = await _call(uc_service.add_cases(await _ws(), use_case_id, cases))
+    return _result(f"Added {len(added)} cases to {use_case_id}.", {"added": len(added), "ids": [str(c.id) for c in added]})
+
+
+@mcp.tool
+async def biy_cases_generate(use_case_id: UUID, n: int = 20, strategy: str = "auto") -> ToolResult:
+    """Generate synthetic test cases server-side, seeded from the use case's existing cases.
+
+    strategy: auto | schema_first (extraction: writes the expected JSON first) | persona_grid (chat).
+    Every case gets a reference; fewer than n can come back. Takes ~10–60 s. Add repo cases first.
+    """
+    req = GenerateCasesIn(n=n, strategy=strategy)
+    added = await _call(uc_service.generate_cases(await _ws(), use_case_id, req))
+    return _result(f"Generated {len(added)} synthetic cases for {use_case_id}"
+                   + (f" (asked for {n})" if len(added) < n else "") + ".",
+                   {"added": len(added), "ids": [str(c.id) for c in added]})
+
+
+# --- runs --------------------------------------------------------------------
+
+async def _run_in(ws: UUID, use_case_id: UUID, candidates: list[ModelRef] | None, auto: int, repeats: int,
+                  include_baseline: bool, confirm_cost_usd: float | None = None) -> RunIn:
+    cands = candidates or await _call(runs.auto_candidates(ws, use_case_id, auto))
+    return RunIn(use_case_id=use_case_id, candidates=cands, repeats=repeats, include_baseline=include_baseline,
+                 confirm_cost_usd=confirm_cost_usd)
+
+
+def _estimate_text(est) -> str:
+    rows = "\n".join(f"  {l.provider}:{_short(l.model)}: {l.calls} calls, ${l.est_cost_usd:.4f}" for l in est.per_candidate)
+    return (f"Estimate: {est.calls} calls, ${est.total_usd:.4f} total "
+            f"(models ${est.est_cost_usd:.4f} + judge ${est.judge_cost_usd:.4f}).\n{rows}")
+
+
+@mcp.tool(annotations=READ)
+async def biy_runs_estimate(use_case_id: UUID, candidates: list[ModelRef] | None = None, auto: int = 6,
+                            repeats: int = 3, include_baseline: bool = True) -> ToolResult:
+    """Cost and call count before a run. Leave candidates empty to let BIY pick `auto` shortlisted models
+    with verified capabilities for this use case. Show the total to the user before starting."""
+    ws = await _ws()
+    req = await _run_in(ws, use_case_id, candidates, auto, repeats, include_baseline)
+    est = await _call(runs.estimate_run(ws, req))
+    data = est.model_dump(mode="json") | {"candidates": [c.model_dump(mode="json") for c in req.candidates]}
+    return _result(_estimate_text(est) + "\nPass the same candidates and confirm_cost_usd to biy_runs_start.", data)
+
+
+@mcp.tool
+async def biy_runs_start(use_case_id: UUID, confirm_cost_usd: float, candidates: list[ModelRef] | None = None,
+                         auto: int = 6, repeats: int = 3, include_baseline: bool = True) -> ToolResult:
+    """Start a benchmark run. Only after the user agreed to the estimate: confirm_cost_usd must be ≥ the
+    estimate's total_usd, or the run is refused and the new estimate is returned."""
+    ws = await _ws()
+    req = await _run_in(ws, use_case_id, candidates, auto, repeats, include_baseline, confirm_cost_usd)
+    try:
+        run = await _call(runs.start_run(ws, req))
+    except CostNotConfirmed as e:
+        raise ToolError(f"Not started: {e}. {_estimate_text(e.estimate)}\nAsk the user, then retry with "
+                        f"confirm_cost_usd ≥ {e.estimate.total_usd:.4f}.") from e
+    return _result(f"Run {run.id} queued: {run.progress.total} calls, est. ${run.est_cost_usd:.4f}. "
+                   "Poll biy_runs_status; results also show live in the dashboard.", run)
+
+
+@mcp.tool(annotations=READ)
+async def biy_runs_status(run_id: UUID) -> ToolResult:
+    """Progress, leaderboard so far, and the recommendation once done."""
+    try:
+        run = await runs.get_run(await _ws(), run_id)
+    except NotFound as e:
+        raise ToolError(f"{e}. Run ids come from biy_runs_start.") from e
+    p = run.progress
+    lines = [f"Run {run.id}: {run.status}, {p.done}/{p.total} calls ({p.errors} errors), ${run.actual_cost_usd:.4f} spent."]
+    for c in run.leaderboard[:8]:
+        lines.append(f"  #{c.rank or '-'} {c.candidate_key}{' (baseline)' if c.is_baseline else ''}: "
+                     f"quality {c.quality.mean:.3f}, p95 {c.e2e_ms.p95:.0f} ms, ${c.cost_per_call_usd:.6f}/call"
+                     + (f", fails {', '.join(c.failed_gates)}" if c.failed_gates else ""))
+    if run.recommendation:
+        lines.append(f"Recommendation: {run.recommendation.headline}")
+    return _result("\n".join(lines), run)
+
+
+# --- discovery prompt -----------------------------------------------------------
+
+@mcp.prompt(name="scan_repo", description="Find every LLM call in this repo, create a BIY benchmark for each, "
+                                          "estimate the cost and run after you confirm.")
+def scan_repo() -> str:
+    return SCAN_REPO.read_text(encoding="utf-8")
