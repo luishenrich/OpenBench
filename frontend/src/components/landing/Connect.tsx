@@ -27,35 +27,40 @@ export default function Connect() {
         <div className="lg:pt-12">
           <ol className="space-y-8">
             <li className="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
-              <span className="font-mono text-xs text-faint">01</span>
+              <span className="font-mono text-xs leading-6 text-faint">01</span>
               <div>
                 <p className="font-medium">Sign in and create a key</p>
                 <p className="mt-1 text-sm text-muted">The key is shown once. It replaces <Code>biy_…</Code> below.</p>
               </div>
             </li>
             <li className="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
-              <span className="font-mono text-xs text-faint">02</span>
+              <span className="font-mono text-xs leading-6 text-faint">02</span>
               <div className="min-w-0">
                 <p className="font-medium">Add the server</p>
-                <div className="mt-3 rounded-lg border border-line bg-panel">
+                {/* the terminal: hairline light on its edge and a little coral light pooled under it */}
+                <div className="lp-pool mt-3">
+                <div className="lp-hairline rounded-lg border border-line bg-panel">
                   <pre className="overflow-x-auto p-4 font-mono text-[12px] leading-relaxed whitespace-pre-wrap text-muted">
                     <span className="text-faint select-none">$ </span>
                     {/* each part stays whole so a narrow screen wraps between flags, never inside one */}
                     {PARTS.map((part, i) => <span key={part}>{i ? ' ' : ''}<span className="inline-block whitespace-nowrap">{part}</span></span>)}
+                    <span aria-hidden className="lp-caret ml-1 inline-block h-[1.1em] w-[0.5em] translate-y-[0.18em] bg-front/80" />
                   </pre>
                   <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-2.5">
                     <span className="font-mono text-[11px] text-faint">claude code</span>
                     <button type="button" onClick={copy}
-                      className="rounded-md border border-line bg-raised px-2.5 py-1 text-xs font-medium text-fg transition-colors hover:border-line-strong">
+                      className={`inline-flex items-center gap-1.5 rounded-md border bg-raised px-2.5 py-1 text-xs font-medium transition-colors hover:border-line-strong ${copied ? 'border-win/40 text-win' : 'border-line text-fg'}`}>
+                      {copied && <svg aria-hidden viewBox="0 0 12 12" className="size-3"><path d="M2.5 6.5l2.2 2.2L9.5 3.5" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" /></svg>}
                       {copied ? 'Copied' : 'Copy'}
                     </button>
                   </div>
+                </div>
                 </div>
                 <p className="sr-only" aria-live="polite">{copied ? 'Command copied' : ''}</p>
               </div>
             </li>
             <li className="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
-              <span className="font-mono text-xs text-faint">03</span>
+              <span className="font-mono text-xs leading-6 text-faint">03</span>
               <div>
                 <p className="font-medium">Open your repo and scan it</p>
                 <p className="mt-1 text-sm text-muted">
@@ -65,7 +70,7 @@ export default function Connect() {
             </li>
           </ol>
           <div className="mt-10 pl-11">
-            <Link to="/login" className={linkPrimary}>Sign in to get a key</Link>
+            <Link to="/login" className={`${linkPrimary} lp-cta`}>Sign in to get a key</Link>
           </div>
         </div>
       </Container>
