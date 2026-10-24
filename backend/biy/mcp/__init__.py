@@ -20,7 +20,8 @@ from contract.schemas import CaseIn, GenerateCasesIn, ModelRef, RunIn, Scorecard
 
 from .. import catalog
 from ..auth import caller_from_token
-from ..services import CostNotConfirmed, Invalid, NotFound, metrics, runs, workspace
+from ..config import settings
+from ..services import CostNotConfirmed, Invalid, NotFound, metrics, runs, uploads, workspace
 from ..services import use_cases as uc_service
 
 SCAN_REPO = Path(__file__).with_name("scan_repo.md")
@@ -65,6 +66,24 @@ async def _call(coro):
 
 def _short(model: str) -> str:
     return model.split("/")[-1]
+
+
+def _brief(u) -> dict:
+    """Compact use case for tool replies (full objects filled agents' context: ~76k chars for 27).
+    The full object is biy_use_cases_get."""
+    prompt = bool(u.io_spec.system_prompt or u.io_spec.user_template)
+    needs = ([] if prompt else ["prompt not attached"]) + ([] if u.case_count else ["no cases"]) \
+        + ([] if u.metrics else ["no metrics"])
+    return {"id": str(u.id), "name": u.name, "kind": u.kind,
+            "url": f"{settings.public_base_url.rstrip('/')}/use-cases/{u.id}",
+            "metrics": [m.metric_id for m in u.metrics], "case_count": u.case_count, "prompt_attached": prompt,
+            "needs": needs, "latest_run": u.latest_run.status if u.latest_run else None}
+
+
+def _brief_line(b: dict) -> str:
+    needs = f"; needs: {', '.join(b['needs'])}" if b["needs"] else ""
+    return (f"{b['id']}  {b['name']} ({b['kind']}, {b['case_count']} cases, metrics "
+            f"{', '.join(b['metrics']) or 'none'}{needs})")
 
 
 # --- workspace, catalogue, metrics --------------------------------------------
@@ -122,10 +141,17 @@ async def biy_metrics_select(brief: ScorecardBrief) -> ToolResult:
 async def biy_use_cases_list() -> ToolResult:
     """All use cases in the workspace, with case counts and the latest run's recommendation."""
     ucs = await uc_service.list_use_cases(await _ws())
-    lines = [f"{u.id}  {u.name} ({u.kind}, {u.case_count} cases)"
-             + (f" — latest run {u.latest_run.status}: {u.latest_run.recommendation_headline or ''}" if u.latest_run else "")
-             for u in ucs]
-    return _result(f"{len(ucs)} use cases:\n" + "\n".join(lines) if ucs else "No use cases yet.", ucs)
+    briefs = [_brief(u) for u in ucs]
+    lines = [_brief_line(b) + (f" — latest run {u.latest_run.status}: {u.latest_run.recommendation_headline or ''}"
+                               if u.latest_run else "") for b, u in zip(briefs, ucs)]
+    return _result(f"{len(ucs)} use cases:\n" + "\n".join(lines) if ucs else "No use cases yet.", {"items": briefs})
+
+
+@mcp.tool(annotations=READ)
+async def biy_use_cases_get(use_case_id: UUID) -> ToolResult:
+    """One use case in full (io_spec with prompts and schema, metrics, gates, profile, judge)."""
+    u = await _call(uc_service.get_use_case(await _ws(), use_case_id))
+    return _result(f"{u.name} ({u.kind}): {u.case_count} cases. Dashboard: {_brief(u)['url']}", u)
 
 
 @mcp.tool
@@ -141,9 +167,8 @@ async def biy_use_cases_create(use_cases: list[UseCaseIn]) -> ToolResult:
     tools (OpenAI format), params (temperature, max_tokens).
     """
     created = await _call(uc_service.create_use_cases(await _ws(), use_cases, created_by="mcp"))
-    return _result("Created:\n" + "\n".join(f"{u.id}  {u.name} ({u.kind}; metrics "
-                                             f"{', '.join(m.metric_id for m in u.metrics) or 'none'})" for u in created),
-                   created)
+    briefs = [_brief(u) for u in created]
+    return _result("Created:\n" + "\n".join(_brief_line(b) + f"  {b['url']}" for b in briefs), {"items": briefs})
 
 
 @mcp.tool
@@ -152,7 +177,8 @@ async def biy_use_cases_update(use_case_id: UUID, patch: UseCasePatch) -> ToolRe
     Weights sum to 100. Re-run with biy_runs_estimate / biy_runs_start to see the new ranking."""
     u = await _call(uc_service.update_use_case(await _ws(), use_case_id, patch))
     w = (u.profile.weights if u.profile else None)
-    return _result(f"Updated {u.name}" + (f": weights q{w['quality']}/s{w['speed']}/c{w['cost']}" if w else ""), u)
+    return _result(f"Updated: {_brief_line(_brief(u))}" + (f"; weights q{w['quality']}/s{w['speed']}/c{w['cost']}" if w else ""),
+                   _brief(u))
 
 
 @mcp.tool
@@ -176,6 +202,20 @@ async def biy_cases_generate(use_case_id: UUID, n: int = 20, strategy: str = "au
     return _result(f"Generated {len(added)} synthetic cases for {use_case_id}"
                    + (f" (asked for {n})" if len(added) < n else "") + ".",
                    {"added": len(added), "ids": [str(c.id) for c in added]})
+
+
+@mcp.tool
+async def biy_upload_url(use_case_id: UUID, field: str) -> ToolResult:
+    """One-time URL to upload a large field straight from a file, so its bytes never go through your
+    tool arguments. Use it for any prompt over ~4,000 characters, big schemas or tool lists, many cases,
+    and images. Then run from your shell:  curl -sf --data-binary @path/to/file <url>
+
+    field: system_prompt | user_template (text) | response_schema | tools (JSON) |
+           cases_jsonl (one CaseIn JSON object per line) | image (PNG/JPEG/WebP/PDF → returns its URL;
+           then biy_cases_add with input.images = [url]). Valid ~15 min, single use.
+    Never truncate or paraphrase a prompt to make it fit."""
+    data = await _call(uploads.create_upload_url(await _ws(), use_case_id, field))
+    return _result(f"Upload {field}: {data['curl']}  (valid {data['expires_in_s'] // 60} min, single use)", data)
 
 
 # --- runs --------------------------------------------------------------------
