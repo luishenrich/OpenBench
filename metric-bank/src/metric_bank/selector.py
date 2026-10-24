@@ -132,6 +132,16 @@ EXAMPLES: list[dict] = [
 ]
 
 
+def _citations_requested(brief: dict) -> bool:
+    """True when the brief says the prompt requires citations. Absent means no."""
+    return bool(brief.get("citations_required") or brief.get("requires_citations"))
+
+
+def _free_text_beside_label(brief: dict) -> bool:
+    """True when a scored label also has prose a person reads. Absent means no."""
+    return bool(brief.get("feedback_text") or brief.get("also_free_text"))
+
+
 def _error_threshold(kind: str) -> str:
     if kind == "batch":
         return "<= 0.05"
@@ -165,6 +175,9 @@ def _quality_candidates(brief: dict) -> list[str]:
         add("answer_relevancy")
         add("instruction_following", brief.get("has_constraints", False))
         add("pairwise_vs_baseline", brief.get("baseline_present", False))
+        # One use case. Tool turns and the reply are both scored.
+        add("tool_call_correct", brief.get("tools", False))
+        add("tool_choice_correct", brief.get("tools", False))
     elif kind == "rag":
         add("faithfulness")
         add("citation_precision", brief.get("citations_required", False))
@@ -204,6 +217,9 @@ def _quality_candidates(brief: dict) -> list[str]:
     for metric_id in vision:
         if metric_id in chosen:
             chosen.remove(metric_id)
+    if _citations_requested(brief) and kind in {"generation", "summarization", "batch", "chat", "other", "rag"}:
+        add("citation_precision")
+        add("citation_recall")
     return vision + chosen
 
 
@@ -264,10 +280,25 @@ def _finalize_quality(
 
     # Grading writes a score and a comment. The score stays deterministic.
     # rubric_score is the second quality term, for the comment only.
-    if brief.get("feedback_text") and "rubric_score" not in kept:
+    if _free_text_beside_label(brief) and "rubric_score" not in kept:
         kept.append("rubric_score")
         notes.append(
-            "Written feedback is scored with rubric_score beside the deterministic label or schema metric."
+            "Written feedback is scored with rubric_score beside the deterministic label or schema metric. "
+            "Set feedback_text or also_free_text when a classification also returns free text. Omitting both leaves the label metric alone."
+        )
+
+    # Pairwise compares to a baseline model. It does not replace a rubric when there is no gold answer.
+    citation_ids = {"citation_precision", "citation_recall"}
+    named_other = [metric_id for metric_id in kept if metric_id not in JUDGES and metric_id not in citation_ids]
+    if (
+        brief["kind"] in {"generation", "summarization"}
+        and not brief.get("has_reference")
+        and "rubric_score" not in kept
+        and not named_other
+    ):
+        kept.append("rubric_score")
+        notes.append(
+            "This long-form task has no gold reference. rubric_score stays, so quality is not only a pairwise comparison with a baseline."
         )
 
     if not kept and include_planned and brief.get("open_ended_without_spec", False):
@@ -457,6 +488,21 @@ def select(brief: dict, bank: dict | None = None) -> dict:
         )
     if kind in {"batch", "generation", "other"} and enriched.get("has_schema") and "json_schema_valid" in quality:
         notes.append("json_schema_valid is a quality score and a task gate. The schema is not only a gate.")
+    if kind == "chat" and enriched.get("tools"):
+        notes.append(
+            "A chat that calls tools stays one use case. Tool turns are scored with tool_call_correct and tool_choice_correct. "
+            "The reply stays on the chat quality metrics."
+        )
+    if _citations_requested(enriched) and (
+        "citation_precision" in quality
+        or "citation_recall" in quality
+        or "citation_precision" in alternates
+        or "citation_recall" in alternates
+    ):
+        notes.append(
+            "The prompt requires citations, so citation_precision and citation_recall are quality terms. "
+            "They are judge metrics. Set citations_required or requires_citations. A brief that omits both does not select them."
+        )
     also_speed: list[str] = []
     if ranking == "ttft_ms" and enriched.get("reasoning_models"):
         also_speed.append("ttfat_ms")

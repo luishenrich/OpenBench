@@ -269,7 +269,8 @@
     "judging": [],
     "notes": [
       "The quality cap is 5. First alternate: answer_relevancy.",
-      "Hallucination rate was not added. Faithfulness is already the grounding measurement."
+      "Hallucination rate was not added. Faithfulness is already the grounding measurement.",
+      "The prompt requires citations, so citation_precision and citation_recall are quality terms. They are judge metrics. Set citations_required or requires_citations. A brief that omits both does not select them."
     ]
   }
 ]

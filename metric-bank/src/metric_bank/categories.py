@@ -153,6 +153,6 @@ CATEGORIES = [
         "name": "Judging methods",
         "description": "Generic instruments for criteria that do not have a named metric.",
         "always_on": False,
-        "selector_notes": "Select at most one of rubric score and G-Eval. Add pairwise versus baseline only when a baseline model is in the run.",
+        "selector_notes": "Select at most one of rubric score and G-Eval, except a long-form task with no gold reference keeps the rubric beside pairwise versus baseline. Add pairwise only when a baseline model is in the run. A classification that also returns free text keeps the rubric beside the label.",
     },
 ]

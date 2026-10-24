@@ -8,7 +8,7 @@
       "quality_metrics": 5,
       "risk_metrics": 5,
       "business_metrics": 2,
-      "judging_metrics": 1
+      "judging_metrics": 2
     },
     "always_on": [
       "error_rate",
@@ -31,7 +31,7 @@
     },
     "quality_rule": "A metric may enter the quality average Q only when utility_axis is quality and the stored score is higher-better on 0–1. Apply quality_transform before averaging. Do not min-max Q across candidates.",
     "gate_rule": "Gates are hard failures. Use them for schema validity, error rate, harmful compliance, confirmed privacy leaks, and latency ceilings the client named. Do not turn every metric into a gate.",
-    "judge_rule": "Prefer a named deterministic or claim-level metric over a generic judge. Select at most one of rubric_score and g_eval. Add pairwise_vs_baseline only when a baseline completion exists.",
+    "judge_rule": "Prefer a named deterministic or claim-level metric over a generic judge. Select at most one of rubric_score and g_eval, except a long-form task with no gold reference keeps rubric_score beside pairwise_vs_baseline. Add pairwise_vs_baseline only when a baseline completion exists. A classification that also returns free text keeps rubric_score beside the label.",
     "runnable_rule": "By default propose only rows whose runtime_status is implemented, judge, or runner_measured. Planned rows stay in the bank and return when the brief sets include_planned. If that filter would leave quality empty, use an implemented metric for the kind, or rubric_score.",
     "double_count_groups": [
       "grounding",
@@ -198,7 +198,7 @@
       "name": "Judging methods",
       "description": "Generic instruments for criteria that do not have a named metric.",
       "always_on": false,
-      "selector_notes": "Select at most one of rubric score and G-Eval. Add pairwise versus baseline only when a baseline model is in the run."
+      "selector_notes": "Select at most one of rubric score and G-Eval, except a long-form task with no gold reference keeps the rubric beside pairwise versus baseline. Add pairwise only when a baseline model is in the run. A classification that also returns free text keeps the rubric beside the label."
     }
   ],
   "priors": [
