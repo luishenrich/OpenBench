@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react'
 import { SettingsSection } from '@/components/settings/controls'
 import { Tag } from '@/components/ui'
+import { ConnectedApps } from '@/components/connections/ConnectedApps'
 import { KeyMethod } from '@/components/connections/KeyMethod'
 import { ClientTabs, CopyButton, Snippet, mcpUrl, type Client } from '@/components/connections/mcp'
 
@@ -23,9 +24,6 @@ function oauthSnippet(client: Client, url: string): { where: string; text: strin
   }
   return { where: 'Server URL', text: url, then: 'Any MCP client with OAuth support: just the URL. It opens your browser to sign in.' }
 }
-
-// Remove once the MCP server's OAuth (401 + WWW-Authenticate) is live in production.
-const ROLLOUT_NOTE = 'OAuth sign-in is rolling out; if your client says the server needs no auth or fails, use a key.'
 
 const SCAN = '/mcp__biy__scan_repo'
 const STEPS = [
@@ -62,7 +60,10 @@ export default function Connections() {
           <p className="mt-3 text-sm leading-relaxed text-muted">
             {s.then}
           </p>
-          {ROLLOUT_NOTE && <p className="mt-4 text-xs text-faint">{ROLLOUT_NOTE}</p>}
+        </SettingsSection>
+
+        <SettingsSection title="Connected apps" help="Agents you signed in to BIY with OAuth. Revoke one to cut its access right away.">
+          <ConnectedApps />
         </SettingsSection>
 
         <SettingsSection title="Then run" help="Open your product repo in the agent and run the scan.">
@@ -97,6 +98,7 @@ export default function Connections() {
             <span>{keyOpen ? 'Hide key setup' : 'Set up with a key'}</span>
             <span aria-hidden className={`text-faint transition-transform ${keyOpen ? 'rotate-90' : ''}`}>›</span>
           </button>
+          <p className="mt-2.5 text-xs text-faint">Key connections aren't listed under Connected apps: a key belongs to the workspace, not to one app.</p>
           {keyOpen && <div id="key-method" className="mt-5"><KeyMethod /></div>}
         </SettingsSection>
       </div>

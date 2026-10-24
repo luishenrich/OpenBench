@@ -59,12 +59,7 @@ export function Signature({ className = 'h-10' }: { className?: string }) {
   )
 }
 
-/** Mark + "BIY" in Geist: the compact lockup for the nav and other tight spaces. */
+/** The logo used across the app: the full "B yourself" signature lockup. Mark alone is for icons and the favicon. */
 export function Logo({ size = 'md' }: { size?: 'md' | 'lg' }) {
-  return (
-    <span className="inline-flex items-center gap-2.5">
-      <Mark className={size === 'lg' ? 'size-10' : 'size-8'} />
-      <span className={`title ${size === 'lg' ? 'text-xl' : 'text-[15px]'}`}>BIY</span>
-    </span>
-  )
+  return <Signature className={`text-fg ${size === 'lg' ? 'h-14' : 'h-11'}`} />
 }
