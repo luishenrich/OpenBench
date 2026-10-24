@@ -1,6 +1,6 @@
 # References, reasoning effort, jury: field names (breaking), plus one decision for you
 
-From Raphaël. **Needed before the next deploy:** the dashboard must switch to the new field names in the same deploy as PR "references + effort + jury", or it breaks. Please update the frontend on top of that branch (or tell me when, and I merge right after you).
+From Raphaël. **PR #14 is merged into `main`, so `main` now has the new backend + contract.** ⚠️ **Don't redeploy `main` until the dashboard uses the new field names below**, or the live dashboard breaks (it would read `is_baseline` / `*_vs_baseline`, which are gone). Redeploy once your frontend change is in.
 
 ## Field names (contract/schemas.py, fixtures regenerated)
 
