@@ -45,11 +45,11 @@ export function Hero() {
         <div className="lp-in" style={d(150)}>
           <Eyebrow tone="front">Benchmark it yourself</Eyebrow>
         </div>
-        <h1 id="hero-title" className="lp-in display mt-7 text-[44px] text-pretty sm:text-7xl lg:text-[104px]" style={d(260)}>
-          Find the open model that does your job.
+        <h1 id="hero-title" className="lp-in display mt-7 max-w-[15ch] text-[40px] text-pretty sm:text-6xl lg:text-[80px]" style={d(260)}>
+          You're paying frontier prices for jobs an open model could do.
         </h1>
-        <p className="lp-in mt-7 max-w-[34rem] text-lg leading-relaxed text-pretty text-muted sm:text-xl" style={d(420)}>
-          BIY runs open-weight models on your own cases and measures quality, speed and cost. You get a recommendation you can defend.
+        <p className="lp-in mt-7 max-w-[36rem] text-lg leading-relaxed text-pretty text-muted sm:text-xl" style={d(420)}>
+          BIY finds every LLM call in your code, tests open-weight models on your own cases, and shows which calls can switch, with the numbers to prove it.
         </p>
         <div className="lp-in mt-10 flex flex-wrap items-center gap-3" style={d(540)}>
           <Link to="/login" className={`${linkPrimary} lp-cta`}>Sign in</Link>
