@@ -26,17 +26,15 @@ def _jwks() -> jwt.PyJWKClient:
 
 
 def _verify_supabase(token: str) -> dict:
-    """Supabase access token → claims. HS256 with the legacy secret, else the project's JWKS."""
-    alg = jwt.get_unverified_header(token).get("alg")
-    if alg == "HS256":
-        if not settings.supabase_jwt_secret:
-            raise jwt.InvalidTokenError("SUPABASE_JWT_SECRET is not set")
-        key = settings.supabase_jwt_secret
-    else:
-        if not settings.supabase_url:
-            raise jwt.InvalidTokenError("SUPABASE_URL is not set")
-        key = _jwks().get_signing_key_from_jwt(token).key
-    return jwt.decode(token, key, algorithms=[alg], audience="authenticated")
+    """Supabase access token → claims, verified against the project's JWKS (ES256 only).
+
+    The algorithm is fixed, never taken from the token header, so a token can't pick a
+    weaker one (e.g. HS256 or "none").
+    """
+    if not settings.supabase_url:
+        raise jwt.InvalidTokenError("SUPABASE_URL is not set")
+    key = _jwks().get_signing_key_from_jwt(token).key
+    return jwt.decode(token, key, algorithms=["ES256"], audience="authenticated")
 
 
 async def caller_from_token(token: str | None) -> Caller:
