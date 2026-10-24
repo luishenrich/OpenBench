@@ -14,7 +14,10 @@ services:
       args:
         VITE_SUPABASE_URL: ${SUPABASE_URL}
         VITE_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
-    environment: *env
+    environment:
+      <<: *env
+      # Admin key for agent image uploads (biy_upload_url field=image). api only; the worker never needs it.
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
     expose:
       - "8000"
     mem_limit: 1g

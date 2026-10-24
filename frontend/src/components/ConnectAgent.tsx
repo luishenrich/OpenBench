@@ -1,27 +1,19 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+// Compact "connect your agent" panel. The full version is pages/Connections.tsx; this stays until the
+// use-case list stops using it.
 import { useState } from 'react'
-import { api } from '@/lib/api'
+import { Link } from 'react-router-dom'
 import { Badge, Button, ErrorNote, Panel } from './ui'
-
-const PROD_ORIGIN = 'https://biy.studypdf.net'
+import { copyText, mcpUrl, useMcpKey } from './connections/mcp'
 
 export default function ConnectAgent() {
-  const me = useQuery({ queryKey: ['me'], queryFn: api.me })
-  const rotate = useMutation({ mutationFn: api.rotateMcpKey })
+  const k = useMcpKey()
   const [copied, setCopied] = useState(false)
-  const key = rotate.data?.key
-  const shownKey = key ?? (me.data?.mcp_key_last4 ? `biy_…${me.data.mcp_key_last4}` : '<create a key>')
-  // Local dev and prod share one database, so a key works against prod either way: always point agents at prod.
-  const origin = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? PROD_ORIGIN : window.location.origin
-  const command = `claude mcp add --transport http biy ${origin}/mcp --header "Authorization: Bearer ${shownKey}"`
+  const command = `claude mcp add --transport http biy ${mcpUrl()} --header "Authorization: Bearer ${k.shown}"`
 
   async function copy() {
-    try {
-      await navigator.clipboard.writeText(command)
+    if (await copyText(command)) {
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
-    } catch {
-      // clipboard blocked; the command is still selectable
     }
   }
 
@@ -36,12 +28,13 @@ export default function ConnectAgent() {
       <pre className="mt-4 overflow-x-auto rounded-lg border border-line bg-bg p-3 font-mono text-[11.5px] leading-relaxed break-all whitespace-pre-wrap text-muted">{command}</pre>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button variant="primary" onClick={copy}>{copied ? 'Copied' : 'Copy command'}</Button>
-        <Button variant="secondary" onClick={() => rotate.mutate()} disabled={rotate.isPending}>
-          {me.data?.mcp_key_last4 ? 'Replace key' : 'Create key'}
+        <Button variant="secondary" onClick={() => k.rotate.mutate()} disabled={k.rotate.isPending}>
+          {k.hasKey ? 'Replace key' : 'Create key'}
         </Button>
+        <Link to="/connections" className="ml-auto text-xs text-muted hover:text-fg">Cursor, Codex and more</Link>
       </div>
-      {key && <p className="mt-3 text-xs text-front">This key is shown once. Replacing it disconnects agents that use the old one.</p>}
-      {rotate.error && <div className="mt-3"><ErrorNote error={rotate.error} /></div>}
+      {k.full && <p className="mt-3 text-xs text-front">This key is shown once. Replacing it disconnects agents that use the old one.</p>}
+      {k.rotate.error && <div className="mt-3"><ErrorNote error={k.rotate.error} /></div>}
     </Panel>
   )
 }

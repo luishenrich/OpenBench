@@ -67,8 +67,12 @@ export interface UseCase {
   latest_run: RunBrief | null
   created_by: 'mcp' | 'dashboard'
   created_at: string
+  /** planned (asked of Raphaël): pinned to the top of its project. Absent → pins live in localStorage. */
+  pinned?: boolean
 }
-export type UseCasePatch = Partial<Pick<UseCase, 'name' | 'description' | 'current_model' | 'profile' | 'gates' | 'metrics' | 'judge' | 'io_spec'>>
+export type UseCasePatch = Partial<Pick<UseCase, 'name' | 'description' | 'current_model' | 'profile' | 'gates' | 'metrics' | 'judge' | 'io_spec' | 'pinned'>>
+/** planned PATCH /api/use-cases/{id}/cases/{case_id} body */
+export type CasePatch = Partial<Pick<Case, 'input' | 'reference' | 'tags' | 'source'>>
 
 export interface Case {
   id: string
