@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     supabase_jwt_secret: str | None = None
     nebius_api_key: str | None = None
     openrouter_api_key: str | None = None
+    openai_api_key: str | None = None
+    # In-flight calls per connection in the worker (stay under provider rate limits).
+    nebius_concurrency: int = 16
+    openrouter_concurrency: int = 8
+    openai_concurrency: int = 8
+    # Local development only: no token needed, every request uses one demo workspace.
+    biy_dev_no_auth: bool = False
     static_dir: Path = ROOT / "frontend" / "dist"
     catalog_path: Path = ROOT / "catalog" / "models.json"
 

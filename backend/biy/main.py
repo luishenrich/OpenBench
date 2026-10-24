@@ -9,11 +9,14 @@ from fastapi.staticfiles import StaticFiles
 from contract.schemas import CatalogModel
 
 from . import catalog
+from .api import install_error_handlers, router
 from .config import settings
 from .mcp import mcp
 
 mcp_app = mcp.http_app(path="/")
 app = FastAPI(title="BIY API", lifespan=mcp_app.lifespan, docs_url="/api/docs", openapi_url="/api/openapi.json")
+app.include_router(router)  # before the SPA catch-all below
+install_error_handlers(app)
 
 
 async def _db_ok() -> bool:

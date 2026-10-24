@@ -10,7 +10,7 @@ from .config import settings
 
 @lru_cache
 def _all() -> list[CatalogModel]:
-    rows = json.loads(settings.catalog_path.read_text())["models"]
+    rows = json.loads(settings.catalog_path.read_text(encoding="utf-8"))["models"]
     return [
         CatalogModel(
             id=m["id"], provider=m["provider"], name=m.get("name") or m["id"], type=m["type"],
