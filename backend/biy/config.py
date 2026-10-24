@@ -12,8 +12,7 @@ class Settings(BaseSettings):
 
     database_url: str | None = None
     redis_url: str | None = None
-    supabase_url: str | None = None
-    supabase_jwt_secret: str | None = None
+    supabase_url: str | None = None  # dashboard tokens are verified against its JWKS (ES256)
     nebius_api_key: str | None = None
     openrouter_api_key: str | None = None
     openai_api_key: str | None = None
