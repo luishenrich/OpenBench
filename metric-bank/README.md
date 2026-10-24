@@ -30,4 +30,4 @@ Tests:
 PYTHONPATH=src python3 -m pytest -q tests
 ```
 
-Public exams (MMLU, HELM scenarios, BIG-bench, Arena Elo, and the rest) are priors inside the bank, not metrics. A scorecard is the always-on operational metrics, one speed metric for the product kind, one to five quality metrics, and zero to five risk gates.
+Public exams (MMLU, HELM scenarios, BIG-bench, Arena Elo, and the rest) are priors inside the bank, not metrics. A scorecard is the always-on operational metrics, one speed metric for the product kind, one to five quality metrics, and zero to five risk gates. By default the selector keeps only rows the runtime can compute (`runtime_status` of implemented, judge, or runner_measured). Pass `include_planned` to include the rest.
