@@ -60,9 +60,19 @@ async def judge(metric_id: str, case: CaseView, output: OutputView, baseline: Ou
 
 
 def score(metric_id: str, case: CaseView, output: OutputView, config: dict) -> float | None:
+    """Per-case value, or None when there is none to store for this case.
+
+    Ids the runtime doesn't compute per case (judge metrics, runner-measured ones, set-level ones
+    in CORPUS) are computed elsewhere, so None here. Use cases can't hold planned metrics: the
+    service layer rejects them on create/update.
+    """
+    if metric_id in CORPUS:
+        return None
     if _HAS_BANK:
         try:
             return _bank.score(metric_id, case, output, config)
+        except getattr(_bank, "UnimplementedMetricError", ()):
+            return None
         except KeyError:  # unknown to the bank: try the fallback
             pass
     fn = _FALLBACK.get(metric_id)

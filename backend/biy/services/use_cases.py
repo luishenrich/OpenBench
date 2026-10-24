@@ -5,11 +5,11 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from contract.schemas import Case, CaseIn, RunBrief, UseCase, UseCaseIn, UseCasePatch
+from contract.schemas import Case, CaseIn, GenerateCasesIn, RunBrief, UseCase, UseCaseIn, UseCasePatch
 
 from .. import db
 from . import metrics
-from .errors import NotFound
+from .errors import Invalid, NotFound
 
 _JSON_FIELDS = ("source_refs", "current_model", "profile", "gates", "metrics", "judge", "io_spec")
 _COLS = "id, workspace_id, name, kind, description, " + ", ".join(_JSON_FIELDS) + ", created_by, created_at"
@@ -124,6 +124,37 @@ async def add_cases(workspace_id: UUID, use_case_id: UUID, items: list[CaseIn]) 
                 use_case_id, it.input, it.reference, it.tags, it.source)
             out.append(Case(**db.row(r)))
     return out
+
+
+async def generate_cases(workspace_id: UUID, use_case_id: UUID, req: GenerateCasesIn) -> list[Case]:
+    """Synthetic cases from the metrics runtime's generator (Jad's), written by the use case's judge model.
+
+    Existing cases are the seeds; every generated case has a reference (validated against the
+    response schema when there is one). Fewer than n may come back.
+    """
+    from ..metrics import generate_case_inputs
+    from ..providers import ProviderClient
+    from .workspace import get_workspace
+
+    uc = await get_use_case(workspace_id, use_case_id)
+    existing = await list_cases(workspace_id, use_case_id)
+    judge = uc.judge or (await get_workspace(workspace_id)).default_judge
+    async with ProviderClient(judge.provider) as client:
+        async def call_llm(messages: list[dict]) -> str:
+            res = await client.chat(judge.model, messages, params={"temperature": 0.8, "max_tokens": 8192})
+            if not res.ok:
+                raise RuntimeError(res.error)
+            return res.text
+
+        try:
+            items = await generate_case_inputs(
+                use_case={"name": uc.name, "kind": uc.kind, "description": uc.description},
+                io_spec=uc.io_spec.model_dump(),
+                seeds=[{"input": c.input, "reference": c.reference, "tags": list(c.tags)} for c in existing],
+                n=req.n, strategy=req.strategy, call_llm=call_llm)
+        except (ValueError, RuntimeError) as e:
+            raise Invalid(f"no valid synthetic cases came back ({e}); add cases with biy_cases_add instead") from e
+    return await add_cases(workspace_id, use_case_id, [CaseIn(**it) for it in items])
 
 
 async def delete_case(workspace_id: UUID, use_case_id: UUID, case_id: UUID) -> None:

@@ -60,9 +60,11 @@ For each use case, collect realistic inputs from unit tests, fixtures, mocks, se
 inside prompts, and docs. Add them with **`biy_cases_add`**: `input` is `{"vars": {...}}` matching the template variables,
 or `{"messages": [...]}`; `reference` is the expected output when the repo has one (expected JSON, label, text); `source: "repo"`.
 
-If a use case has fewer than ~20 cases, **write synthetic ones yourself** until it has 20–50: vary length, difficulty,
-language and edge cases the code handles. Derive the `reference` when you can do so reliably (for extraction, write the
-expected JSON first, then the document that contains it). Add them with `source: "synthetic"`.
+If a use case has fewer than ~20 cases, call **`biy_cases_generate`** (`n` up to 30, `strategy: "auto"`) to reach 20–50.
+It seeds from the cases you added, so add the repo cases first. If it fails or returns too few, write realistic synthetic
+cases yourself: vary length, difficulty, language and the edge cases the code handles, derive the `reference` when you can
+do so reliably (for extraction, write the expected JSON first, then the document that contains it), and add them with
+`biy_cases_add`, `source: "synthetic"`.
 
 **Data rules, no exceptions:**
 - Only templates, schemas and test data from the repo, or synthetic data, go to BIY. **Never real user content or uploads.**

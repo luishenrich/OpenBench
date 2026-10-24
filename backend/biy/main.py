@@ -59,6 +59,22 @@ def models(shortlist: bool | None = None, type: str | None = None, provider: str
 
 app.mount("/mcp", mcp_app)
 
+
+class _McpWithoutSlash:
+    """`/mcp` → `/mcp/` before routing. Otherwise the SPA catch-all below matches `/mcp` and a
+    POST gets 405, while users copy `https://<host>/mcp` into `claude mcp add`."""
+
+    def __init__(self, asgi_app):
+        self.app = asgi_app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["path"] == "/mcp":
+            scope = {**scope, "path": "/mcp/", "raw_path": b"/mcp/"}
+        await self.app(scope, receive, send)
+
+
+app.add_middleware(_McpWithoutSlash)
+
 # The built Vite app (frontend/dist), with SPA fallback to index.html.
 if (settings.static_dir / "index.html").exists():
     app.mount("/assets", StaticFiles(directory=settings.static_dir / "assets", check_dir=False), name="assets")

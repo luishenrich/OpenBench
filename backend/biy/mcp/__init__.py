@@ -16,7 +16,7 @@ from fastmcp.exceptions import ToolError
 from fastmcp.server.dependencies import get_http_headers
 from fastmcp.tools import ToolResult
 
-from contract.schemas import CaseIn, ModelRef, RunIn, ScorecardBrief, UseCaseIn, UseCasePatch
+from contract.schemas import CaseIn, GenerateCasesIn, ModelRef, RunIn, ScorecardBrief, UseCaseIn, UseCasePatch
 
 from .. import catalog
 from ..auth import caller_from_token
@@ -162,9 +162,16 @@ async def biy_cases_add(use_case_id: UUID, cases: list[CaseIn]) -> ToolResult:
 
 @mcp.tool
 async def biy_cases_generate(use_case_id: UUID, n: int = 20, strategy: str = "auto") -> ToolResult:
-    """Server-side synthetic case generation (not available yet)."""
-    raise ToolError("biy_cases_generate is not available yet. Write realistic synthetic cases yourself "
-                    "(with a reference when you can derive it) and add them with biy_cases_add, source 'synthetic'.")
+    """Generate synthetic test cases server-side, seeded from the use case's existing cases.
+
+    strategy: auto | schema_first (extraction: writes the expected JSON first) | persona_grid (chat).
+    Every case gets a reference; fewer than n can come back. Takes ~10–60 s. Add repo cases first.
+    """
+    req = GenerateCasesIn(n=n, strategy=strategy)
+    added = await _call(uc_service.generate_cases(await _ws(), use_case_id, req))
+    return _result(f"Generated {len(added)} synthetic cases for {use_case_id}"
+                   + (f" (asked for {n})" if len(added) < n else "") + ".",
+                   {"added": len(added), "ids": [str(c.id) for c in added]})
 
 
 # --- runs --------------------------------------------------------------------
