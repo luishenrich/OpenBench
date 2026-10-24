@@ -71,6 +71,7 @@ def schema_document() -> dict:
             "config",
             "reported_statistics",
             "catalog_match",
+            "runtime_status",
         ],
         "properties": {
             "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]{1,63}$"},
@@ -171,6 +172,10 @@ def schema_document() -> dict:
             "config": {"type": "object"},
             "reported_statistics": _strings(0),
             "catalog_match": {"type": "boolean"},
+            "runtime_status": {
+                "type": "string",
+                "enum": ["implemented", "judge", "runner_measured", "planned"],
+            },
         },
     }
     return {
@@ -249,6 +254,7 @@ def schema_document() -> dict:
                     "quality_rule",
                     "gate_rule",
                     "judge_rule",
+                    "runnable_rule",
                     "double_count_groups",
                 ],
                 "properties": {
@@ -278,6 +284,7 @@ def schema_document() -> dict:
                     "quality_rule": {"type": "string", "minLength": 20},
                     "gate_rule": {"type": "string", "minLength": 20},
                     "judge_rule": {"type": "string", "minLength": 20},
+                    "runnable_rule": {"type": "string", "minLength": 20},
                     "double_count_groups": _strings(1),
                 },
             },

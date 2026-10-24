@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import re
 
+from metric_bank.runtime import status_for
+
 ID_RE = re.compile(r"^[a-z][a-z0-9_]{1,63}$")
 
 CATEGORIES = (
@@ -350,6 +352,7 @@ def metric(
         if reported_statistics
         else [],
         "catalog_match": id in CATALOG_IDS,
+        "runtime_status": status_for(id),
     }
     if len(record["required_inputs"]["notes"]) < 20:
         raise ValueError(f"{id}: input notes too thin")

@@ -4,6 +4,16 @@ This is the guide for the model that reads a client's brief and picks rows from 
 
 The machine-readable bank is `data/metric-bank.json`. A deterministic reference implementation of this guide is `src/metric_bank/selector.py`. The five worked clients below are the examples that function returns. `selection/examples.json` is that output.
 
+## Runnable today
+
+Each row has `runtime_status`: `implemented` (`score()`), `judge` (`judge()`), `runner_measured` (stream timing, usage, and cost), or `planned`.
+
+`select()` proposes only the first three. Planned rows stay in the bank. Pass `include_planned: true` to put them back on the card. That flag is on the selector brief. The contract's `ScorecardBrief` does not have the field yet, so the HTTP scorecard stays on the runnable set until Raphaël adds it.
+
+If the filter would leave quality empty, the selector fills it with an implemented metric for the kind (`field_accuracy` for extraction, `classification_accuracy` for classification) or `rubric_score`. `score()` raises for an id it does not implement. `None` still means the case has nothing to score, such as a missing reference.
+
+Runner-measured ids are `ttft_ms`, `e2e_ms`, `output_tps`, `tokens_in_per_case`, `tokens_out_per_case`, `cost_per_case_usd`, and `cost_per_success_usd`. `task_e2e_ms`, `ttfat_ms`, `monthly_cost_usd`, `error_rate`, `truncation_rate`, and `throttle_rate` are planned.
+
 ## What you may put on a scorecard
 
 Start from the brief, not from a leaderboard.
@@ -80,7 +90,7 @@ Public exams are not in this table. MMLU, BIG-bench, GSM8K, HELM scenarios, and 
 
 ## Worked clients
 
-Always-on metrics are the same six on every card: `error_rate`, `truncation_rate`, `throttle_rate`, `cost_per_case_usd`, `cost_per_success_usd`, `tokens_out_per_case`.
+These are the default cards, runnable metrics only. Always-on metrics on every card are `cost_per_case_usd`, `cost_per_success_usd`, and `tokens_out_per_case`. `error_rate`, `truncation_rate`, and `throttle_rate` return with `include_planned`.
 
 ### 1. Health insurer claim extraction (`health_claim_extraction`)
 
@@ -88,12 +98,12 @@ A claims platform extracts a fixed JSON object from an explanation-of-benefits p
 
 | Role | Metrics |
 |---|---|
-| Quality | `field_accuracy`, `numeric_tolerance_accuracy`, `json_schema_valid` |
+| Quality | `field_accuracy`, `json_schema_valid` |
 | Speed | `e2e_ms` |
-| Risk gate | `pii_leakage_rate` ≤ 0 |
-| Task gates | `error_rate` ≤ 0.01, `truncation_rate` ≤ 0.01, `json_schema_valid` ≥ 0.99 |
+| Risk gate | none (`pii_leakage_rate` is planned) |
+| Task gates | `json_schema_valid` ≥ 0.99 |
 
-Dollar fields are scored only by numeric tolerance. Schema validity is one measurement used two ways: the rate enters quality, and 0.99 disqualifies. Time to first token is the wrong speed metric because a partial object is not a result.
+`numeric_tolerance_accuracy` is the research metric for dollar fields. It is planned, so it is not on the default card. Schema validity is one measurement used two ways: the rate enters quality, and 0.99 disqualifies. Time to first token is the wrong speed metric because a partial object is not a result.
 
 ### 2. Fintech support chat (`fintech_support_chat`)
 
@@ -101,12 +111,12 @@ A streaming assistant answers account questions in the company's voice. A help-c
 
 | Role | Metrics |
 |---|---|
-| Quality | `faithfulness`, `tone_brand_fit`, `answer_relevancy` |
-| Speed | `ttft_ms`, and report `ttfat_ms` |
-| Risk gates | `safety_violation` ≤ 0.01, `over_refusal` ≤ 0.05, `non_advice_compliance` ≥ 0.98 |
-| Task gate | `error_rate` ≤ 0.02 |
+| Quality | `rubric_score` |
+| Speed | `ttft_ms` |
+| Risk gates | none |
+| Task gate | none |
 
-No rubric. The three quality metrics name the constructs the catalogue would otherwise have collapsed into `rubric_score`. Faithfulness is not a gate: grounding is not a hard requirement of this product. The risk gates are harmful compliance, over-refusal, and the advice boundary, paired so a finance bot that refuses every question does not look like a win.
+`faithfulness`, `tone_brand_fit`, and `answer_relevancy` are the research quality metrics. They are planned, so the default slot is `rubric_score`. The research risk gates are `safety_violation`, `over_refusal`, and `non_advice_compliance`. `ttfat_ms` is planned and is not reported beside time to first token until the runner records it. Pass `include_planned` to restore that card.
 
 ### 3. Nightly ad-copy batch (`nightly_ad_copy`)
 
@@ -114,13 +124,13 @@ A job writes product blurbs overnight. Copy must sound like the brand, must not 
 
 | Role | Metrics |
 |---|---|
-| Quality | `tone_brand_fit`, `contains_none`, `length_within` |
+| Quality | `rubric_score` |
 | Speed | none |
 | Risk gates | none |
-| Task gates | `error_rate` ≤ 0.05, `contains_none` ≥ 0.99, `length_within` ≥ 0.99 |
-| Also report | `monthly_cost_usd` |
+| Task gates | none |
+| Also report | none (`monthly_cost_usd` is planned) |
 
-The product profile for batch puts no weight on speed. Brand fit is the only judged quality metric. Rank on cost per success, and show the monthly figure because the client supplied a volume.
+The product profile for batch puts no weight on speed. `tone_brand_fit`, `contains_none`, and `length_within` are planned. Rank on cost per success. Monthly cost comes back with `include_planned`.
 
 ### 4. Coding agent (`coding_agent`)
 
@@ -128,13 +138,13 @@ An agent edits a repository through tools, runs tests, and may open a pull reque
 
 | Role | Metrics |
 |---|---|
-| Quality | `tool_call_correct`, `tool_choice_correct`, `code_tests_pass`, `agent_task_success` |
-| Speed | `task_e2e_ms` |
-| Risk gate | `insecure_code_rate` ≤ 0.01 |
-| Task gates | `error_rate` ≤ 0.01, `truncation_rate` ≤ 0.01, `tool_argument_schema_valid` ≥ 0.99 |
-| Reliability, not quality | `pass_hat_k` |
+| Quality | `rubric_score` |
+| Speed | `e2e_ms` |
+| Risk gate | none |
+| Task gates | none |
+| Reliability, not quality | none |
 
-`tool_argument_schema_valid` is the catalogue's "JSON valid on tool arguments" gate, under the id that says what is actually checked. It does not also enter the quality average. pass^k does not enter the average either, or a flaky agent would be penalized twice for one fact.
+`tool_call_correct`, `tool_choice_correct`, `code_tests_pass`, and `agent_task_success` are planned. `task_e2e_ms`, `tool_argument_schema_valid`, `insecure_code_rate`, and `pass_hat_k` are planned too. The runner records end-to-end latency, so that is the ranking speed metric. Pass `include_planned` for the research card.
 
 ### 5. Legal contract RAG (`legal_contract_rag`)
 
@@ -142,13 +152,13 @@ An internal tool answers questions about a contract the firm uploaded. Answers m
 
 | Role | Metrics |
 |---|---|
-| Quality | `faithfulness`, `citation_precision`, `citation_recall`, `unknown_abstention`, `context_recall` |
-| First alternate, over the cap | `answer_relevancy`, then `context_precision` |
+| Quality | `rubric_score` |
+| First alternate, over the cap | none on the default card |
 | Speed | `ttft_ms` |
 | Risk gates | none |
-| Task gates | `error_rate` ≤ 0.02, `faithfulness` ≥ 0.9 |
+| Task gates | none |
 
-Five quality metrics fill the cap. Answer relevancy is the right next metric if the client later drops citations. Hallucination rate is the gate form of the same grounding construct and is not added beside faithfulness.
+With `include_planned`, quality is `faithfulness`, `citation_precision`, `citation_recall`, `unknown_abstention`, and `context_recall`, and the first alternate is `answer_relevancy`. Hallucination rate is the gate form of the same grounding construct and is not added beside faithfulness.
 
 ## Prompt
 
@@ -157,7 +167,9 @@ Paste this ahead of the bank, then the brief.
 ```
 You are choosing a benchmark scorecard from the BIY metric bank. Return only ids that exist in the bank.
 
-Include the always-on operational metrics. Pick one speed metric from the kind, or none for batch. Pick one to five quality metrics whose utility_axis is quality. Pick at most five risk gates. Pick task gates only for requirements the client stated as pass or fail, plus error_rate.
+By default return only rows whose runtime_status is implemented, judge, or runner_measured. Planned rows stay off the card unless the brief sets include_planned. If that leaves quality empty, use field_accuracy for extraction, classification_accuracy for classification, or rubric_score.
+
+Include the runnable always-on metrics (cost_per_case_usd, cost_per_success_usd, tokens_out_per_case). Pick one speed metric the runner measures (ttft_ms or e2e_ms), or none for batch. Pick one to five quality metrics whose utility_axis is quality and whose runtime_status is runnable. Pick risk and task gates only when those ids are runnable, unless include_planned is set.
 
 Do not select a metric marked avoid_as_primary as the quality score. Do not select a gate_form as a quality metric when the primary of that construct is already selected. Do not select two metrics from a double_count group. Do not select more than one of rubric_score and g_eval. Do not select pairwise_vs_baseline without a baseline. Do not select a metric whose required inputs the client cannot provide. Do not treat a public exam as a metric.
 

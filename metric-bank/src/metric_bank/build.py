@@ -9,6 +9,7 @@ from metric_bank.categories import CATEGORIES
 from metric_bank.metrics import METRICS
 from metric_bank.policy import selection_policy
 from metric_bank.priors import PRIORS
+from metric_bank.runtime import STATUSES, status_for
 from metric_bank.spec import CATALOG_IDS
 
 BANK_VERSION = "1.0.0"
@@ -25,7 +26,12 @@ DESIGN_NOTES = (
     "they must already be higher-better. Lower-better risk rates are gates. "
     "A client scorecard should contain the always-on operational metrics, one speed "
     "metric chosen from the use-case kind, one to five quality metrics, and zero to "
-    "five risk gates. Document vision is included for pages and scans: character "
+    "five risk gates. Each row has runtime_status. The default selector proposes only "
+    "metrics score() implements, the two judges, and the timing, token, and cost "
+    "metrics the runner records. Planned rows stay in the bank. Set include_planned "
+    "to opt in. If filtering would leave quality empty, the selector uses an "
+    "implemented metric for that kind, or rubric_score. Document vision is included "
+    "for pages and scans: character "
     "and word error, plus box overlap. Speech, image aesthetics, and caption "
     "preference are not. The bank is a library, not a list to run in full."
 )
@@ -77,6 +83,13 @@ def validate_records(metrics: list[dict]) -> list[str]:
             item["score"]["min"] == 0 and item["score"]["max"] == 1 and item["score"]["direction"] == "higher_better"
         ):
             errors.append(f"{item['id']}: quality-axis metrics must be higher-better on [0, 1]")
+        status = item.get("runtime_status")
+        if status not in STATUSES:
+            errors.append(f"{item['id']}: runtime_status must be one of {STATUSES}")
+        elif status != status_for(item["id"]):
+            errors.append(
+                f"{item['id']}: runtime_status is {status}, registry says {status_for(item['id'])}"
+            )
     missing = sorted(CATALOG_IDS - id_set)
     if missing:
         errors.append(f"missing catalogue ids: {missing}")

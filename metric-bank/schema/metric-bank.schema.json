@@ -89,7 +89,8 @@
         "aliases",
         "config",
         "reported_statistics",
-        "catalog_match"
+        "catalog_match",
+        "runtime_status"
       ],
       "properties": {
         "id": {
@@ -551,6 +552,15 @@
         },
         "catalog_match": {
           "type": "boolean"
+        },
+        "runtime_status": {
+          "type": "string",
+          "enum": [
+            "implemented",
+            "judge",
+            "runner_measured",
+            "planned"
+          ]
         }
       }
     },
@@ -662,6 +672,7 @@
         "quality_rule",
         "gate_rule",
         "judge_rule",
+        "runnable_rule",
         "double_count_groups"
       ],
       "properties": {
@@ -781,6 +792,10 @@
           "minLength": 20
         },
         "judge_rule": {
+          "type": "string",
+          "minLength": 20
+        },
+        "runnable_rule": {
           "type": "string",
           "minLength": 20
         },
