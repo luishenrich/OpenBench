@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui'
 import { Icon, focusRing } from '@/components/usecases/kit'
+import { LiveDot } from '@/components/usecases/live'
 import type { Case, CaseIn, UseCase } from '@/types'
 import { ACCEPT, rejectReason, storeFile } from './upload'
 
@@ -34,12 +35,14 @@ function fromCase(uc: UseCase, c: Case | null) {
  * Add or edit one case. Fields come from io_spec.user_template ({{vars}}), or a messages editor for chat.
  * The reference must be valid JSON when the use case has a response schema.
  */
-export default function CaseDrawer({ uc, initial, mode, onClose, onSave }: {
+export default function CaseDrawer({ uc, initial, mode, onClose, onSave, agentBusy = false }: {
   uc: UseCase
   initial: Case | null
   mode: 'add' | 'edit' | 'duplicate'
   onClose: () => void
   onSave: (body: CaseIn) => Promise<void>
+  /** the coding agent is still setting this use case up (adding cases) */
+  agentBusy?: boolean
 }) {
   const [f, setF] = useState(() => fromCase(uc, initial))
   const [busy, setBusy] = useState(false)
@@ -113,6 +116,11 @@ export default function CaseDrawer({ uc, initial, mode, onClose, onSave }: {
               {f.mode === 'vars' ? <>Fills <span className="font-mono">{'{{…}}'}</span> in the user template.</> : 'Chat messages, oldest first.'}
               {initial && mode === 'edit' && <> Case <span className="font-mono">{initial.id.slice(-6)}</span>.</>}
             </p>
+            {agentBusy && mode !== 'edit' && (
+              <p role="status" className="mt-2 flex items-center gap-2 text-xs text-muted">
+                <LiveDot small />Your agent is still adding cases here; yours are added alongside.
+              </p>
+            )}
           </div>
           <button type="button" onClick={onClose} aria-label="Close" className={`grid size-8 place-items-center rounded-md text-faint hover:bg-raised hover:text-fg ${focusRing}`}><Icon name="x" /></button>
         </div>

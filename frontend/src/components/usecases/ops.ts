@@ -114,7 +114,30 @@ export function useDeleteUseCases() {
   })
 }
 
-export const agentInstruction = (uc: Pick<UseCase, 'id' | 'name'>) =>
-  `Add 20 realistic test cases to BIY use case ${uc.id} ("${uc.name}") with biy_cases_add; use the repo's fixtures first, then biy_cases_generate.`
+export const CASES_MIN = 1
+export const CASES_MAX = 50
+export const CASES_DEFAULT = 20
+
+/**
+ * Self-contained instruction for a coding agent with the BIY MCP server connected: read the use case,
+ * add the repo's real examples, then generate the rest. `focus` is optional free text from the user.
+ */
+export function caseAgentInstruction(uc: Pick<UseCase, 'id' | 'name'>, n = CASES_DEFAULT, focus = ''): string {
+  const count = Math.min(CASES_MAX, Math.max(CASES_MIN, Math.round(n) || CASES_DEFAULT))
+  const f = focus.trim().replace(/\s+/g, ' ')
+  return [
+    `Add ${count} realistic test case${count === 1 ? '' : 's'} to BIY use case ${uc.id} ("${uc.name}").`,
+    'First call biy_use_cases_get with that id to read its prompt template, variables and output schema.',
+    'Look in this repo for real examples first (tests, fixtures, seed or demo data, few-shot examples in prompts) and add them with biy_cases_add (source "repo", with the expected output as reference when the repo has it).',
+    `Then fill up to ${count} with biy_cases_generate (strategy "auto").`,
+    f && `Focus: ${f}${/[.!?]$/.test(f) ? '' : '.'}`,
+    'Never send real user data, uploads, secrets or customer data; use realistic fakes.',
+    'Send BIY calls one at a time.',
+    'When done, say how many cases you added and from where.',
+  ].filter(Boolean).join(' ')
+}
+
+/** The header's "Copy for agent": the same instruction with the defaults. */
+export const agentInstruction = (uc: Pick<UseCase, 'id' | 'name'>) => caseAgentInstruction(uc)
 
 export const shortId = (id: string) => `uc_${id.replace(/-/g, '').slice(-8)}`
