@@ -81,7 +81,8 @@ run_summary(run_id, candidate_id, aggregates jsonb, utility, rank,
 - **Primary source (hackathon): Nebius Token Factory** `GET https://api.tokenfactory.nebius.com/v1/models` with a Bearer key.
   - It returns IDs such as `deepseek-ai/DeepSeek-V3.2`, `Qwen/Qwen3.5-397B-A17B`, `moonshotai/Kimi-K2.5`, `zai-org/GLM-5`, `openai/gpt-oss-120b-fast`, `MiniMaxAI/MiniMax-M2.5`.
   - Many models have a **`-fast` variant**.
-  - `?verbose=true` exists, but **we have not yet checked whether it returns pricing or context length** (it needs a key). If it doesn't, keep a small `nebius_prices.yaml` copied from the Token Factory pricing page.
+  - `?verbose=true` **returns pricing, context length, modality, quantization, supported features, region and rate limits** (checked 2026-10-24). No separate price file is needed.
+  - The verified catalogue lives in [catalog/](../catalog/README.md). It is built by `scripts/probe_models.py` (real API calls per model) and `scripts/build_catalog.py`.
   - A US region exists at `api.tokenfactory.us-central1.nebius.com/v1`.
 - **Metadata enrichment:** OpenRouter `/api/v1/models` and the HF router `/v1/models` (both public) supply license, HF repo, context length and tool support, matched by HF repo ID. Refresh on startup and then hourly.
 - **Normalised form:** `catalog_entry(model_id, family, hf_repo, license, license_tier, provider, context, max_out, price_in, price_out, price_cached, supports_tools, supports_json_schema, quantization)`.

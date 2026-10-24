@@ -1,0 +1,154 @@
+[
+  {
+    "id": "inclusionai/ling-3.0-flash",
+    "hf_repo": "inclusionAI/Ling-3.0-flash",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  },
+  {
+    "id": "meituan/longcat-2.0",
+    "hf_repo": "meituan-longcat/LongCat-2.0",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  },
+  {
+    "id": "stepfun/step-3.5-flash",
+    "hf_repo": "stepfun-ai/Step-3.5-Flash",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  },
+  {
+    "id": "tencent/hunyuan-a13b-instruct",
+    "hf_repo": "tencent/Hunyuan-A13B-Instruct",
+    "license": "other (tencent-hunyuan-a13b)",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated; Tencent Hunyuan A13B license (custom; usually excludes EU/UK/South Korea)"
+  },
+  {
+    "id": "tencent/hy-mt2-1.8b",
+    "hf_repo": "tencent/Hy-MT2-1.8B",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  },
+  {
+    "id": "tencent/hy-mt2-30b-a3b",
+    "hf_repo": "tencent/Hy-MT2-30B-A3B",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  },
+  {
+    "id": "tencent/hy-mt2-7b",
+    "hf_repo": "tencent/Hy-MT2-7B",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  },
+  {
+    "id": "tencent/hy3",
+    "hf_repo": "tencent/Hy3",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  },
+  {
+    "id": "tencent/hy3-preview",
+    "hf_repo": "tencent/Hy3-preview",
+    "license": "other",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated; Tencent Hy Community License Agreement"
+  },
+  {
+    "id": "tencent/hy4-preview",
+    "hf_repo": "tencent/Hy4-preview",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  },
+  {
+    "id": "xiaomi/mimo-v2.5",
+    "hf_repo": "XiaomiMiMo/MiMo-V2.5",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  },
+  {
+    "id": "xiaomi/mimo-v2.6-flash",
+    "hf_repo": "XiaomiMiMo/MiMo-V2.6-Flash-RL",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  },
+  {
+    "id": "inclusionai/ling-3.0-flash-vl",
+    "hf_repo": "inclusionAI/Ling-3.0-flash-VL",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  },
+  {
+    "id": "nex-agi/nex-n2.5-mini",
+    "hf_repo": "nex-agi/Nex-N2.5-mini",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  },
+  {
+    "id": "nex-agi/nex-n2.5-pro",
+    "hf_repo": "nex-agi/Nex-N2.5-Pro",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  },
+  {
+    "id": "stepfun/step-3.7-flash",
+    "hf_repo": "stepfun-ai/Step-3.7-Flash",
+    "license": "apache-2.0",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  },
+  {
+    "id": "stepfun/step-5-preview",
+    "hf_repo": "stepfun-ai/Step-5-Preview",
+    "license": "other",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated; StepFun Model License 1.0 (Apache-2.0-style with attribution and commercial-license conditions)"
+  },
+  {
+    "id": "xiaomi/mimo-v2.5-pro",
+    "hf_repo": "XiaomiMiMo/MiMo-V2.5-Pro",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  },
+  {
+    "id": "xiaomi/mimo-v2.6-pro",
+    "hf_repo": "XiaomiMiMo/MiMo-V2.6-Pro-RL",
+    "license": "mit",
+    "gated": false,
+    "open_weight": true,
+    "note": "weights publicly downloadable, not gated"
+  }
+]

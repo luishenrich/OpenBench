@@ -1,0 +1,172 @@
+{
+  "provider": "openrouter",
+  "base_url": "https://openrouter.ai/api/v1",
+  "key_env": "OPENROUTER_API_KEY",
+  "generated_at": "2026-10-24T10:18:11+00:00",
+  "models": [
+    {
+      "id": "mistralai/mistral-large-2512",
+      "provider": "openrouter",
+      "name": "Mistral: Mistral Large 3 2512",
+      "family": "mistralai",
+      "description": "Mistral Large 3 2512 is Mistral’s most capable model to date, featuring a sparse mixture-of-experts architecture with 41B active parameters (675B total), and released under the Apache 2.0 license.",
+      "type": "vision",
+      "input_modalities": [
+        "text",
+        "image"
+      ],
+      "output_modalities": [
+        "text"
+      ],
+      "claimed": {
+        "modality": "text+image+file->text",
+        "features": [
+          "frequency_penalty",
+          "max_tokens",
+          "presence_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_p"
+        ]
+      },
+      "verified": {
+        "text": true,
+        "vision": true,
+        "tools": true,
+        "tools_auto": true,
+        "json_schema": true,
+        "reasoning": false
+      },
+      "context_length": 262144,
+      "quantization": null,
+      "pricing": {
+        "usd_per_1m": {
+          "input": 0.5,
+          "output": 1.5,
+          "cached_input": 0.05
+        },
+        "source": "openrouter /models API",
+        "fetched_at": "2026-10-24T10:18:11+00:00"
+      },
+      "rate_limits": null,
+      "regions": [],
+      "hf_repo": "",
+      "endpoints": [
+        {
+          "provider": "Mistral",
+          "tag": "mistral/zdr",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 0.5,
+            "output": 1.5,
+            "cached_input": 0.05
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        },
+        {
+          "provider": "Mistral",
+          "tag": "mistral/eu",
+          "quantization": "unknown",
+          "context_length": 262144,
+          "max_completion_tokens": 209715,
+          "usd_per_1m": {
+            "input": 0.55,
+            "output": 1.65,
+            "cached_input": 0.055
+          },
+          "supported_parameters": [
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "seed",
+            "response_format",
+            "structured_outputs",
+            "tools",
+            "tool_choice"
+          ],
+          "uptime_30m": 100
+        }
+      ],
+      "served_by": "Mistral",
+      "probe": {
+        "checked_at": "2026-10-24T10:18:11+00:00",
+        "ttft_ms": 546,
+        "e2e_ms": 628,
+        "text_call_cost_usd": 1e-05,
+        "results": {
+          "text": {
+            "status": "wrong_answer",
+            "answer": "Ping",
+            "ttft_ms": 546,
+            "e2e_ms": 628,
+            "usage": {
+              "prompt_tokens": 11,
+              "completion_tokens": 3,
+              "total_tokens": 14,
+              "cost": 1e-05,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 1e-05,
+                "upstream_inference_prompt_cost": 5.5e-06,
+                "upstream_inference_completions_cost": 4.5e-06
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "served_by": "Mistral",
+            "reasoning_seen": false
+          },
+          "vision": {
+            "status": "pass",
+            "answer": "blue yellow"
+          },
+          "tools": {
+            "status": "pass",
+            "args": {
+              "city": "Berlin"
+            }
+          },
+          "json_schema": {
+            "status": "pass",
+            "answer": {
+              "answer": 42
+            }
+          }
+        }
+      },
+      "available": true
+    }
+  ]
+}
