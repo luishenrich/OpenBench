@@ -103,6 +103,7 @@ alter table result           enable row level security;
 -- 2026-10-24: pins, "recently changed", case edits (additive, idempotent; safe to re-run)
 alter table use_case  add column if not exists pinned     boolean     not null default false;
 alter table use_case  add column if not exists pinned_at  timestamptz;
+alter table use_case  add column if not exists setup_state text not null default 'complete';  -- 'in_progress' while the agent fills it in
 alter table use_case  add column if not exists updated_at timestamptz not null default now();
 alter table test_case add column if not exists updated_at timestamptz not null default now();
 
