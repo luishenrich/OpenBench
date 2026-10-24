@@ -2,12 +2,16 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import StartRun from '@/components/StartRun'
-import { Badge, Button, ErrorNote, Loading, Panel, Section, StatusPill, Tag } from '@/components/ui'
+import { Button, ErrorNote, Loading, Panel, Section, StatusPill } from '@/components/ui'
 import Weights from '@/components/Weights'
 import { api } from '@/lib/api'
 import { ago, effortOf, usd } from '@/lib/format'
 import { briefVerdict } from '@/lib/verdict'
-import type { Case, Gate, MetricInfo, Profile } from '@/types'
+import type { Gate, MetricInfo, Profile, UseCasePatch } from '@/types'
+import UseCaseHeader from '@/components/usecase/Header'
+import CasesTable, { editedAfterRun } from '@/components/usecase/CasesTable'
+import { InheritBadge, useEffective } from '@/components/settings/inherit'
+import { Toaster } from '@/components/usecases/kit'
 import { ProviderIcon } from '@/components/ModelIcon'
 import { ModelName, juryNames } from '@/components/run/ModelName'
 import SetupPanel from '@/components/usecase/SetupPanel'
@@ -27,18 +31,6 @@ function Description({ text }: { text: string }) {
       )}
     </div>
   )
-}
-
-function preview(x: unknown, max = 140): string {
-  if (x == null) return '–'
-  const s = typeof x === 'string' ? x : JSON.stringify(x)
-  return s.length > max ? s.slice(0, max) + '…' : s
-}
-
-function caseInput(c: Case): string {
-  if (c.input.images?.length) return `${c.input.images.length} image${c.input.images.length > 1 ? 's' : ''}`
-  if (c.input.vars) return preview(Object.values(c.input.vars).join(' | '))
-  return preview(c.input.messages)
 }
 
 const OP: Record<string, string> = { '>=': '≥', '<=': '≤', '>': '>', '<': '<', '==': '=' }
@@ -114,6 +106,16 @@ export default function UseCasePage() {
     },
   })
 
+  const eff = useEffective(uc.data, me.data)
+  const reset = useMutation({
+    mutationFn: (patch: UseCasePatch) => api.updateUseCase(id, patch),
+    onSuccess: (updated) => {
+      qc.setQueryData(['use-case', id], updated)
+      qc.invalidateQueries({ queryKey: ['use-cases'] })
+      setDraft(null)
+    },
+  })
+
   if (uc.isLoading) return <Loading />
   if (uc.error) return <ErrorNote error={uc.error} />
   const u = uc.data!
@@ -124,16 +126,11 @@ export default function UseCasePage() {
   const ref = u.source_refs[0]
   const moreRefs = u.source_refs.length - 1
   const judged = hasJudgeMetric(u)
+  const casesStale = (cases.data ?? []).some((c) => editedAfterRun(c, u))
 
   return (
     <div>
-      <Link to="/" className="rounded-md border border-line bg-panel px-2.5 py-1 text-xs text-muted hover:text-fg">Use cases</Link>
-
-      <div className="mt-6 flex flex-wrap items-center gap-2">
-        <Badge tone="front">{u.kind}</Badge>
-        {u.created_by === 'mcp' && <Badge tone="signal">Found by agent</Badge>}
-      </div>
-      <h1 className="display mt-3 line-clamp-2 text-3xl text-pretty sm:text-4xl xl:text-5xl" title={u.name}>{u.name}</h1>
+      <UseCaseHeader uc={u} />
       {u.description && <Description text={u.description} />}
 
       <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-4">
@@ -178,7 +175,12 @@ export default function UseCasePage() {
                 <Button variant="ghost" onClick={() => setDraft(null)}>Discard</Button>
                 <Button onClick={() => save.mutate(draft)} disabled={save.isPending}>{save.isPending ? 'Saving…' : 'Save weights'}</Button>
               </span>
-            ) : 'Drag the dot or pick a preset. The ranking uses these weights.'}
+            ) : (
+              <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                {eff && <InheritBadge source={eff.profile.source} resetting={reset.isPending} onReset={() => reset.mutate({ profile: null })} />}
+                <span>Drag the dot or pick a preset. The ranking uses these weights.</span>
+              </span>
+            )}
           >
             <Panel className="p-5 sm:p-6">
               <Weights profile={profile} onChange={setDraft} />
@@ -210,39 +212,23 @@ export default function UseCasePage() {
                 {judged && (
                   <p className="p-4 text-xs leading-relaxed text-muted">
                     Judged by <span className="text-fg">{juryNames(u, me.data?.workspace.default_judge)}</span>. Each judge abstains on its own model family; the score is the mean of the judges that vote.
+                    {eff && <span className="mt-2 block"><InheritBadge source={eff.judge.source} resetting={reset.isPending} onReset={() => reset.mutate({ judge: null })} /></span>}
                   </p>
                 )}
               </Panel>
             </Section>
           </div>
 
-          <Section title="Test cases" aside={`${cases.data?.length ?? u.case_count} cases`}>
-            {cases.isLoading && <Loading />}
-            {cases.data?.length === 0 && (
-              <p className="rounded-xl border border-dashed border-line-strong px-5 py-8 text-sm text-muted">
-                No cases yet. Add them under Action required above, or ask your agent to pull them from the repo's tests and fixtures.
-              </p>
-            )}
-            {!!cases.data?.length && (
-              <div className="overflow-x-auto rounded-xl border border-line">
-                <table className="w-full min-w-[600px] text-left text-sm">
-                  <thead className="bg-panel text-xs text-faint">
-                    <tr><th className="px-4 py-2.5 font-medium">Input</th><th className="px-4 py-2.5 font-medium">Expected</th><th className="px-4 py-2.5 font-medium">Source</th></tr>
-                  </thead>
-                  <tbody>
-                    {cases.data.map((c) => (
-                      <tr key={c.id} className="border-t border-line align-top">
-                        <td className="max-w-[360px] px-4 py-3">{caseInput(c)}</td>
-                        <td className="max-w-[300px] px-4 py-3 font-mono text-[12px] text-muted">{preview(c.reference, 100)}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <Tag>{c.source}</Tag> {c.tags.map((t) => <span key={t} className="ml-1 text-xs text-faint">{t}</span>)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+          <Section
+            title="Test cases"
+            aside={
+              <span className="flex flex-wrap items-center gap-x-3">
+                {casesStale && <span className="inline-flex items-center gap-1.5 text-xs text-front"><span className="size-1.5 rounded-[1px] bg-front" />Cases edited after the last run</span>}
+                <span>{cases.data?.length ?? u.case_count} cases</span>
+              </span>
+            }
+          >
+            <CasesTable uc={u} cases={cases.data} loading={cases.isLoading} />
           </Section>
         </div>
 
@@ -270,6 +256,7 @@ export default function UseCasePage() {
           </Section>
         </div>
       </div>
+      <Toaster />
     </div>
   )
 }

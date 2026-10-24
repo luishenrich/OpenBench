@@ -48,7 +48,7 @@ const live = {
   updateUseCase: (id: string, patch: UseCasePatch) => request<UseCase>('PATCH', `/use-cases/${id}`, patch),
   deleteUseCase: (id: string) => request<void>('DELETE', `/use-cases/${id}`),
   cases: (id: string) => request<Case[]>('GET', `/use-cases/${id}/cases`),
-  /** planned route: 404/405 until the backend ships it; callers fall back to delete + re-add */
+  /** CasePatch: input, reference (null clears it), tags. Older backends answer 404/405; CasesTable then deletes and re-adds */
   updateCase: (useCaseId: string, caseId: string, patch: CasePatch) => request<Case>('PATCH', `/use-cases/${useCaseId}/cases/${caseId}`, patch),
   deleteCase: (useCaseId: string, caseId: string) => request<void>('DELETE', `/use-cases/${useCaseId}/cases/${caseId}`),
   addCases: (id: string, cases: CaseIn[]) => request<Case[]>('POST', `/use-cases/${id}/cases`, cases),

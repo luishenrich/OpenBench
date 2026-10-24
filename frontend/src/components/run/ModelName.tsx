@@ -43,7 +43,8 @@ export const rowEffort = (c: Pick<CandidateResult, 'reasoning_effort' | 'candida
 export const reasoningNote = (c: Pick<CandidateResult, 'avg_reasoning_tokens'>) =>
   c.avg_reasoning_tokens != null && c.avg_reasoning_tokens > 0 ? `~${compact(c.avg_reasoning_tokens)} reasoning tokens / call` : null
 
-export const DEFAULT_JURY = ['openai/gpt-6-luna', 'deepseek-ai/DeepSeek-V4.1-Flash-1017']
+// contract default: three families, so every output keeps at least two votes after one juror abstains
+export const DEFAULT_JURY = ['openai/gpt-6-luna', 'deepseek-ai/DeepSeek-V4.1-Flash-1017', 'zai-org/GLM-5.3']
 /** "GPT-6 Luna + DeepSeek V4.1 Flash": the use case's jury, else the workspace default, else the contract default. */
 export function juryNames(uc?: Pick<UseCase, 'judge'> | null, fallback?: JudgeConfig | null): string {
   const judges = uc?.judge?.judges?.length ? uc.judge.judges : fallback?.judges?.length ? fallback.judges : DEFAULT_JURY.map((model) => ({ model }))

@@ -68,32 +68,45 @@ export const kindLabel: Record<UseCaseKind, string> = {
   summarization: 'Summarization', generation: 'Generation', batch: 'Batch jobs', other: 'Other',
 }
 
-export interface KindGroup { key: string; kind: UseCaseKind; items: UseCase[] }
-export interface ProjectGroup { key: string; name: string; items: UseCase[]; kinds: KindGroup[] }
+export interface KindGroup { key: string; kind: UseCaseKind | null; items: UseCase[] }
+export interface ProjectGroup { key: string; name: string; items: UseCase[]; pinned: UseCase[]; kinds: KindGroup[] }
 
+export type SortKey = 'attention' | 'recent' | 'name' | 'savings'
+export const sortLabel: Record<SortKey, string> = { attention: 'Needs attention first', recent: 'Recently found', name: 'Name', savings: 'Savings' }
+// needs data → failed → setting up → collecting cases → ready → running → done
+const ATTENTION: Record<SetupState, number> = { data: 0, failed: 1, setup: 2, cases: 3, ready: 4, running: 5, done: 6 }
+const savingOf = (u: UseCase) => (u.latest_run?.status === 'done' ? u.latest_run.est_monthly_savings_usd ?? 0 : 0)
 const byPath = (a: UseCase, b: UseCase) => {
   const pa = a.source_refs[0]?.path ?? '', pb = b.source_refs[0]?.path ?? ''
   return pa.localeCompare(pb) || (a.source_refs[0]?.line ?? 0) - (b.source_refs[0]?.line ?? 0) || a.name.localeCompare(b.name)
 }
+export const SORTS: Record<SortKey, (a: UseCase, b: UseCase) => number> = {
+  attention: (a, b) => ATTENTION[setupState(a)] - ATTENTION[setupState(b)] || byPath(a, b),
+  recent: (a, b) => b.created_at.localeCompare(a.created_at) || byPath(a, b),
+  name: (a, b) => a.name.localeCompare(b.name),
+  savings: (a, b) => savingOf(b) - savingOf(a) || byPath(a, b),
+}
 
-export function groupUseCases(list: UseCase[], fallbackName: string): ProjectGroup[] {
+export const projectOf = (uc: UseCase, fallbackName: string) => uc.source_refs[0]?.repo?.trim() || fallbackName
+
+export function groupUseCases(list: UseCase[], fallbackName: string, opts: { sort?: SortKey; flat?: boolean; isPinned?: (u: UseCase) => boolean } = {}): ProjectGroup[] {
+  const cmp = SORTS[opts.sort ?? 'attention']
+  const pinnedFn = opts.isPinned ?? (() => false)
   const projects = new Map<string, UseCase[]>()
   for (const uc of list) {
-    const name = uc.source_refs[0]?.repo?.trim() || fallbackName
+    const name = projectOf(uc, fallbackName)
     projects.set(name, [...(projects.get(name) ?? []), uc])
   }
   return [...projects.entries()]
     // discovery order, so a project never jumps while a scan is running
-    .map(([name, items]) => ({
-      key: name,
-      name,
-      items,
-      kinds: KIND_ORDER.map((kind) => ({
-        key: `${name}::${kind}`,
-        kind,
-        items: items.filter((u) => u.kind === kind).sort(byPath),
-      })).filter((k) => k.items.length > 0),
-    }))
+    .map(([name, items]) => {
+      const pinned = items.filter(pinnedFn).sort(cmp)
+      const rest = items.filter((u) => !pinnedFn(u))
+      const kinds: KindGroup[] = opts.flat
+        ? [{ key: `${name}::all`, kind: null, items: [...rest].sort(cmp) }].filter((k) => k.items.length > 0)
+        : KIND_ORDER.map((kind) => ({ key: `${name}::${kind}`, kind, items: rest.filter((u) => u.kind === kind).sort(cmp) })).filter((k) => k.items.length > 0)
+      return { key: name, name, items, pinned, kinds }
+    })
 }
 
 export function countStates(items: UseCase[]): Record<SetupState, number> {

@@ -19,18 +19,7 @@ export function rejectReason(file: File): string | null {
  * user's session, then adds one case with the public URL. In fixture mode the file stays in the browser.
  */
 export async function uploadCase(file: File, ids: { workspaceId: string; useCaseId: string }, reference: string | null): Promise<Case> {
-  let url: string
-  if (FIXTURES) {
-    url = URL.createObjectURL(file)
-  } else {
-    if (!supabase) throw new Error('Uploads need Supabase, and it is not configured here.')
-    const { data: session } = await supabase.auth.getSession()
-    if (!session.session) throw new Error('Sign in to upload files.')
-    const path = `${ids.workspaceId}/${ids.useCaseId}/${crypto.randomUUID()}.${EXT[file.type]}`
-    const { error } = await supabase.storage.from('cases').upload(path, file, { contentType: file.type, upsert: false })
-    if (error) throw new Error(`Upload failed: ${error.message}`)
-    url = supabase.storage.from('cases').getPublicUrl(path).data.publicUrl
-  }
+  const url = await storeFile(file, ids)
   const [created] = await api.addCases(ids.useCaseId, [{
     input: { images: [url], vars: {} },
     reference: reference?.trim() ? parseReference(reference) : null,
@@ -40,8 +29,20 @@ export async function uploadCase(file: File, ids: { workspaceId: string; useCase
   return created
 }
 
+/** Puts the file in the "cases" bucket and returns its public URL (an object URL in fixture mode). */
+export async function storeFile(file: File, ids: { workspaceId: string; useCaseId: string }): Promise<string> {
+  if (FIXTURES) return URL.createObjectURL(file)
+  if (!supabase) throw new Error('Uploads need Supabase, and it is not configured here.')
+  const { data: session } = await supabase.auth.getSession()
+  if (!session.session) throw new Error('Sign in to upload files.')
+  const path = `${ids.workspaceId}/${ids.useCaseId}/${crypto.randomUUID()}.${EXT[file.type]}`
+  const { error } = await supabase.storage.from('cases').upload(path, file, { contentType: file.type, upsert: false })
+  if (error) throw new Error(`Upload failed: ${error.message}`)
+  return supabase.storage.from('cases').getPublicUrl(path).data.publicUrl
+}
+
 // JSON if it parses, else the text as written
-function parseReference(text: string): unknown {
+export function parseReference(text: string): unknown {
   try { return JSON.parse(text) } catch { return text.trim() }
 }
 

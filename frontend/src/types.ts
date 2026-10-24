@@ -17,14 +17,13 @@ export interface Workspace {
   name: string
   default_profile: Profile
   default_judge: JudgeConfig
-  // Requested from Raphaël, not in the backend yet: optional until PATCH /api/workspace ships.
-  /** closed comparison models; absent → GPT-6.1 Sol + GPT-6 Luna at medium */
-  default_references?: ModelRef[]
-  candidate_pool?: CandidatePool
-  /** absent → 3 */
-  default_repeats?: number
-  /** absent → no cap */
-  max_run_cost_usd?: number | null
+  /** closed comparison models runs inherit (default GPT-6.1 Sol + GPT-6 Luna at medium) */
+  default_references: ModelRef[]
+  /** where automatic candidates come from (runs with candidates: []) */
+  candidate_pool: CandidatePool
+  default_repeats: number
+  /** a run whose estimate is above this is refused; null = no cap */
+  max_run_cost_usd: number | null
 }
 /** Which open-weight models get picked automatically as candidates. */
 export interface CandidatePool { shortlist_only: boolean; exclude_providers: Provider[]; max_output_usd_per_1m: number | null }
@@ -67,12 +66,15 @@ export interface UseCase {
   latest_run: RunBrief | null
   created_by: 'mcp' | 'dashboard'
   created_at: string
-  /** planned (asked of Raphaël): pinned to the top of its project. Absent → pins live in localStorage. */
-  pinned?: boolean
+  /** last change to the use case or any of its cases */
+  updated_at?: string | null
+  /** pinning sets pinned_at; unpinning clears it. Older APIs omit it: pins then live in localStorage. */
+  pinned: boolean
+  pinned_at?: string | null
 }
 export type UseCasePatch = Partial<Pick<UseCase, 'name' | 'description' | 'current_model' | 'profile' | 'gates' | 'metrics' | 'judge' | 'io_spec' | 'pinned'>>
-/** planned PATCH /api/use-cases/{id}/cases/{case_id} body */
-export type CasePatch = Partial<Pick<Case, 'input' | 'reference' | 'tags' | 'source'>>
+/** PATCH /api/use-cases/{id}/cases/{case_id}: any subset. reference: null clears it. */
+export interface CasePatch { input?: Case['input']; reference?: unknown; tags?: string[] }
 
 export interface Case {
   id: string
@@ -81,6 +83,8 @@ export interface Case {
   reference: unknown
   tags: string[]
   source: CaseSource
+  /** later than a run's finished_at = edited after that run (past runs keep their results) */
+  updated_at?: string | null
 }
 
 export interface CaseIn {
@@ -127,12 +131,14 @@ export interface MetricInfo {
   aliases: string[]
 }
 
+/** Omitted fields inherit the workspace: candidates [] → auto-pick within candidate_pool,
+ *  repeats null → default_repeats, references null → default_references. */
 export interface RunIn {
   use_case_id: string
-  candidates: ModelRef[]
-  repeats?: number
-  /** closed frontier models, same cases × repeats, comparison only. Server default: Sol + Luna at medium. */
-  references?: ModelRef[]
+  candidates?: ModelRef[]
+  repeats?: number | null
+  /** closed frontier models, same cases × repeats, comparison only */
+  references?: ModelRef[] | null
   include_references?: boolean
   confirm_cost_usd?: number | null
 }
@@ -145,6 +151,13 @@ export interface Estimate {
   judge_cost_usd: number
   total_usd: number
   per_candidate: EstimateLine[]
+  /** what the run would use after inheritance */
+  candidates: ModelRef[]
+  references: ModelRef[]
+  repeats: number
+  max_run_cost_usd: number | null
+  /** total_usd > max_run_cost_usd: POST /api/runs refuses it (422) */
+  over_cap: boolean
 }
 
 export interface Stat { mean: number; std: number; ci_low: number; ci_high: number; n: number }
@@ -216,7 +229,7 @@ export interface Run {
   leaderboard: CandidateResult[]
   pareto_points: ParetoPoint[]
   recommendation: Recommendation | null
-  /** share of judged results where both jurors agree; null if fewer than 2 judged */
+  /** share of judged results where the voting jurors agree; null if fewer than 2 judged */
   judge_agreement?: number | null
 }
 export interface ResultOut {

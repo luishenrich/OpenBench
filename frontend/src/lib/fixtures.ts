@@ -68,6 +68,10 @@ const DESCRIPTIONS: Record<string, string> = {
     '(tables, footnotes, math as LaTeX, two-column layouts, handwriting) and was too large to attach inline. The repo has no sample page images; ' +
     'tests mock the model call. Quality matters more than speed here: a missed line silently breaks a student\'s notes.',
 }
+// A few templates with several variables, so the case editor shows one field per {{var}}.
+const TEMPLATES: Record<string, string> = {
+  'Grade a quiz answer': 'Question: {{question}}\nStudent answer: {{answer}}\nRubric: {{rubric}}\nReturn one label: correct, partly_correct or wrong.',
+}
 const EFFORT: Record<string, string> = { 'openai/gpt-6-luna': 'medium' }
 
 const METRIC_IDS = ['json_schema_valid', 'field_accuracy', 'llm_judge']
@@ -87,10 +91,13 @@ const extras: UseCase[] = EXTRAS.map(([name, kind, repo, path, line, model, metr
   gates: [],
   metrics: METRIC_IDS.slice(0, metrics).map((metric_id) => ({ metric_id, weight: 1, config: {} })),
   judge: null,
-  io_spec: { system_prompt: null, user_template: NO_PROMPT.has(name) ? null : '{{input}}', response_schema: null, tools: null, params: {} },
+  io_spec: { system_prompt: null, user_template: NO_PROMPT.has(name) ? null : TEMPLATES[name] ?? '{{input}}', response_schema: null, tools: null, params: {} },
   case_count: cases,
   latest_run: run ?? null,
   created_by: 'mcp',
+  pinned: false,
+  pinned_at: null,
+  updated_at: null,
   created_at: new Date(Date.parse('2026-10-24T09:00:00Z') + i * 60_000).toISOString(),
 }))
 
@@ -186,7 +193,8 @@ export const fixtureApi: typeof import('./api').api = {
   useCase: async (id: string) => wait(findUseCase(id)),
   updateUseCase: async (id: string, patch: UseCasePatch) => {
     const uc = findUseCase(id)
-    Object.assign(uc, patch)
+    Object.assign(uc, patch, { updated_at: new Date().toISOString() })
+    if (patch.pinned !== undefined) uc.pinned_at = patch.pinned ? new Date().toISOString() : null
     return wait(uc, 250)
   },
   deleteUseCase: async (id: string): Promise<void> => {
@@ -200,7 +208,9 @@ export const fixtureApi: typeof import('./api').api = {
   updateCase: async (useCaseId: string, caseId: string, patch: CasePatch): Promise<Case> => {
     const c = cases.find((x) => x.id === caseId && x.use_case_id === useCaseId)
     if (!c) throw new Error('Case not found')
-    Object.assign(c, patch)
+    const { input, reference, tags } = patch
+    Object.assign(c, input !== undefined ? { input } : {}, 'reference' in patch ? { reference } : {}, tags !== undefined ? { tags } : {}, { updated_at: new Date().toISOString() })
+    findUseCase(useCaseId).updated_at = c.updated_at
     return wait(c, 250)
   },
   deleteCase: async (useCaseId: string, caseId: string): Promise<void> => {
@@ -212,11 +222,13 @@ export const fixtureApi: typeof import('./api').api = {
   },
   addCases: async (id: string, input: CaseIn[]): Promise<Case[]> => {
     const uc = findUseCase(id)
+    const now = new Date().toISOString()
     const added: Case[] = input.map((c) => ({
-      id: crypto.randomUUID(), use_case_id: id, input: c.input, reference: c.reference ?? null, tags: c.tags ?? [], source: c.source ?? 'upload',
+      id: crypto.randomUUID(), use_case_id: id, input: c.input, reference: c.reference ?? null, tags: c.tags ?? [], source: c.source ?? 'upload', updated_at: now,
     }))
     cases.push(...added)
     uc.case_count = cases.filter((c) => c.use_case_id === id).length
+    uc.updated_at = now
     return wait(added, 400)
   },
   generateCases: async (id: string, body: GenerateCasesIn = {}): Promise<Case[]> => {
@@ -227,7 +239,23 @@ export const fixtureApi: typeof import('./api').api = {
     const uc = findUseCase(id)
     return wait(uc.latest_run ? [uc.latest_run] : [])
   },
-  estimate: (_req: RunIn) => wait(estimateJson as unknown as Estimate, 500),
+  // Echoes what the run would use after inheritance, and applies the workspace cap like the API.
+  estimate: (req: RunIn) => {
+    const base = estimateJson as unknown as Estimate
+    const w = me.workspace
+    const auto = (modelsJson as unknown as CatalogModel[]).filter((m) => m.shortlist && m.role !== 'baseline' && !w.candidate_pool?.exclude_providers?.includes(m.provider))
+      .slice(0, 4).map((m) => ({ provider: m.provider, model: m.id, params: m.provider === 'openrouter' && m.verified.reasoning ? { reasoning_effort: 'medium' } : {} }))
+    const candidates = req.candidates?.length ? req.candidates : auto
+    const references = req.include_references === false ? [] : req.references ?? w.default_references ?? []
+    const repeats = req.repeats ?? w.default_repeats ?? 3
+    const scale = ((candidates.length + references.length) * repeats) / (5 * 3)
+    const total = +(base.total_usd * scale + references.length * 0.6 * (repeats / 3)).toFixed(2)
+    const cap = w.max_run_cost_usd ?? null
+    return wait({
+      ...base, calls: Math.round(base.calls * scale), est_cost_usd: total, total_usd: total,
+      candidates, references, repeats, max_run_cost_usd: cap, over_cap: cap != null && total > cap,
+    }, 500)
+  },
   startRun: async (req: RunIn): Promise<Run> => {
     const id = crypto.randomUUID()
     started.set(id, Date.now())
