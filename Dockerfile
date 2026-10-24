@@ -17,6 +17,8 @@ COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/biy ./biy
 COPY contract ./contract
+COPY metric-bank/src ./metric-bank/src
+COPY metric-bank/data ./metric-bank/data
 COPY catalog/models.json ./catalog/models.json
 COPY --from=web /web/dist ./frontend/dist
 ENV STATIC_DIR=/app/frontend/dist CATALOG_PATH=/app/catalog/models.json

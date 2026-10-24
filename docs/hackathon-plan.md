@@ -103,6 +103,7 @@ Three people, each with their own Claude Code. **Each person owns folders, not f
 | **T+3:45–4:00** | Buffer, submit | Buffer | Buffer | Submitted |
 
 **Working rules:**
+- **Team notes:** check `scripts/notes.sh` after every pull (open notes for you are in `notes/to-<you>/`). Delete a note when it's handled. See [notes/README.md](../notes/README.md).
 - Small PRs, merged by their author. Say "merged X" in the team chat.
 - `git pull` before starting anything new, and at every checkpoint.
 - Point your Claude at the contract, not at someone else's code. For example: "build the run page from `contract/api.md` and `contract/fixtures/run_done.json`".

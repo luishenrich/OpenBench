@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# After `git pull --rebase`: show open team notes.
+[ "${1:-}" = "rebase" ] && { scripts/notes.sh || true; }
+exit 0

@@ -48,7 +48,7 @@
         "config": {}
       },
       {
-        "metric_id": "field_f1",
+        "metric_id": "field_accuracy",
         "weight": 3.0,
         "config": {}
       }
@@ -137,7 +137,7 @@
     ],
     "metrics": [
       {
-        "metric_id": "label_accuracy",
+        "metric_id": "classification_accuracy",
         "weight": 1.0,
         "config": {}
       }
@@ -189,7 +189,7 @@
         "config": {}
       },
       {
-        "metric_id": "field_f1",
+        "metric_id": "field_accuracy",
         "weight": 3.0,
         "config": {}
       }

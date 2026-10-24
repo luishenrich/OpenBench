@@ -168,6 +168,86 @@ class CatalogModel(BaseModel):
     legacy: bool = False
 
 
+# --- metric bank (metric-bank/, owner: Jad) --------------------------------------
+
+class MetricInfo(BaseModel):
+    """A row of metric-bank/data/metric-bank.json, trimmed for the API. Metric ids everywhere
+    (MetricSpec, Gate, scores) are bank ids; aliases (e.g. label_accuracy) are accepted on input."""
+    id: str
+    name: str
+    category: str
+    description: str
+    measures: str
+    method: str            # deterministic | llm_judge | log_derived | …
+    direction: str | None  # higher_better | lower_better
+    unit: str | None
+    score_min: float | None
+    score_max: float | None
+    utility_axis: str      # quality (may enter Q) | speed | cost | gate_only | none (reported only)
+    gate_suitable: bool
+    suggested_gate: str | None
+    default_for_kinds: list[str]
+    required_inputs: list[str]
+    selector_priority: str | None
+    aliases: list[str]
+
+
+class ScorecardBrief(BaseModel):
+    """Input to the bank's selector (metric_bank.selector.select). Only kind is required;
+    every flag defaults to "not mentioned". Discovery fills it from what it saw in the code."""
+    kind: UseCaseKind
+    industry: str = "general"
+    narrative: str = ""
+    user_facing: bool | None = None
+    waiting: bool | None = None          # caller waits for the answer (default: kind != batch)
+    has_schema: bool | None = None
+    has_reference: bool | None = None
+    numeric_fields: bool | None = None
+    tools: bool | None = None
+    multi_step_agent: bool | None = None
+    ocr: bool | None = None
+    word_errors: bool | None = None
+    layout_boxes: bool | None = None
+    knowledge_base: bool | None = None
+    hard_grounding: bool | None = None
+    citations_required: bool | None = None
+    baseline_present: bool | None = None
+    open_ended_without_spec: bool | None = None
+    reasoning_models: bool | None = None
+    phi_or_customer_data: bool | None = None
+    secrets_possible: bool | None = None
+    regulated_advice: bool | None = None
+    untrusted_context: bool | None = None
+    banned_strings: Any | None = None
+    length_bounded: bool | None = None
+    has_constraints: bool | None = None
+    brand_voice: bool | None = None
+    has_key_points: bool | None = None
+    retrieval_evaluated: bool | None = None
+    recall_matters: bool | None = None
+    must_abstain_when_unknown: bool | None = None
+    executable_tests: bool | None = None
+    code_can_merge: bool | None = None
+    locale: str | None = None
+    monthly_volume: int | None = None
+
+
+class Scorecard(BaseModel):
+    """Selector output. metrics + gates drop straight into UseCaseIn."""
+    kind: UseCaseKind
+    always_on: list[str]
+    speed_ranking: str | None           # ttft_ms | e2e_ms | task_e2e_ms | None (batch)
+    speed_also_report: list[str]
+    quality: list[str]                  # 1–5 ids, all with utility_axis == "quality"
+    quality_alternates: list[str]
+    judging: list[str]                  # at most one judge id, also listed in quality
+    also_report: list[str]              # e.g. cer, wer: reported, never in Q
+    reliability_extra: list[str]
+    notes: list[str]
+    metrics: list[MetricSpec]           # = quality, weight 1 each
+    gates: list[Gate]                   # risk gates + task gates, parsed from "<= 0.01"
+
+
 # --- runs --------------------------------------------------------------------
 
 class RunIn(BaseModel):

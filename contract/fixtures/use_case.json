@@ -47,7 +47,7 @@
       "config": {}
     },
     {
-      "metric_id": "field_f1",
+      "metric_id": "field_accuracy",
       "weight": 3.0,
       "config": {}
     }

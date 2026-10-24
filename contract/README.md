@@ -8,6 +8,7 @@ Shared shapes for the REST API, the MCP tools and the frontend. **Owner: Raphaë
 | `fixtures/*.json` | One example response per endpoint, built through `schemas.py` (`python3 -m contract.make_fixtures`). The frontend builds on these before the API exists |
 | `api.md` | Endpoints, auth, errors, MCP tools |
 | `services.md` | Python signatures the REST routes and MCP tools both call, including the metric interface (Jad) |
+| `metric_bank_mapping.py` | Turns metric-bank rows and `select()` output into contract shapes (`MetricInfo`, `Scorecard`, `Gate`). Used by the API and the fixtures |
 | `schema.sql` | Supabase tables; run once in the SQL editor (idempotent, RLS on, no policies) |
 
 Fixture → endpoint:
@@ -23,5 +24,7 @@ Fixture → endpoint:
 | `run_running.json` | `GET /api/runs/{id}` while running (poll every 2 s) |
 | `run_done.json` | `GET /api/runs/{id}` when done: leaderboard, Pareto points, recommendation |
 | `results.json` | `GET /api/runs/{id}/results` |
+| `metrics.json` | `GET /api/metrics` (a few real metric-bank rows) |
+| `scorecard.json` | `POST /api/metrics/select` (real selector output for an extraction brief) |
 
 The fixture data is made up (invoices, tickets, receipts). It is not from any real repo.

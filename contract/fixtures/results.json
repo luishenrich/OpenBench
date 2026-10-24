@@ -29,7 +29,7 @@
       "error": null,
       "scores": {
         "json_schema_valid": 1.0,
-        "field_f1": 1.0
+        "field_accuracy": 1.0
       },
       "judge": null
     },
@@ -55,7 +55,7 @@
       "error": null,
       "scores": {
         "json_schema_valid": 0.0,
-        "field_f1": 0.0
+        "field_accuracy": 0.0
       },
       "judge": null
     },
