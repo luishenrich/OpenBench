@@ -8,6 +8,8 @@ Every request carries `Authorization: Bearer <token>`. The token is one of:
 - **Dashboard:** the Supabase access token (`supabase.auth.getSession()`). The API verifies it against the project's JWKS (`$SUPABASE_URL/auth/v1/.well-known/jwks.json`, ES256, audience `authenticated`). The first request from a new user (normally `GET /api/me`) creates their workspace.
 - **MCP / scripts:** the workspace key `biy_…`. Only its hash is stored.
 
+- **MCP clients (OAuth):** `/mcp` answers `401` with `WWW-Authenticate: Bearer resource_metadata="https://biy.studypdf.net/.well-known/oauth-protected-resource"` before any JSON-RPC handling when the token is missing or bad. The metadata (RFC 9728, also at `…/oauth-protected-resource/mcp`) names Supabase Auth's OAuth 2.1 server, so clients sign the user in with the browser. The resulting access token is a Supabase JWT (ES256, same JWKS); accepted audiences: `authenticated` and `https://biy.studypdf.net/mcp`. Its `sub` maps to the user's workspace exactly like a dashboard session.
+
 `401` means no or bad token. Every resource belongs to the caller's workspace; another workspace's ids return `404`.
 
 ## Errors

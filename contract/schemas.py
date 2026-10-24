@@ -291,6 +291,7 @@ class ScorecardBrief(BaseModel):
     length_bounded: bool | None = None
     has_constraints: bool | None = None
     brand_voice: bool | None = None
+    feedback_text: bool | None = None  # scored label/grade plus written feedback a person reads: rubric_score joins quality
     has_key_points: bool | None = None
     retrieval_evaluated: bool | None = None
     recall_matters: bool | None = None

@@ -19,15 +19,29 @@ def hash_key(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()
 
 
+# If a user somehow has several workspaces (two first-login requests raced before this lock existed),
+# always pick the same one: the one with the most use cases, then the oldest.
+_USER_WORKSPACE = """select m.workspace_id from workspace_member m join workspace w on w.id = m.workspace_id
+                     where m.user_id = $1
+                     order by (select count(*) from use_case u where u.workspace_id = w.id) desc, w.created_at
+                     limit 1"""
+
+
 async def ensure_workspace(user_id: UUID, email: str | None) -> UUID:
-    """Workspace of this user; creates one on first sight."""
-    ws = await db.fetchval("select workspace_id from workspace_member where user_id = $1 limit 1", user_id)
+    """Workspace of this user; creates one on first sight. Safe when the dashboard (or a dashboard and
+    an MCP client) send several first requests at once: creation is serialised per user."""
+    ws = await db.fetchval(_USER_WORKSPACE, user_id)
     if ws:
         return ws
     name = f"{email.split('@')[0]}'s workspace" if email else "Demo workspace"
-    ws = await db.fetchval("insert into workspace (name) values ($1) returning id", name)
-    await db.execute("insert into workspace_member (workspace_id, user_id, email) values ($1, $2, $3)",
-                     ws, user_id, email)
+    async with (await db.pool()).acquire() as c, c.transaction():
+        await c.execute("select pg_advisory_xact_lock(hashtextextended($1::text, 0))", str(user_id))
+        ws = await c.fetchval(_USER_WORKSPACE, user_id)  # created meanwhile by a concurrent request?
+        if ws:
+            return ws
+        ws = await c.fetchval("insert into workspace (name) values ($1) returning id", name)
+        await c.execute("insert into workspace_member (workspace_id, user_id, email) values ($1, $2, $3)",
+                        ws, user_id, email)
     return ws
 
 

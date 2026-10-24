@@ -3,7 +3,7 @@
 import asyncio
 
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from contract.schemas import CatalogModel
@@ -57,23 +57,71 @@ def models(shortlist: bool | None = None, type: str | None = None, provider: str
     return catalog.list_models(shortlist=shortlist, type=type, provider=provider)
 
 
+# --- MCP authorization (MCP spec 2025-06-18): BIY is the resource server, Supabase Auth's OAuth 2.1
+# server is the authorization server. Clients learn that from a 401 on /mcp, then sign the user in.
+
+def _resource_url() -> str:
+    return f"{settings.public_base_url.rstrip('/')}/mcp"
+
+
+def _metadata_url() -> str:
+    return f"{settings.public_base_url.rstrip('/')}/.well-known/oauth-protected-resource"
+
+
+@app.get("/.well-known/oauth-protected-resource", include_in_schema=False)
+@app.get("/.well-known/oauth-protected-resource/mcp", include_in_schema=False)
+def protected_resource_metadata() -> dict:
+    """RFC 9728. The path-suffixed variant is what some clients probe for /mcp."""
+    return {"resource": _resource_url(),
+            "authorization_servers": [f"{(settings.supabase_url or '').rstrip('/')}/auth/v1"],
+            "bearer_methods_supported": ["header"], "resource_name": "BIY"}
+
+
 app.mount("/mcp", mcp_app)
 
 
-class _McpWithoutSlash:
-    """`/mcp` → `/mcp/` before routing. Otherwise the SPA catch-all below matches `/mcp` and a
-    POST gets 405, while users copy `https://<host>/mcp` into `claude mcp add`."""
+class _McpGate:
+    """In front of /mcp, before any JSON-RPC handling:
+
+    - `/mcp` → `/mcp/` (else the SPA catch-all below matches `/mcp` and a POST gets 405);
+    - no token or a bad one → 401 + `WWW-Authenticate: Bearer resource_metadata=…`, which is what makes
+      MCP clients start the OAuth sign-in. A `biy_…` workspace key or a Supabase access token
+      (dashboard session or OAuth) passes; the tools resolve the workspace from it again.
+    """
 
     def __init__(self, asgi_app):
         self.app = asgi_app
 
     async def __call__(self, scope, receive, send):
-        if scope["type"] == "http" and scope["path"] == "/mcp":
-            scope = {**scope, "path": "/mcp/", "raw_path": b"/mcp/"}
+        if scope["type"] == "http" and (scope["path"] == "/mcp" or scope["path"].startswith("/mcp/")):
+            if scope["path"] == "/mcp":
+                scope = {**scope, "path": "/mcp/", "raw_path": b"/mcp/"}
+            if scope["method"] != "OPTIONS" and (error := await _mcp_auth_error(scope)) is not None:
+                challenge = f'Bearer resource_metadata="{_metadata_url()}"'
+                if error != "missing bearer token":
+                    challenge += ', error="invalid_token"'
+                await JSONResponse({"error": "unauthorized", "detail": error}, status_code=401,
+                                   headers={"WWW-Authenticate": challenge})(scope, receive, send)
+                return
         await self.app(scope, receive, send)
 
 
-app.add_middleware(_McpWithoutSlash)
+async def _mcp_auth_error(scope) -> str | None:
+    from fastapi import HTTPException
+
+    from .auth import caller_from_token
+    auth = dict(scope.get("headers") or []).get(b"authorization", b"").decode()
+    token = auth.split(" ", 1)[1].strip() if " " in auth else None
+    if not token and settings.biy_dev_no_auth:
+        return None
+    try:
+        await caller_from_token(token)
+        return None
+    except HTTPException as e:
+        return str(e.detail)
+
+
+app.add_middleware(_McpGate)
 
 # The built Vite app (frontend/dist), with SPA fallback to index.html.
 if (settings.static_dir / "index.html").exists():

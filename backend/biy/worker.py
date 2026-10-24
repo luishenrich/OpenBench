@@ -208,7 +208,7 @@ async def _judge_pass(rid: UUID, snap: dict, io_spec: IOSpec, cases: list[dict],
         cv = scoring.CaseView(case["input"], case["reference"], io_spec)
         scores, judge_info = dict(r["scores"] or {}), None
         for m in judge_specs:
-            pairwise = m["metric_id"] == "pairwise_vs_baseline"
+            pairwise = scoring.is_pairwise(m["metric_id"])
             opponent = view(pair_out.get((r["case_id"], r["repeat_idx"]))) if pairwise else None
             if pairwise and (opponent is None or r["candidate_key"] == pair_key or r["candidate_key"] not in by_key
                              or r["candidate_key"] in {ranking.key_of(x) for x in ranking.references_of(snap)}):
