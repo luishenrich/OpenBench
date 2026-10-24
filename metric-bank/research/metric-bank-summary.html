@@ -143,7 +143,7 @@
 <tr><td>cost</td><td>Cost</td><td>8</td><td>3</td><td>Always record cost per case, cost per success, and output tokens. Rank on cost per success.</td></tr>
 <tr><td>reliability</td><td>Reliability</td><td>7</td><td>3</td><td>Always gate on error rate and watch truncation. Add pass^k for agents. Do not call throttling latency.</td></tr>
 <tr><td>business_ux</td><td>Business and UX</td><td>9</td><td>1</td><td>Use these when the signal exists in logs or a brand guide. Do not invent CSAT with a judge.</td></tr>
-<tr><td>judging</td><td>Judging methods</td><td>4</td><td>3</td><td>Select at most one of rubric score and G-Eval. Add pairwise versus baseline only when a baseline model is in the run.</td></tr>
+<tr><td>judging</td><td>Judging methods</td><td>4</td><td>3</td><td>Select at most one of rubric score and G-Eval, except a long-form task with no gold reference keeps the rubric beside pairwise versus baseline. Add pairwise only when a baseline model is in the run. A classification that also returns free text keeps the rubric beside the label.</td></tr>
     </tbody>
   </table>
   <p class="muted">Names in the source: Accuracy and classification, Reasoning, Knowledge and factuality, RAG and grounding, Summarization, Code, Conversation, Instruction following, Structured output, Document vision, Agents and tool use, Multilinguality, Safety, Bias and fairness, Privacy, Robustness, Calibration and hallucination, Efficiency, Cost, Reliability, Business and UX, Judging methods.</p>

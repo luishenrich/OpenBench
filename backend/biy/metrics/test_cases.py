@@ -106,17 +106,44 @@ def test_persona_grid_keeps_string_references():
     assert cases[0]["source"] == "synthetic"
 
 
-def test_garbage_and_empty_quota():
+def test_garbage_and_empty_quota_return_nothing():
     call_llm, calls = _llm(["not json"])
-    with pytest.raises(ValueError):
-        asyncio.run(generate_case_inputs(USE_CASE, IO, [], n=1, call_llm=call_llm))
-    assert calls["n"] == 1
+    assert asyncio.run(generate_case_inputs(USE_CASE, IO, [], n=1, call_llm=call_llm)) == []
+    assert calls["n"] == 2
 
     call_llm, calls = _llm(["[]", "[]"])
-    with pytest.raises(ValueError, match="no cases"):
-        asyncio.run(generate_case_inputs(USE_CASE, IO, [], n=1, call_llm=call_llm))
+    assert asyncio.run(generate_case_inputs(USE_CASE, IO, [], n=1, call_llm=call_llm)) == []
     assert calls["n"] == 2
 
     call_llm, calls = _llm(["[]"])
     assert asyncio.run(generate_case_inputs(USE_CASE, IO, [], n=0, call_llm=call_llm)) == []
     assert calls["n"] == 0
+
+
+def test_truncated_json_keeps_the_complete_cases():
+    complete = {"input": {"vars": {"text": "Acme billed 12"}}, "reference": {"vendor": "Acme", "total": 12}}
+    truncated = json.dumps([complete])[:-1] + ', {"input": {"vars": {"text": "cut'
+    call_llm, _calls = _llm([truncated])
+    cases = asyncio.run(generate_case_inputs(USE_CASE, IO, [], n=4, call_llm=call_llm, strategy="schema_first"))
+    assert [item["reference"] for item in cases] == [{"vendor": "Acme", "total": 12}]
+
+
+def test_long_form_is_batched_and_references_are_capped():
+    report = {"name": "Report", "kind": "generation", "description": "Write a cited report."}
+    io = {"system_prompt": "Cite sources.", "user_template": None, "response_schema": None}
+    long_reference = "word " * 400
+    payloads = []
+    for index in range(3):
+        payloads.append(json.dumps([
+            {
+                "input": {"vars": {"topic": f"topic-{index}"}},
+                "reference": long_reference + str(index),
+            }
+        ]))
+    call_llm, calls = _llm(payloads)
+    cases = asyncio.run(generate_case_inputs(report, io, [], n=3, call_llm=call_llm))
+    assert calls["n"] == 3
+    assert "exactly 2" in calls["messages"][0][0]["content"]
+    assert "800" in calls["messages"][0][0]["content"]
+    assert len(cases) == 3
+    assert all(len(item["reference"]) <= 800 for item in cases)

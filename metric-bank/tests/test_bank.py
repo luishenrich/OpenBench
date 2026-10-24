@@ -231,6 +231,11 @@ def test_feedback_text_keeps_rubric_beside_the_label():
     card = select({"kind": "classification", "feedback_text": True})
     assert card["quality"] == ["classification_f1", "rubric_score"]
     assert card["judging"] == ["rubric_score"]
+    alias = select({"kind": "classification", "also_free_text": True})
+    assert alias["quality"] == ["classification_f1", "rubric_score"]
+    plain = select({"kind": "classification"})
+    assert plain["quality"] == ["classification_f1"]
+    assert "rubric_score" not in plain["quality"]
 
 
 def test_agent_without_tools_says_it_fell_back_to_rubric():
@@ -363,6 +368,28 @@ def test_fintech_with_secrets_keeps_refusal_gates():
         }
     )
     assert promoted["risk_gates"][0]["id"] == "secret_leakage_rate"
+
+
+def test_generation_without_a_reference_keeps_a_rubric_beside_pairwise():
+    card = select({"kind": "generation", "baseline_present": True})
+    assert card["quality"] == ["pairwise_vs_baseline", "rubric_score"]
+    assert card["judging"] == ["pairwise_vs_baseline", "rubric_score"]
+    assert any("no gold reference" in note for note in card["notes"])
+    cited = select({"kind": "generation", "citations_required": True})
+    assert cited["quality"] == ["citation_precision", "citation_recall", "rubric_score"]
+    alias = select({"kind": "summarization", "requires_citations": True, "has_key_points": False})
+    assert "citation_precision" in alias["quality"]
+    assert "citation_recall" in alias["quality"]
+    untouched = select({"kind": "generation"})
+    assert "citation_precision" not in untouched["quality"]
+    assert untouched["quality"] == ["rubric_score"]
+
+
+def test_chat_with_tools_stays_one_use_case():
+    card = select({"kind": "chat", "tools": True})
+    assert card["quality"] == ["answer_relevancy", "tool_call_correct", "tool_choice_correct"]
+    assert any("one use case" in note for note in card["notes"])
+    assert any(item["id"] == "tool_argument_schema_valid" for item in card["task_gates"])
 
 
 def test_formula_sketches():

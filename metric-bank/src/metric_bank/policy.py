@@ -30,7 +30,7 @@ CAPS = {
     "quality_metrics": 5,
     "risk_metrics": 5,
     "business_metrics": 2,
-    "judging_metrics": 1,
+    "judging_metrics": 2,
 }
 
 # Metrics in a group compete. The selector keeps the primary unless the client
@@ -55,8 +55,10 @@ def selection_policy() -> dict:
         ),
         "judge_rule": (
             "Prefer a named deterministic or claim-level metric over a generic judge. "
-            "Select at most one of rubric_score and g_eval. Add pairwise_vs_baseline only "
-            "when a baseline completion exists."
+            "Select at most one of rubric_score and g_eval, except a long-form task with "
+            "no gold reference keeps rubric_score beside pairwise_vs_baseline. Add "
+            "pairwise_vs_baseline only when a baseline completion exists. A classification "
+            "that also returns free text keeps rubric_score beside the label."
         ),
         "runnable_rule": (
             "By default propose only rows whose runtime_status is implemented, judge, "
