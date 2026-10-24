@@ -18,7 +18,10 @@ export function ms(x: number | null | undefined): string {
 }
 
 // "nebius:zai-org/GLM-5.3-Flash" → "GLM-5.3-Flash"; a reasoning-effort suffix ("…@medium") is dropped
-export const shortModel = (keyOrModel: string) => keyOrModel.split('@')[0].split(':').pop()!.split('/').pop()!
+// "openrouter:deepseek/deepseek-v4-flash:nitro@medium" -> "deepseek-v4-flash:nitro". Only the provider prefix is
+// stripped: a trailing ":nitro" / ":floor" / ":free" is an OpenRouter routing variant and stays visible.
+export const shortModel = (keyOrModel: string) =>
+  keyOrModel.split('@')[0].replace(/^(nebius|openrouter|openai):/, '').split('/').pop()!
 
 // Reasoning effort is part of a model's identity: "openrouter:openai/gpt-6.1-sol@medium", or params.reasoning_effort.
 export function effortOf(keyOrModel: string | null | undefined, params?: Record<string, unknown> | null): string | null {
