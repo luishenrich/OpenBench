@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Layout from './components/Layout'
 import { useAuth } from './lib/auth'
@@ -8,12 +7,14 @@ import RunPage from './pages/RunPage'
 import UseCasePage from './pages/UseCasePage'
 import UseCases from './pages/UseCases'
 
-function RequireAuth({ children }: { children: ReactNode }) {
+// Signed in: the app. Signed out: the landing page at "/", the login page everywhere else.
+function Gate() {
   const auth = useAuth()
   const location = useLocation()
   if (!auth.ready) return null
-  if (!auth.signedIn) return <Navigate to="/login" replace state={{ from: location.pathname }} />
-  return children
+  if (auth.signedIn) return <Layout />
+  if (location.pathname === '/') return <Landing />
+  return <Navigate to="/login" replace state={{ from: location.pathname }} />
 }
 
 export default function App() {
@@ -21,7 +22,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/landing" element={<Landing />} />
-      <Route element={<RequireAuth><Layout /></RequireAuth>}>
+      <Route path="/" element={<Gate />}>
         <Route index element={<UseCases />} />
         <Route path="use-cases/:id" element={<UseCasePage />} />
         <Route path="runs/:id" element={<RunPage />} />
