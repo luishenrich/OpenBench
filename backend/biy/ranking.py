@@ -205,14 +205,20 @@ def build(results: list[dict], snapshot: dict, done: bool, judge_agreement: floa
         name = (pair_row or {}).get("label") or refs_info.label(pair_key.split(":", 1)[-1].split("@")[0])
         not_scored = f"quality not scored: {name} (pairwise reference) returned no answers"
 
+    # A gate on a metric no candidate has a value for (never computed, e.g. a planned metric) is
+    # "not evaluated": reported apart, never failed. Measured for some but not others still fails.
+    gates = uc.get("gates") or []
+    measured = {g["metric_id"] for g in gates if any(_gate_value(c, g["metric_id"]) is not None for c in rows)}
+    unmeasured = [f'{g["metric_id"]} {g["op"]} {g["value"]}' for g in gates if g["metric_id"] not in measured]
+
     for c in rows:
         q = max(c["quality"].mean, 0.0)
         s = _axis(latency(c), targets.get(lat_key), targets.get(f"{lat_key}_max"), best_lat)
         k = _axis(c["cost_per_call"], targets.get("cost_per_call_usd"), targets.get("cost_per_call_usd_max"), best_cost)
         utility = (q ** wq) * (max(s, 1e-6) ** ws) * (max(k, 1e-6) ** wc) if q > 0 else 0.0
         c["scores"] = Scores(quality=round(q, 4), speed=round(s, 4), cost=round(k, 4), utility=round(utility, 4))
-        c["failed_gates"] = [f'{g["metric_id"]} {g["op"]} {g["value"]}' for g in uc.get("gates") or []
-                             if not _passes(_gate_value(c, g["metric_id"]), g["op"], g["value"])]
+        c["failed_gates"] = [f'{g["metric_id"]} {g["op"]} {g["value"]}' for g in gates
+                             if g["metric_id"] in measured and not _passes(_gate_value(c, g["metric_id"]), g["op"], g["value"])]
         if c["error_rate"] > 0.5 and not any(g["metric_id"] == "error_rate" for g in uc.get("gates") or []):
             c["failed_gates"].append("error_rate <= 0.5")  # implicit floor when the use case sets none
         if c["quality"].n == 0 and c["error_rate"] < 1 and any(scoring.in_quality(m["metric_id"]) for m in metric_specs):
@@ -244,7 +250,7 @@ def build(results: list[dict], snapshot: dict, done: bool, judge_agreement: floa
         tokens_per_s=c["tps"], cost_per_call_usd=round(c["cost_per_call"], 8),
         cost_per_success_usd=round(c["cost_per_success"], 8) if c["cost_per_success"] is not None else None,
         error_rate=round(c["error_rate"], 4), scores=c["scores"], passed_gates=not c["failed_gates"],
-        failed_gates=c["failed_gates"], pareto=c["pareto"], rank=c.get("rank"),
+        failed_gates=c["failed_gates"], unmeasured_gates=unmeasured, pareto=c["pareto"], rank=c.get("rank"),
     ) for c in sorted(rows, key=lambda c: (c["is_reference"], c.get("rank") or 10_000, -c["scores"].utility))]
 
     pareto_points = [ParetoPoint(
@@ -254,7 +260,7 @@ def build(results: list[dict], snapshot: dict, done: bool, judge_agreement: floa
     ) for c in rows]
 
     rec = _recommend(ranked, [c for c in rows if c["is_reference"]], latency, judge_agreement,
-                     metric_specs) if done else None
+                     metric_specs, unmeasured) if done else None
     return {"leaderboard": leaderboard, "pareto_points": pareto_points, "recommendation": rec}
 
 
@@ -286,7 +292,8 @@ def _juror_name(key: str) -> str:
 
 
 def _recommend(ranked: list[dict], references: list[dict], latency,
-               judge_agreement: float | None = None, metric_specs: list[dict] | None = None) -> Recommendation | None:
+               judge_agreement: float | None = None, metric_specs: list[dict] | None = None,
+               unmeasured: list[str] | None = None) -> Recommendation | None:
     pick = ranked[0] if ranked else None
     if not pick:
         return None
@@ -295,7 +302,8 @@ def _recommend(ranked: list[dict], references: list[dict], latency,
     best = max(usable, key=lambda r: r["quality"].mean, default=None)  # the bar to compare with
     today = next((r for r in usable if r["label"] == "today"), None)
     q_pct = cost_x = lat_delta = None
-    reasons = ["Passes every gate" + (f" (error rate {pick['error_rate']:.0%})" if pick["error_rate"] else "")]
+    reasons = ["Passes every gate" + (f" (error rate {pick['error_rate']:.0%})" if pick["error_rate"] else "")
+               + (f"; not evaluated (never measured): {', '.join(unmeasured)}" if unmeasured else "")]
     if best:
         q_pct = round(100 * pick["quality"].mean / best["quality"].mean, 1)
         quality_line = f"Quality {pick['quality'].mean:.3f} vs {best['quality'].mean:.3f} for {best['label']}"

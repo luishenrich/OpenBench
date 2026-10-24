@@ -411,6 +411,7 @@ class CandidateResult(BaseModel):
     scores: Scores
     passed_gates: bool
     failed_gates: list[str]
+    unmeasured_gates: list[str] = []  # gates on a metric no candidate has a value for: not evaluated, not failed
     pareto: bool
     rank: int | None  # null if disqualified, and always null for references
 
