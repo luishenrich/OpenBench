@@ -616,7 +616,7 @@
       },
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "runner_measured"
     },
     {
       "id": "classification_precision",
@@ -13739,7 +13739,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "runner_measured"
     },
     {
       "id": "flip_rate",
@@ -14085,7 +14085,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "runner_measured"
     },
     {
       "id": "timeout_rate",
@@ -14300,7 +14300,7 @@
       "config": {},
       "reported_statistics": [],
       "catalog_match": true,
-      "runtime_status": "planned"
+      "runtime_status": "runner_measured"
     },
     {
       "id": "long_context_accuracy",

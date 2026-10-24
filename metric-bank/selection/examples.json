@@ -11,6 +11,9 @@
       "PHI leakage is planned, so the default card does not gate on it. It is not a quality term when it is included."
     ],
     "always_on": [
+      "error_rate",
+      "truncation_rate",
+      "throttle_rate",
       "cost_per_case_usd",
       "cost_per_success_usd",
       "tokens_out_per_case"
@@ -27,6 +30,14 @@
     "risk_gates": [],
     "task_gates": [
       {
+        "id": "error_rate",
+        "threshold": "<= 0.01"
+      },
+      {
+        "id": "truncation_rate",
+        "threshold": "<= 0.01"
+      },
+      {
         "id": "json_schema_valid",
         "threshold": ">= 0.99"
       }
@@ -36,9 +47,7 @@
     "judging": [],
     "notes": [
       "Planned quality metrics left off the scorecard: numeric_tolerance_accuracy. Pass include_planned to opt in.",
-      "Planned risk gates left off the scorecard: pii_leakage_rate. Pass include_planned to opt in.",
-      "Planned always-on metrics left off the scorecard: error_rate, truncation_rate, throttle_rate. Pass include_planned to opt in.",
-      "Planned task gates left off the scorecard: error_rate, truncation_rate. Pass include_planned to opt in."
+      "Planned risk gates left off the scorecard: pii_leakage_rate. Pass include_planned to opt in."
     ]
   },
   {
@@ -53,6 +62,9 @@
       "Time to first token ranks speed, because the runner records it. Time to first answer token is planned and is not on the default card."
     ],
     "always_on": [
+      "error_rate",
+      "truncation_rate",
+      "throttle_rate",
       "cost_per_case_usd",
       "cost_per_success_usd",
       "tokens_out_per_case"
@@ -66,7 +78,12 @@
     ],
     "quality_alternates": [],
     "risk_gates": [],
-    "task_gates": [],
+    "task_gates": [
+      {
+        "id": "error_rate",
+        "threshold": "<= 0.02"
+      }
+    ],
     "reliability_extra": [],
     "also_report": [],
     "judging": [
@@ -76,9 +93,7 @@
       "No runnable quality metric remained, so rubric_score fills the quality slot.",
       "Planned quality metrics left off the scorecard: faithfulness, tone_brand_fit, answer_relevancy. Pass include_planned to opt in.",
       "Planned risk gates left off the scorecard: safety_violation, over_refusal, non_advice_compliance. Pass include_planned to opt in.",
-      "Planned speed metrics left off the scorecard: ttfat_ms. Pass include_planned to opt in.",
-      "Planned always-on metrics left off the scorecard: error_rate, truncation_rate, throttle_rate. Pass include_planned to opt in.",
-      "Planned task gates left off the scorecard: error_rate. Pass include_planned to opt in."
+      "Planned speed metrics left off the scorecard: ttfat_ms. Pass include_planned to opt in."
     ]
   },
   {
@@ -93,6 +108,9 @@
       "Cost per successful case is runner-measured and stays on the card. Monthly cost is planned, so a known volume does not add it unless include_planned is set."
     ],
     "always_on": [
+      "error_rate",
+      "truncation_rate",
+      "throttle_rate",
       "cost_per_case_usd",
       "cost_per_success_usd",
       "tokens_out_per_case"
@@ -106,7 +124,12 @@
     ],
     "quality_alternates": [],
     "risk_gates": [],
-    "task_gates": [],
+    "task_gates": [
+      {
+        "id": "error_rate",
+        "threshold": "<= 0.05"
+      }
+    ],
     "reliability_extra": [],
     "also_report": [],
     "judging": [
@@ -117,8 +140,7 @@
       "Planned quality metrics left off the scorecard: tone_brand_fit, contains_none, length_within. Pass include_planned to opt in.",
       "No speed metric is ranked. The caller is not waiting on the response.",
       "Planned reported metrics left off the scorecard: monthly_cost_usd. Pass include_planned to opt in.",
-      "Planned always-on metrics left off the scorecard: error_rate, truncation_rate, throttle_rate. Pass include_planned to opt in.",
-      "Planned task gates left off the scorecard: error_rate, contains_none, length_within. Pass include_planned to opt in."
+      "Planned task gates left off the scorecard: contains_none, length_within. Pass include_planned to opt in."
     ]
   },
   {
@@ -133,6 +155,9 @@
       "Task wall time is planned. The runner records end-to-end latency, so that is the ranking speed metric until task time is measured."
     ],
     "always_on": [
+      "error_rate",
+      "truncation_rate",
+      "throttle_rate",
       "cost_per_case_usd",
       "cost_per_success_usd",
       "tokens_out_per_case"
@@ -146,7 +171,16 @@
     ],
     "quality_alternates": [],
     "risk_gates": [],
-    "task_gates": [],
+    "task_gates": [
+      {
+        "id": "error_rate",
+        "threshold": "<= 0.01"
+      },
+      {
+        "id": "truncation_rate",
+        "threshold": "<= 0.01"
+      }
+    ],
     "reliability_extra": [],
     "also_report": [],
     "judging": [
@@ -158,8 +192,7 @@
       "Planned risk gates left off the scorecard: insecure_code_rate. Pass include_planned to opt in.",
       "task_e2e_ms is planned, so the ranking speed metric is e2e_ms, which the runner records.",
       "Planned reliability metrics left off the scorecard: pass_hat_k. Pass include_planned to opt in.",
-      "Planned always-on metrics left off the scorecard: error_rate, truncation_rate, throttle_rate. Pass include_planned to opt in.",
-      "Planned task gates left off the scorecard: error_rate, truncation_rate, tool_argument_schema_valid. Pass include_planned to opt in."
+      "Planned task gates left off the scorecard: tool_argument_schema_valid. Pass include_planned to opt in."
     ]
   },
   {
@@ -174,6 +207,9 @@
       "Hallucination rate stays off. It is the gate form of grounding, and it is not implemented."
     ],
     "always_on": [
+      "error_rate",
+      "truncation_rate",
+      "throttle_rate",
       "cost_per_case_usd",
       "cost_per_success_usd",
       "tokens_out_per_case"
@@ -187,7 +223,12 @@
     ],
     "quality_alternates": [],
     "risk_gates": [],
-    "task_gates": [],
+    "task_gates": [
+      {
+        "id": "error_rate",
+        "threshold": "<= 0.02"
+      }
+    ],
     "reliability_extra": [],
     "also_report": [],
     "judging": [
@@ -196,8 +237,7 @@
     "notes": [
       "No runnable quality metric remained, so rubric_score fills the quality slot.",
       "Planned quality metrics left off the scorecard: faithfulness, citation_precision, citation_recall, unknown_abstention, context_recall, answer_relevancy, context_precision. Pass include_planned to opt in.",
-      "Planned always-on metrics left off the scorecard: error_rate, truncation_rate, throttle_rate. Pass include_planned to opt in.",
-      "Planned task gates left off the scorecard: error_rate, faithfulness. Pass include_planned to opt in."
+      "Planned task gates left off the scorecard: faithfulness. Pass include_planned to opt in."
     ]
   }
 ]

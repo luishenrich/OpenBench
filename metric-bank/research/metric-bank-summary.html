@@ -163,7 +163,7 @@
   <table>
     <thead><tr><th>Category</th><th>Id</th><th>Name</th><th>Priority</th><th>Axis</th><th>Runtime</th><th>Layer</th></tr></thead>
     <tbody><tr><td>accuracy</td><td>classification_accuracy</td><td>Classification accuracy</td><td>supporting</td><td>quality</td><td>implemented</td><td>quality</td></tr>
-<tr><td>accuracy</td><td>classification_f1</td><td>Classification F1</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
+<tr><td>accuracy</td><td>classification_f1</td><td>Classification F1</td><td>core</td><td>quality</td><td>runner_measured</td><td>quality</td></tr>
 <tr><td>accuracy</td><td>classification_precision</td><td>Classification precision</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
 <tr><td>accuracy</td><td>classification_recall</td><td>Classification recall</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
 <tr><td>accuracy</td><td>contains_all</td><td>Contains all</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
@@ -275,12 +275,12 @@
 <tr><td>reasoning</td><td>self_consistency_rate</td><td>Self-consistency rate</td><td>diagnostic</td><td>none</td><td>planned</td><td>quality</td></tr>
 <tr><td>reasoning</td><td>step_correctness</td><td>Step correctness</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
 <tr><td>reliability</td><td>empty_output_rate</td><td>Empty-output rate</td><td>diagnostic</td><td>none</td><td>planned</td><td>operational</td></tr>
-<tr><td>reliability</td><td>error_rate</td><td>Error rate</td><td>core</td><td>gate_only</td><td>planned</td><td>operational</td></tr>
+<tr><td>reliability</td><td>error_rate</td><td>Error rate</td><td>core</td><td>gate_only</td><td>runner_measured</td><td>operational</td></tr>
 <tr><td>reliability</td><td>flip_rate</td><td>Flip rate</td><td>supporting</td><td>none</td><td>planned</td><td>operational</td></tr>
 <tr><td>reliability</td><td>pass_hat_k</td><td>pass^k</td><td>core</td><td>none</td><td>planned</td><td>operational</td></tr>
-<tr><td>reliability</td><td>throttle_rate</td><td>Throttle rate</td><td>supporting</td><td>gate_only</td><td>planned</td><td>operational</td></tr>
+<tr><td>reliability</td><td>throttle_rate</td><td>Throttle rate</td><td>supporting</td><td>gate_only</td><td>runner_measured</td><td>operational</td></tr>
 <tr><td>reliability</td><td>timeout_rate</td><td>Timeout rate</td><td>diagnostic</td><td>none</td><td>planned</td><td>operational</td></tr>
-<tr><td>reliability</td><td>truncation_rate</td><td>Truncation rate</td><td>core</td><td>gate_only</td><td>planned</td><td>operational</td></tr>
+<tr><td>reliability</td><td>truncation_rate</td><td>Truncation rate</td><td>core</td><td>gate_only</td><td>runner_measured</td><td>operational</td></tr>
 <tr><td>robustness</td><td>long_context_accuracy</td><td>Long-context accuracy</td><td>core</td><td>quality</td><td>planned</td><td>quality</td></tr>
 <tr><td>robustness</td><td>lost_in_the_middle_drop</td><td>Lost-in-the-middle drop</td><td>diagnostic</td><td>none</td><td>planned</td><td>risk</td></tr>
 <tr><td>robustness</td><td>negation_robustness</td><td>Negation robustness</td><td>supporting</td><td>quality</td><td>planned</td><td>quality</td></tr>
@@ -324,7 +324,7 @@
   </table>
 
   <h2 id="scorecard">Five scorecards</h2>
-  <p>The default card keeps the operational metrics the runner records: cost per case, cost per success, and output tokens per case, plus time to first token or end-to-end latency when someone is waiting. Error rate, truncation, and throttle stay planned. Cost per success is the cost used for ranking. If a kind has no implemented quality metric, the quality slot is rubric_score.</p>
+  <p>The default card keeps the operational metrics computed from result rows: error rate, truncation, throttle, cost per case, cost per success, and output tokens per case, plus time to first token or end-to-end latency when someone is waiting. Cost per success is the cost used for ranking. Classification uses classification_f1, which the ranking computes over a candidate's cases. If a kind has no runnable quality metric, the quality slot is rubric_score.</p>
   <p>Selection rules, the signal table, and a prompt for the app's model are in <span class="mono">selection/GUIDE.md</span>. The cards below are the reference selector, not a hand-edited illustration, so they stay aligned with the guide and the tests.</p>
   
             <article class="card">
@@ -332,13 +332,13 @@
               <p class="meta">extraction · insurance</p>
               <p>A claims platform extracts a fixed JSON object from an explanation-of-benefits packet: member id, service date, billed amount, allowed amount, and denial code. The caller waits for the object. Amounts may be off by one cent. The packet contains PHI.</p>
               <table>
-                <tr><th>Always on</th><td>cost_per_case_usd, cost_per_success_usd, tokens_out_per_case</td></tr>
+                <tr><th>Always on</th><td>error_rate, truncation_rate, throttle_rate, cost_per_case_usd, cost_per_success_usd, tokens_out_per_case</td></tr>
                 <tr><th>Quality</th><td>field_accuracy, json_schema_valid</td></tr>
                 <tr><th>First left out</th><td>—</td></tr>
                 <tr><th>Speed</th><td>e2e_ms</td></tr>
                 <tr><th>Also timed</th><td>—</td></tr>
                 <tr><th>Risk gates</th><td>—</td></tr>
-                <tr><th>Task gates</th><td>json_schema_valid &gt;= 0.99</td></tr>
+                <tr><th>Task gates</th><td>error_rate &lt;= 0.01, truncation_rate &lt;= 0.01, json_schema_valid &gt;= 0.99</td></tr>
                 <tr><th>Reported, not averaged</th><td>—</td></tr>
               </table>
               <ul><li>End-to-end latency is the speed metric the runner records. Time to first token does not matter, because the caller cannot use a partial object.</li><li>Field accuracy and JSON schema validity are implemented, so they are the default quality terms. Schema validity is also a gate at 0.99. Numeric tolerance is planned; pass include_planned to add it.</li><li>PHI leakage is planned, so the default card does not gate on it. It is not a quality term when it is included.</li></ul>
@@ -349,13 +349,13 @@
               <p class="meta">chat · finance</p>
               <p>A streaming support assistant answers account questions in the company&#x27;s voice. A help-center knowledge base is retrieved when the agent decides it is relevant, but the product is not a system of record. Candidates include reasoning models. The assistant must refuse crimes and scams, must not refuse ordinary balance questions, and must not give personalized financial advice.</p>
               <table>
-                <tr><th>Always on</th><td>cost_per_case_usd, cost_per_success_usd, tokens_out_per_case</td></tr>
+                <tr><th>Always on</th><td>error_rate, truncation_rate, throttle_rate, cost_per_case_usd, cost_per_success_usd, tokens_out_per_case</td></tr>
                 <tr><th>Quality</th><td>rubric_score</td></tr>
                 <tr><th>First left out</th><td>—</td></tr>
                 <tr><th>Speed</th><td>ttft_ms</td></tr>
                 <tr><th>Also timed</th><td>—</td></tr>
                 <tr><th>Risk gates</th><td>—</td></tr>
-                <tr><th>Task gates</th><td>—</td></tr>
+                <tr><th>Task gates</th><td>error_rate &lt;= 0.02</td></tr>
                 <tr><th>Reported, not averaged</th><td>—</td></tr>
               </table>
               <ul><li>Faithfulness, brand fit, and answer relevancy name the constructs, but they are planned. The default quality slot is rubric_score until those scores exist.</li><li>Harmful compliance, over-refusal, and the advice boundary are the research risk gates. They are planned, so the default card does not include them. Pass include_planned to restore them.</li><li>Time to first token ranks speed, because the runner records it. Time to first answer token is planned and is not on the default card.</li></ul>
@@ -366,13 +366,13 @@
               <p class="meta">batch · advertising</p>
               <p>A job writes product blurbs overnight. Editors read them in the morning. Copy must sound like the brand, must not name competitors, and must stay inside a character window. Monthly volume is known. Nobody is waiting on a token.</p>
               <table>
-                <tr><th>Always on</th><td>cost_per_case_usd, cost_per_success_usd, tokens_out_per_case</td></tr>
+                <tr><th>Always on</th><td>error_rate, truncation_rate, throttle_rate, cost_per_case_usd, cost_per_success_usd, tokens_out_per_case</td></tr>
                 <tr><th>Quality</th><td>rubric_score</td></tr>
                 <tr><th>First left out</th><td>—</td></tr>
                 <tr><th>Speed</th><td>none</td></tr>
                 <tr><th>Also timed</th><td>—</td></tr>
                 <tr><th>Risk gates</th><td>—</td></tr>
-                <tr><th>Task gates</th><td>—</td></tr>
+                <tr><th>Task gates</th><td>error_rate &lt;= 0.05</td></tr>
                 <tr><th>Reported, not averaged</th><td>—</td></tr>
               </table>
               <ul><li>Batch does not rank on latency. The speed weight in the product profile is zero.</li><li>Brand fit, banned strings, and the length window are planned. The default quality metric is rubric_score.</li><li>Cost per successful case is runner-measured and stays on the card. Monthly cost is planned, so a known volume does not add it unless include_planned is set.</li></ul>
@@ -383,13 +383,13 @@
               <p class="meta">agent · software</p>
               <p>An agent edits a repository through tools, runs the project&#x27;s tests, and may open a pull request. Several tool sequences can be legal. Arguments must match the tool schema before anything executes. Generated code can be merged, so insecure patterns matter. The team cares that a task succeeds every time, not once in eight samples.</p>
               <table>
-                <tr><th>Always on</th><td>cost_per_case_usd, cost_per_success_usd, tokens_out_per_case</td></tr>
+                <tr><th>Always on</th><td>error_rate, truncation_rate, throttle_rate, cost_per_case_usd, cost_per_success_usd, tokens_out_per_case</td></tr>
                 <tr><th>Quality</th><td>rubric_score</td></tr>
                 <tr><th>First left out</th><td>—</td></tr>
                 <tr><th>Speed</th><td>e2e_ms</td></tr>
                 <tr><th>Also timed</th><td>—</td></tr>
                 <tr><th>Risk gates</th><td>—</td></tr>
-                <tr><th>Task gates</th><td>—</td></tr>
+                <tr><th>Task gates</th><td>error_rate &lt;= 0.01, truncation_rate &lt;= 0.01</td></tr>
                 <tr><th>Reported, not averaged</th><td>—</td></tr>
               </table>
               <ul><li>Tool-call match, tool choice, tests, and task success are planned. The default quality metric is rubric_score. Pass include_planned to restore them.</li><li>Argument-schema validity and pass^k are planned, so they are not on the default card.</li><li>Task wall time is planned. The runner records end-to-end latency, so that is the ranking speed metric until task time is measured.</li></ul>
@@ -400,13 +400,13 @@
               <p class="meta">rag · legal</p>
               <p>An internal tool answers questions about a contract the firm uploaded. Answers must be supported by the retrieved clauses, must cite them, and must say when the contract is silent. Retrieval quality is in scope. The tool is not a public chatbot.</p>
               <table>
-                <tr><th>Always on</th><td>cost_per_case_usd, cost_per_success_usd, tokens_out_per_case</td></tr>
+                <tr><th>Always on</th><td>error_rate, truncation_rate, throttle_rate, cost_per_case_usd, cost_per_success_usd, tokens_out_per_case</td></tr>
                 <tr><th>Quality</th><td>rubric_score</td></tr>
                 <tr><th>First left out</th><td>—</td></tr>
                 <tr><th>Speed</th><td>ttft_ms</td></tr>
                 <tr><th>Also timed</th><td>—</td></tr>
                 <tr><th>Risk gates</th><td>—</td></tr>
-                <tr><th>Task gates</th><td>—</td></tr>
+                <tr><th>Task gates</th><td>error_rate &lt;= 0.02</td></tr>
                 <tr><th>Reported, not averaged</th><td>—</td></tr>
               </table>
               <ul><li>The research card is faithfulness, citations, abstention, and context recall. Those rows are planned, so the default quality metric is rubric_score.</li><li>Pass include_planned to restore that card. Answer relevancy is the first metric that does not fit its cap.</li><li>Hallucination rate stays off. It is the gate form of grounding, and it is not implemented.</li></ul>
