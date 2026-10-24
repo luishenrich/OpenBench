@@ -10,7 +10,7 @@ import '@/components/landing/landing.css'
 // so with motion reduced the page renders in its final state.
 export default function Landing() {
   return (
-    <div className="min-h-screen overflow-x-clip bg-bg [&_dd]:text-pretty [&_h2]:text-balance [&_h3]:text-balance [&_li]:text-pretty [&_p]:text-pretty">
+    <div className="min-h-screen overflow-x-clip bg-bg [&_dd]:text-pretty [&_li]:text-pretty [&_p]:text-pretty">
       <Nav />
       <main>
         <Hero />

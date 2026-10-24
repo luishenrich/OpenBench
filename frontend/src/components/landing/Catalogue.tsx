@@ -50,7 +50,7 @@ export default function Catalogue() {
         </dl>
 
         <div ref={makersRef} data-inview={makersIn} className="mt-6 flex flex-col gap-4 border-t border-line pt-8 lg:flex-row lg:items-center lg:gap-8">
-          <p className="shrink-0 font-mono text-[11px] tracking-[0.08em] text-muted uppercase lg:w-56">Models we benchmark, by maker</p>
+          <p className="shrink-0 text-[13px] text-muted lg:w-56">Models we benchmark, by maker</p>
           <ul className="flex flex-wrap items-center gap-2">
             {makerModels.map((id, i) => (
               <li key={id} className="lp-t lp-zoom flex" style={{ ...d(i * 28), '--dur': '500ms' } as CSSProperties}>
@@ -63,7 +63,7 @@ export default function Catalogue() {
 
         {/* same label column as the makers row above, so logos and metric ids start on one line */}
         <div ref={bankRef} data-inview={bankIn} className="mt-8 flex flex-col gap-4 border-t border-line pt-8 lg:flex-row lg:items-baseline lg:gap-8">
-          <p className="shrink-0 font-mono text-[11px] tracking-[0.08em] text-muted uppercase lg:w-56">A few from the bank</p>
+          <p className="shrink-0 text-[13px] text-muted lg:w-56">A few from the bank</p>
           <ul className="flex flex-wrap gap-2">
             {sample.map((id, i) => (
               <li key={id} className="lp-t lp-fade rounded-md border border-line bg-panel px-2 py-1 font-mono text-[12px] text-muted" style={d(i * 45)}>{id}</li>

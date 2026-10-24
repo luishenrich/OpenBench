@@ -1,10 +1,9 @@
 import { Link } from 'react-router-dom'
 import { Logo } from '@/components/Logo'
 import { ProviderIcon } from '@/components/ModelIcon'
-import { Badge } from '@/components/ui'
 import HeroBackdrop from './HeroBackdrop'
 import { d } from './motion'
-import { Container, linkPrimary, linkSecondary, pill } from './shared'
+import { Container, Eyebrow, linkPrimary, linkSecondary, pill } from './shared'
 
 const anchors = [
   { href: '#how', label: 'How it works' },
@@ -44,9 +43,9 @@ export function Hero() {
       {/* On laptops the hero fills the first screen (minus the nav), so the CTAs are always above the fold. */}
       <Container className="relative flex flex-col justify-center pt-20 pb-24 sm:pt-28 sm:pb-32 lg:min-h-[calc(100svh-4rem)] lg:py-16">
         <div className="lp-in" style={d(150)}>
-          <Badge tone="front">Benchmark it yourself</Badge>
+          <Eyebrow tone="front">Benchmark it yourself</Eyebrow>
         </div>
-        <h1 id="hero-title" className="lp-in display mt-7 max-w-[13ch] text-[44px] text-balance sm:text-7xl lg:text-[104px]" style={d(260)}>
+        <h1 id="hero-title" className="lp-in display mt-7 text-[44px] text-pretty sm:text-7xl lg:text-[104px]" style={d(260)}>
           Find the open model that does your job.
         </h1>
         <p className="lp-in mt-7 max-w-[34rem] text-lg leading-relaxed text-pretty text-muted sm:text-xl" style={d(420)}>
@@ -56,7 +55,7 @@ export function Hero() {
           <Link to="/login" className={`${linkPrimary} lp-cta`}>Sign in</Link>
           <a href="#connect" className={linkSecondary}>Connect your agent</a>
         </div>
-        <p className="lp-in mt-14 flex flex-wrap items-center gap-x-2 gap-y-2 font-mono text-[11px] tracking-[0.08em] text-muted uppercase" style={d(660)}>
+        <p className="lp-in mt-14 flex flex-wrap items-center gap-x-2 gap-y-2 text-[13px] text-muted" style={d(660)}>
           <span>Runs on</span>
           <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><ProviderIcon provider="nebius" size={12} />Nebius Token Factory</span>
           <span>and</span>
