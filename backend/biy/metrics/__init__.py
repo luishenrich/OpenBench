@@ -15,6 +15,7 @@ from contract.schemas import MetricInfo
 from metric_bank.build import load_bank
 from metric_bank.runtime import status_for
 
+from .cases import generate_case_inputs
 from .judge import judge
 from .score import SCORERS, UnimplementedMetricError
 from .stats import aggregate, percentiles
@@ -43,6 +44,7 @@ __all__ = [
     "OutputView",
     "UnimplementedMetricError",
     "aggregate",
+    "generate_case_inputs",
     "judge",
     "percentiles",
     "score",
