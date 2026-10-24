@@ -24,6 +24,11 @@ from .workspace import get_workspace
 OUTPUT_TOKENS = {"classification": 30, "extraction": 250, "chat": 400, "summarization": 300, "batch": 400}
 REASONING_FACTOR = 1.5
 JUDGE_PROMPT_TOKENS, JUDGE_OUTPUT_TOKENS = 600, 250
+# Reasoning tokens per juror call, on top of JUDGE_OUTPUT_TOKENS, by pinned effort. Calibrated on run
+# e9b34ace (Luna @low + DeepSeek @low + GLM-5.3 at its default): $0.0078 per judged result estimated
+# vs $0.0077 measured. "default" = a reasoning model at its provider default.
+JUDGE_REASONING_TOKENS = {"none": 0, "minimal": 50, "low": 200, "medium": 600, "high": 1500, "default": 900}
+FREE_TEXT_ANSWER_TOKENS = 200  # floor when a judge reads a written answer (a grade + feedback, not a label)
 
 _or_prices: dict[str, dict] | None = None
 
@@ -152,7 +157,11 @@ async def estimate_run(workspace_id: UUID, req: RunIn, auto: int = 6) -> Estimat
     io = uc.io_spec.model_dump()
     in_tokens = sum(len(json.dumps(build_messages(io, c.input))) // 4 + 20 for c in cases)
     in_tokens += len(json.dumps(io.get("tools") or [])) // 4 * len(cases)
-    out_default = min(io.get("params", {}).get("max_tokens") or 10**6, OUTPUT_TOKENS.get(uc.kind, 500))
+    # answer length: the kind's typical size, the cases' references when longer, and a floor for free text
+    ref_tokens = sum(len(json.dumps(c.reference)) // 4 for c in cases if c.reference is not None) // len(cases)
+    free_text = any(scoring.is_judge_metric(m.metric_id) for m in uc.metrics)
+    out_default = min(io.get("params", {}).get("max_tokens") or 10**6,
+                      max(OUTPUT_TOKENS.get(uc.kind, 500), ref_tokens, FREE_TEXT_ANSWER_TOKENS if free_text else 0))
 
     lines, total_in, total_out, cand_cost = [], 0, 0, 0.0
     references = [ModelRef(**{k: v for k, v in r.items() if k != "label"}) for r in references_for(uc, req)]
@@ -177,8 +186,11 @@ async def estimate_run(workspace_id: UUID, req: RunIn, auto: int = 6) -> Estimat
             jp = await _price(ModelRef(provider=j.provider, model=j.model))
             calls = sum(outputs * (2 * len(req.candidates) if scoring.is_pairwise(m.metric_id)
                                    else len(req.candidates) + len(references)) for m in judge_metrics)
+            jm = catalog.get_model(j.provider, j.model) or {}
+            thinks = (jm.get("verified") or {}).get("reasoning") or j.model in refs_info.REFERENCES
+            reasoning = JUDGE_REASONING_TOKENS.get(j.params.get("reasoning_effort") or "default", 600) if thinks else 0
             judge_cost += calls * (per_call_in * (jp.get("input") or 0)
-                                   + JUDGE_OUTPUT_TOKENS * (jp.get("output") or 0)) / 1e6
+                                   + (JUDGE_OUTPUT_TOKENS + reasoning) * (jp.get("output") or 0)) / 1e6
 
     cap = (await get_workspace(workspace_id)).max_run_cost_usd
     total = round(cand_cost + judge_cost, 6)
@@ -210,6 +222,7 @@ async def start_run(workspace_id: UUID, req: RunIn, auto: int = 6) -> Run:
         "references": references,
         "pairwise_reference": ranking.key_of(references[0]) if references else None,
         "estimate": est.model_dump(mode="json"),
+        "confirmed_cost_usd": req.confirm_cost_usd,  # the worker stops at BUDGET_SLACK × this
     }
     total = n_cases * req.repeats * (len(req.candidates) + len(references))
     run_id = await db.fetchval(  # run.include_baseline now means "include references"
