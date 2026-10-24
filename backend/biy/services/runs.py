@@ -13,14 +13,15 @@ from contract.schemas import (Estimate, EstimateLine, ModelRef, Progress, Result
 from .. import db, ranking, scoring
 from ..config import settings
 from ..providers import build_messages, catalog
+from ..providers.client import _verify
 from .errors import CostNotConfirmed, Invalid, NotFound
 from .use_cases import _brief, get_use_case, list_cases
 from .workspace import get_workspace
 
-# Expected output tokens per call when the use case sets no max_tokens. Reasoning models
-# spend more before answering, hence the multiplier.
-OUTPUT_TOKENS = {"classification": 30, "extraction": 400, "chat": 400, "summarization": 350, "batch": 400}
-REASONING_FACTOR = 2.5
+# Typical output tokens per call by kind (max_tokens is a ceiling, not what models write).
+# Reasoning models spend more before answering, hence the multiplier.
+OUTPUT_TOKENS = {"classification": 30, "extraction": 250, "chat": 400, "summarization": 300, "batch": 400}
+REASONING_FACTOR = 1.5
 JUDGE_PROMPT_TOKENS, JUDGE_OUTPUT_TOKENS = 600, 250
 
 _or_prices: dict[str, dict] | None = None
@@ -31,7 +32,7 @@ async def _openrouter_price(model: str) -> dict | None:
     global _or_prices
     if _or_prices is None:
         try:
-            async with httpx.AsyncClient(timeout=15) as c:
+            async with httpx.AsyncClient(timeout=15, verify=_verify()) as c:
                 data = (await c.get("https://openrouter.ai/api/v1/models")).json()["data"]
             _or_prices = {m["id"]: {"input": float(m["pricing"]["prompt"]) * 1e6,
                                     "output": float(m["pricing"]["completion"]) * 1e6} for m in data}
@@ -75,7 +76,7 @@ async def estimate_run(workspace_id: UUID, req: RunIn) -> Estimate:
     io = uc.io_spec.model_dump()
     in_tokens = sum(len(json.dumps(build_messages(io, c.input))) // 4 + 20 for c in cases)
     in_tokens += len(json.dumps(io.get("tools") or [])) // 4 * len(cases)
-    out_default = io.get("params", {}).get("max_tokens") or OUTPUT_TOKENS.get(uc.kind, 500)
+    out_default = min(io.get("params", {}).get("max_tokens") or 10**6, OUTPUT_TOKENS.get(uc.kind, 500))
 
     lines, total_in, total_out, cand_cost = [], 0, 0, 0.0
     refs = list(req.candidates) + ([b] if (b := _baseline(uc, req)) else [])

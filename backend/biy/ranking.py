@@ -144,8 +144,8 @@ def build(results: list[dict], snapshot: dict, done: bool) -> dict[str, Any]:
         c["scores"] = Scores(quality=round(q, 4), speed=round(s, 4), cost=round(k, 4), utility=round(utility, 4))
         c["failed_gates"] = [f'{g["metric_id"]} {g["op"]} {g["value"]}' for g in uc.get("gates") or []
                              if not _passes(_gate_value(c, g["metric_id"]), g["op"], g["value"])]
-        if c["error_rate"] > 0.5:
-            c["failed_gates"].append("error_rate <= 0.5")
+        if c["error_rate"] > 0.5 and not any(g["metric_id"] == "error_rate" for g in uc.get("gates") or []):
+            c["failed_gates"].append("error_rate <= 0.5")  # implicit floor when the use case sets none
 
     # Pareto over quality ↑, cost per success ↓, latency ↓
     def dominated(a: dict) -> bool:
@@ -159,8 +159,8 @@ def build(results: list[dict], snapshot: dict, done: bool) -> dict[str, Any]:
                 return True
         return False
 
-    for c in rows:
-        c["pareto"] = not dominated(c)
+    for c in rows:  # a candidate with no successful call has nothing to trade off
+        c["pareto"] = c["error_rate"] < 1 and not dominated(c)
     ranked = sorted((c for c in rows if not c["failed_gates"]), key=lambda c: -c["scores"].utility)
     for i, c in enumerate(ranked, start=1):
         c["rank"] = i
@@ -204,9 +204,15 @@ def _recommend(ranked: list[dict], base: dict | None, latency) -> Recommendation
     if ties:
         reasons.append(f"Statistical tie on quality with {', '.join(short_name(k.split(':', 1)[1]) for k in ties)}; "
                        "ranked by the trade-off profile")
-    if q_pct is not None and cost_x:
-        cheaper = f"1/{round(1 / cost_x)}" if cost_x < 1 else f"{cost_x:.1f}×"
-        headline = f"Switch to {name}: {q_pct:.0f}% of today's quality at {cheaper} of the cost"
+    base_rank = base.get("rank") if base else None
+    if base_rank is not None and base_rank < pick["rank"]:
+        # today's model wins the trade-off: say so, and name the best open alternative
+        base_name = short_name(base["ref"]["model"])
+        headline = f"Keep {base_name}: no candidate beats it on this trade-off profile; closest is {name}"
+        reasons.insert(0, f"{base_name} ranks #{base_rank}, {name} #{pick['rank']} by utility")
+    elif q_pct is not None and cost_x:
+        cost = f"1/{round(1 / cost_x)} of the cost" if cost_x < 1 else f"{cost_x:.1f}× the cost"
+        headline = f"Switch to {name}: {q_pct:.0f}% of today's quality at {cost}"
     else:
         headline = f"Use {name}: best trade-off of quality, speed and cost in this run"
     return Recommendation(
