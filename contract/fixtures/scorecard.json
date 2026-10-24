@@ -12,22 +12,18 @@
   "speed_also_report": [],
   "quality": [
     "field_accuracy",
-    "numeric_tolerance_accuracy",
     "json_schema_valid"
   ],
   "quality_alternates": [],
   "judging": [],
   "also_report": [],
   "reliability_extra": [],
-  "notes": [],
+  "notes": [
+    "Planned quality metrics left off the scorecard: numeric_tolerance_accuracy. Pass include_planned to opt in."
+  ],
   "metrics": [
     {
       "metric_id": "field_accuracy",
-      "weight": 1.0,
-      "config": {}
-    },
-    {
-      "metric_id": "numeric_tolerance_accuracy",
       "weight": 1.0,
       "config": {}
     },

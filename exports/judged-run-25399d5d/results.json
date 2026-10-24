@@ -1,0 +1,1004 @@
+{
+  "items": [
+    {
+      "id": "b7d1ac65-7e9f-445e-b684-0b78a6992797",
+      "candidate_key": "nebius:deepseek-ai/DeepSeek-V4-Pro-0813",
+      "case_id": "0cf2ef33-954c-4da0-ba0a-d9db142d2f74",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "You can request an address change, but it’s only possible if the order hasn’t shipped yet. Please contact us as soon as possible, since orders ship within 2 days.",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 1450.5,
+        "ttft_ms": 786.5,
+        "tokens_per_s": 174.7
+      },
+      "usage": {
+        "total_tokens": 241,
+        "prompt_tokens": 125,
+        "reasoning_tokens": 77,
+        "completion_tokens": 116,
+        "prompt_tokens_details": null,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 125,
+        "completion_tokens_details": {
+          "reasoning_tokens": 77
+        }
+      },
+      "cost_usd": 0.00062436,
+      "error": null,
+      "scores": {
+        "rubric_score": 0.8
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 0.8,
+        "jurors": [
+          {
+            "key": "openrouter:openai/gpt-6-luna@low",
+            "score": 0.8,
+            "winner": null,
+            "reasoning": "The response directly answers that an address change may be possible before shipment and advises contacting support quickly. The specific claim that orders ship within two days is not supported by the provided context.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [
+          "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low"
+        ],
+        "agreement": null,
+        "reasoning": "openai/gpt-6-luna@low: The response directly answers that an address change may be possible before shipment and advises contacting support quickly. The specific claim that orders ship within two days is not supported by the provided context."
+      }
+    },
+    {
+      "id": "45ba8897-dea6-4927-bee7-f4019222ff8c",
+      "candidate_key": "openrouter:openai/gpt-6-luna@medium",
+      "case_id": "0cf2ef33-954c-4da0-ba0a-d9db142d2f74",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "If your order hasn’t shipped yet, the delivery address may still be changeable. Please contact customer support as soon as possible—orders ship within 2 days.",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 2523.9,
+        "ttft_ms": 2352.8,
+        "tokens_per_s": 584.2
+      },
+      "usage": {
+        "cost": 0,
+        "is_byok": true,
+        "cost_details": {
+          "upstream_inference_cost": 5.61e-05,
+          "upstream_inference_prompt_cost": 6.1e-06,
+          "upstream_inference_completions_cost": 5e-05
+        },
+        "total_tokens": 161,
+        "prompt_tokens": 61,
+        "completion_tokens": 100,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "video_tokens": 0,
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "completion_tokens_details": {
+          "audio_tokens": 0,
+          "image_tokens": 0,
+          "reasoning_tokens": 61
+        }
+      },
+      "cost_usd": 5.61e-05,
+      "error": null,
+      "scores": {
+        "rubric_score": 1.0
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 1.0,
+        "jurors": [
+          {
+            "key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+            "score": 1.0,
+            "winner": null,
+            "reasoning": "The output directly answers the question, correctly explains that the address may be changeable if the order hasn't shipped, and gives a clear next step by advising the customer to contact support promptly. It is concise, on topic, and complete for the rubric.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [
+          "openrouter:openai/gpt-6-luna@low"
+        ],
+        "agreement": null,
+        "reasoning": "deepseek-ai/DeepSeek-V4.1-Flash-1017@low: The output directly answers the question, correctly explains that the address may be changeable if the order hasn't shipped, and gives a clear next step by advising the customer to contact support promptly. It is concise, on topic, and complete for the rubric."
+      }
+    },
+    {
+      "id": "8e7b0728-e3c9-4b3f-8476-3e5aeba6cac1",
+      "candidate_key": "openrouter:openai/gpt-6.1-sol@medium",
+      "case_id": "0cf2ef33-954c-4da0-ba0a-d9db142d2f74",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "An address change may be possible, but it depends on your order’s status. Orders ship in 2 days, so please contact our support team as soon as possible to check whether the address can be updated.",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 5255.7,
+        "ttft_ms": 4892.3,
+        "tokens_per_s": 589.0
+      },
+      "usage": {
+        "cost": 0,
+        "is_byok": true,
+        "cost_details": {
+          "upstream_inference_cost": 0.002262,
+          "upstream_inference_prompt_cost": 0.000122,
+          "upstream_inference_completions_cost": 0.00214
+        },
+        "total_tokens": 275,
+        "prompt_tokens": 61,
+        "completion_tokens": 214,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "video_tokens": 0,
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "completion_tokens_details": {
+          "audio_tokens": 0,
+          "image_tokens": 0,
+          "reasoning_tokens": 166
+        }
+      },
+      "cost_usd": 0.002262,
+      "error": null,
+      "scores": {
+        "rubric_score": 1.0
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 1.0,
+        "jurors": [
+          {
+            "key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+            "score": 1.0,
+            "winner": null,
+            "reasoning": "The output directly answers the question, explains that an address change may be possible depending on order status, and provides a clear next step by advising the user to contact support promptly. It is correct, complete enough for the question, and on topic.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [
+          "openrouter:openai/gpt-6-luna@low"
+        ],
+        "agreement": null,
+        "reasoning": "deepseek-ai/DeepSeek-V4.1-Flash-1017@low: The output directly answers the question, explains that an address change may be possible depending on order status, and provides a clear next step by advising the user to contact support promptly. It is correct, complete enough for the question, and on topic."
+      }
+    },
+    {
+      "id": "66122255-39eb-4a9f-bfa1-ab4bc0815177",
+      "candidate_key": "openrouter:xiaomi/mimo-v2.6-pro@medium",
+      "case_id": "0cf2ef33-954c-4da0-ba0a-d9db142d2f74",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "Yes, you can change the delivery address as long as the order hasn't shipped yet—since orders ship within 2 days of placement, please contact us as soon as possible with your order number and the new address. If the order has already shipped, we won't be able to update the address.",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 3738.4,
+        "ttft_ms": 1768.7,
+        "tokens_per_s": 46.2
+      },
+      "usage": {
+        "cost": 0.00010614,
+        "is_byok": false,
+        "cost_details": {
+          "upstream_inference_cost": 0.00010614,
+          "upstream_inference_prompt_cost": 2.697e-05,
+          "upstream_inference_completions_cost": 7.917e-05
+        },
+        "total_tokens": 153,
+        "prompt_tokens": 62,
+        "completion_tokens": 91,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "video_tokens": 0,
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "completion_tokens_details": {
+          "audio_tokens": 0,
+          "image_tokens": 0,
+          "reasoning_tokens": 28
+        }
+      },
+      "cost_usd": 0.00010614,
+      "error": null,
+      "scores": {
+        "rubric_score": 0.85
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 0.85,
+        "jurors": [
+          {
+            "key": "openrouter:openai/gpt-6-luna@low",
+            "score": 0.7,
+            "winner": null,
+            "reasoning": "The answer directly addresses the question and gives a useful next step, but it states a specific two-day shipping timeline and address-change policy without any supporting context.",
+            "reasoning_effort": "low"
+          },
+          {
+            "key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+            "score": 1.0,
+            "winner": null,
+            "reasoning": "The output directly answers the question, provides a clear condition for changing the address, explains what information to provide, and states the limitation if the order has already shipped. It is correct, complete, and on topic.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [],
+        "agreement": false,
+        "reasoning": "openai/gpt-6-luna@low: The answer directly addresses the question and gives a useful next step, but it states a specific two-day shipping timeline and address-change policy without any supporting context.  |  deepseek-ai/DeepSeek-V4.1-Flash-1017@low: The output directly answers the question, provides a clear condition for changing the address, explains what information to provide, and states the limitation if the order has already shipped. It is correct, complete, and on topic."
+      }
+    },
+    {
+      "id": "61d83c3c-0ecb-491f-8425-e3ad0851de50",
+      "candidate_key": "nebius:deepseek-ai/DeepSeek-V4-Pro-0813",
+      "case_id": "77a327bf-5eba-4a04-b6b3-c1bd1fed15fe",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "Refunds take 3–5 business days after we receive and process your return, so you should see it within that window from Monday. Please allow up to 5 business days before contacting us again.",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 1167.8,
+        "ttft_ms": 467.8,
+        "tokens_per_s": 160.0
+      },
+      "usage": {
+        "total_tokens": 241,
+        "prompt_tokens": 129,
+        "reasoning_tokens": 70,
+        "completion_tokens": 112,
+        "prompt_tokens_details": null,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 129,
+        "completion_tokens_details": {
+          "reasoning_tokens": 70
+        }
+      },
+      "cost_usd": 0.0006138,
+      "error": null,
+      "scores": {
+        "rubric_score": 0.5
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 0.5,
+        "jurors": [
+          {
+            "key": "openrouter:openai/gpt-6-luna@low",
+            "score": 0.5,
+            "winner": null,
+            "reasoning": "The response answers the question with a clear timeframe, but it assumes a 3–5 business-day refund policy and that the return was received and processed on Monday, neither of which is established by the input.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [
+          "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low"
+        ],
+        "agreement": null,
+        "reasoning": "openai/gpt-6-luna@low: The response answers the question with a clear timeframe, but it assumes a 3–5 business-day refund policy and that the return was received and processed on Monday, neither of which is established by the input."
+      }
+    },
+    {
+      "id": "7d54f7dd-9a14-493b-affe-092a089cdbea",
+      "candidate_key": "openrouter:openai/gpt-6-luna@medium",
+      "case_id": "77a327bf-5eba-4a04-b6b3-c1bd1fed15fe",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "Refunds typically arrive within 3–5 business days after they’re processed. Since you returned the shoes Monday, the timing may depend on when the return is received and your refund is issued.",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 3347.9,
+        "ttft_ms": 2232.6,
+        "tokens_per_s": 131.8
+      },
+      "usage": {
+        "cost": 0,
+        "is_byok": true,
+        "cost_details": {
+          "upstream_inference_cost": 8e-05,
+          "upstream_inference_prompt_cost": 6.5e-06,
+          "upstream_inference_completions_cost": 7.35e-05
+        },
+        "total_tokens": 212,
+        "prompt_tokens": 65,
+        "completion_tokens": 147,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "video_tokens": 0,
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "completion_tokens_details": {
+          "audio_tokens": 0,
+          "image_tokens": 0,
+          "reasoning_tokens": 102
+        }
+      },
+      "cost_usd": 8e-05,
+      "error": null,
+      "scores": {
+        "rubric_score": 1.0
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 1.0,
+        "jurors": [
+          {
+            "key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+            "score": 1.0,
+            "winner": null,
+            "reasoning": "The output directly answers the refund timing question, correctly notes the typical 3–5 business day processing window, and appropriately explains that exact timing depends on when the return is received and the refund is issued. It is concise, on topic, and complete given the information provided.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [
+          "openrouter:openai/gpt-6-luna@low"
+        ],
+        "agreement": null,
+        "reasoning": "deepseek-ai/DeepSeek-V4.1-Flash-1017@low: The output directly answers the refund timing question, correctly notes the typical 3–5 business day processing window, and appropriately explains that exact timing depends on when the return is received and the refund is issued. It is concise, on topic, and complete given the information provided."
+      }
+    },
+    {
+      "id": "421b825b-c358-465f-9b5a-b1582939adb7",
+      "candidate_key": "openrouter:openai/gpt-6.1-sol@medium",
+      "case_id": "77a327bf-5eba-4a04-b6b3-c1bd1fed15fe",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "Refunds take 3–5 business days to arrive. If your refund was processed on Monday, you can expect it between Thursday and the following Monday, excluding holidays.",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 2612.6,
+        "ttft_ms": 1867.6,
+        "tokens_per_s": 51.0
+      },
+      "usage": {
+        "cost": 0,
+        "is_byok": true,
+        "cost_details": {
+          "upstream_inference_cost": 0.00051,
+          "upstream_inference_prompt_cost": 0.00013,
+          "upstream_inference_completions_cost": 0.00038
+        },
+        "total_tokens": 103,
+        "prompt_tokens": 65,
+        "completion_tokens": 38,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "video_tokens": 0,
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "completion_tokens_details": {
+          "audio_tokens": 0,
+          "image_tokens": 0,
+          "reasoning_tokens": 0
+        }
+      },
+      "cost_usd": 0.00051,
+      "error": null,
+      "scores": {
+        "rubric_score": 0.7
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 0.7,
+        "jurors": [
+          {
+            "key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+            "score": 0.7,
+            "winner": null,
+            "reasoning": "The output is on topic and gives a standard 3–5 business day refund timeline, but it assumes the refund was processed on Monday even though the user only said the shoes were returned on Monday. It does not clarify the processing delay between return and refund, so the answer is only partially complete and potentially misleading.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [
+          "openrouter:openai/gpt-6-luna@low"
+        ],
+        "agreement": null,
+        "reasoning": "deepseek-ai/DeepSeek-V4.1-Flash-1017@low: The output is on topic and gives a standard 3–5 business day refund timeline, but it assumes the refund was processed on Monday even though the user only said the shoes were returned on Monday. It does not clarify the processing delay between return and refund, so the answer is only partially complete and potentially misleading."
+      }
+    },
+    {
+      "id": "39fadef0-d196-488e-96fb-038105ba918f",
+      "candidate_key": "openrouter:xiaomi/mimo-v2.6-pro@medium",
+      "case_id": "77a327bf-5eba-4a04-b6b3-c1bd1fed15fe",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "Once your return has been received and processed, refunds typically take 3–5 business days to appear in your account. Since you returned the shoes on Monday, you should expect your refund by early next week at the latest. If you don't see it after 5 business days, feel free to reach out and we'll look into it!",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 3409.2,
+        "ttft_ms": 1559.7,
+        "tokens_per_s": 57.3
+      },
+      "usage": {
+        "cost": 0.00012093,
+        "is_byok": false,
+        "cost_details": {
+          "upstream_inference_cost": 0.00012093,
+          "upstream_inference_prompt_cost": 2.871e-05,
+          "upstream_inference_completions_cost": 9.222e-05
+        },
+        "total_tokens": 172,
+        "prompt_tokens": 66,
+        "completion_tokens": 106,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "video_tokens": 0,
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "completion_tokens_details": {
+          "audio_tokens": 0,
+          "image_tokens": 0,
+          "reasoning_tokens": 35
+        }
+      },
+      "cost_usd": 0.00012093,
+      "error": null,
+      "scores": {
+        "rubric_score": 0.85
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 0.85,
+        "jurors": [
+          {
+            "key": "openrouter:openai/gpt-6-luna@low",
+            "score": 0.7,
+            "winner": null,
+            "reasoning": "The response gives a useful estimate and notes that processing must occur first, but it assumes a 3–5-business-day refund timeline without any policy information and overstates early next week as the latest arrival date.",
+            "reasoning_effort": "low"
+          },
+          {
+            "key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+            "score": 1.0,
+            "winner": null,
+            "reasoning": "The output directly answers the refund timing question, gives a typical 3–5 business day processing window, relates it to the Monday return, and provides a next step if the refund is delayed. It is correct, complete, and on topic under the rubric.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [],
+        "agreement": false,
+        "reasoning": "openai/gpt-6-luna@low: The response gives a useful estimate and notes that processing must occur first, but it assumes a 3–5-business-day refund timeline without any policy information and overstates early next week as the latest arrival date.  |  deepseek-ai/DeepSeek-V4.1-Flash-1017@low: The output directly answers the refund timing question, gives a typical 3–5 business day processing window, relates it to the Monday return, and provides a next step if the refund is delayed. It is correct, complete, and on topic under the rubric."
+      }
+    },
+    {
+      "id": "03e63a45-b374-45b3-bec4-0d90b194b1fd",
+      "candidate_key": "nebius:deepseek-ai/DeepSeek-V4-Pro-0813",
+      "case_id": "7c5839fa-42ba-4ba4-b1f0-cef8f917af05",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "No, nothing is wrong—orders typically ship within 2 business days. Your order should ship soon; thank you for your patience!",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 941.0,
+        "ttft_ms": 453.4,
+        "tokens_per_s": 153.8
+      },
+      "usage": {
+        "total_tokens": 204,
+        "prompt_tokens": 129,
+        "reasoning_tokens": 47,
+        "completion_tokens": 75,
+        "prompt_tokens_details": null,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 129,
+        "completion_tokens_details": {
+          "reasoning_tokens": 47
+        }
+      },
+      "cost_usd": 0.00046728,
+      "error": null,
+      "scores": {
+        "rubric_score": 0.5
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 0.5,
+        "jurors": [
+          {
+            "key": "openrouter:openai/gpt-6-luna@low",
+            "score": 0.5,
+            "winner": null,
+            "reasoning": "The response addresses the concern and is reassuring, but it states a specific two-business-day shipping timeline and guarantees that nothing is wrong without any information supporting those claims.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [
+          "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low"
+        ],
+        "agreement": null,
+        "reasoning": "openai/gpt-6-luna@low: The response addresses the concern and is reassuring, but it states a specific two-business-day shipping timeline and guarantees that nothing is wrong without any information supporting those claims."
+      }
+    },
+    {
+      "id": "2fa89f90-a894-44d0-8145-7585b747be0b",
+      "candidate_key": "openrouter:openai/gpt-6-luna@medium",
+      "case_id": "7c5839fa-42ba-4ba4-b1f0-cef8f917af05",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "Your order is still within the normal timeframe—orders typically ship within 2 days. There’s no need to worry yet.",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 3294.5,
+        "ttft_ms": 2506.6,
+        "tokens_per_s": 130.7
+      },
+      "usage": {
+        "cost": 0,
+        "is_byok": true,
+        "cost_details": {
+          "upstream_inference_cost": 5.79e-05,
+          "upstream_inference_prompt_cost": 6.4e-06,
+          "upstream_inference_completions_cost": 5.15e-05
+        },
+        "total_tokens": 167,
+        "prompt_tokens": 64,
+        "completion_tokens": 103,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "video_tokens": 0,
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "completion_tokens_details": {
+          "audio_tokens": 0,
+          "image_tokens": 0,
+          "reasoning_tokens": 72
+        }
+      },
+      "cost_usd": 5.79e-05,
+      "error": null,
+      "scores": {
+        "rubric_score": 1.0
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 1.0,
+        "jurors": [
+          {
+            "key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+            "score": 1.0,
+            "winner": null,
+            "reasoning": "The response directly answers the user’s concern, is on topic, and provides a clear, appropriate reassurance that one day without shipment is within the normal 2-day shipping timeframe.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [
+          "openrouter:openai/gpt-6-luna@low"
+        ],
+        "agreement": null,
+        "reasoning": "deepseek-ai/DeepSeek-V4.1-Flash-1017@low: The response directly answers the user’s concern, is on topic, and provides a clear, appropriate reassurance that one day without shipment is within the normal 2-day shipping timeframe."
+      }
+    },
+    {
+      "id": "8cc2d337-8c65-4dbb-8869-06dbc8eafd98",
+      "candidate_key": "openrouter:openai/gpt-6.1-sol@medium",
+      "case_id": "7c5839fa-42ba-4ba4-b1f0-cef8f917af05",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "No need to worry—orders ship within 2 days, so your order is still within the expected timeframe after one day.",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 2430.2,
+        "ttft_ms": 1849.1,
+        "tokens_per_s": 49.9
+      },
+      "usage": {
+        "cost": 0,
+        "is_byok": true,
+        "cost_details": {
+          "upstream_inference_cost": 0.000418,
+          "upstream_inference_prompt_cost": 0.000128,
+          "upstream_inference_completions_cost": 0.00029
+        },
+        "total_tokens": 93,
+        "prompt_tokens": 64,
+        "completion_tokens": 29,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "video_tokens": 0,
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "completion_tokens_details": {
+          "audio_tokens": 0,
+          "image_tokens": 0,
+          "reasoning_tokens": 0
+        }
+      },
+      "cost_usd": 0.000418,
+      "error": null,
+      "scores": {
+        "rubric_score": 1.0
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 1.0,
+        "jurors": [
+          {
+            "key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+            "score": 1.0,
+            "winner": null,
+            "reasoning": "The response directly addresses the question and correctly explains that the order is still within the expected shipping timeframe, so nothing appears wrong.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [
+          "openrouter:openai/gpt-6-luna@low"
+        ],
+        "agreement": null,
+        "reasoning": "deepseek-ai/DeepSeek-V4.1-Flash-1017@low: The response directly addresses the question and correctly explains that the order is still within the expected shipping timeframe, so nothing appears wrong."
+      }
+    },
+    {
+      "id": "88df713f-89f5-4f95-883f-19d99e00437c",
+      "candidate_key": "openrouter:xiaomi/mimo-v2.6-pro@medium",
+      "case_id": "7c5839fa-42ba-4ba4-b1f0-cef8f917af05",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "Nothing is wrong — your order is on track! We ship orders within 2 business days, so you should receive a shipping confirmation shortly.",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 2545.0,
+        "ttft_ms": 1534.5,
+        "tokens_per_s": 45.5
+      },
+      "usage": {
+        "cost": 6.873e-05,
+        "is_byok": false,
+        "cost_details": {
+          "upstream_inference_cost": 6.873e-05,
+          "upstream_inference_prompt_cost": 2.871e-05,
+          "upstream_inference_completions_cost": 4.002e-05
+        },
+        "total_tokens": 112,
+        "prompt_tokens": 66,
+        "completion_tokens": 46,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "video_tokens": 0,
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "completion_tokens_details": {
+          "audio_tokens": 0,
+          "image_tokens": 0,
+          "reasoning_tokens": 16
+        }
+      },
+      "cost_usd": 6.873e-05,
+      "error": null,
+      "scores": {
+        "rubric_score": 0.75
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 0.75,
+        "jurors": [
+          {
+            "key": "openrouter:openai/gpt-6-luna@low",
+            "score": 0.5,
+            "winner": null,
+            "reasoning": "The response directly reassures the customer, but it invents a two-business-day shipping policy and guarantees the order is on track without any supporting information.",
+            "reasoning_effort": "low"
+          },
+          {
+            "key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+            "score": 1.0,
+            "winner": null,
+            "reasoning": "The output directly answers the question, reassures the customer that nothing is wrong, explains the 2-business-day shipping window, and notes that a shipping confirmation will follow shortly. It is correct, complete, and on topic.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [],
+        "agreement": false,
+        "reasoning": "openai/gpt-6-luna@low: The response directly reassures the customer, but it invents a two-business-day shipping policy and guarantees the order is on track without any supporting information.  |  deepseek-ai/DeepSeek-V4.1-Flash-1017@low: The output directly answers the question, reassures the customer that nothing is wrong, explains the 2-business-day shipping window, and notes that a shipping confirmation will follow shortly. It is correct, complete, and on topic."
+      }
+    },
+    {
+      "id": "44e36c0d-f9df-48c7-b15a-3111b8fad8f7",
+      "candidate_key": "nebius:deepseek-ai/DeepSeek-V4-Pro-0813",
+      "case_id": "c0b1e1d8-bfb3-404d-b17a-db852ec96247",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "I'm sorry to hear that. Could you please provide your order number so I can look into the duplicate charge? If confirmed, a refund will be issued and should appear in 3–5 business days.",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 1467.6,
+        "ttft_ms": 693.2,
+        "tokens_per_s": 166.6
+      },
+      "usage": {
+        "total_tokens": 254,
+        "prompt_tokens": 125,
+        "reasoning_tokens": 86,
+        "completion_tokens": 129,
+        "prompt_tokens_details": null,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 125,
+        "completion_tokens_details": {
+          "reasoning_tokens": 86
+        }
+      },
+      "cost_usd": 0.00067584,
+      "error": null,
+      "scores": {
+        "rubric_score": 0.9
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 0.9,
+        "jurors": [
+          {
+            "key": "openrouter:openai/gpt-6-luna@low",
+            "score": 0.9,
+            "winner": null,
+            "reasoning": "The response addresses the reported duplicate charge and asks for the order number to investigate. It is helpful and on topic, though it promises a refund and a specific timeline before confirming the charge or the applicable policy.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [
+          "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low"
+        ],
+        "agreement": null,
+        "reasoning": "openai/gpt-6-luna@low: The response addresses the reported duplicate charge and asks for the order number to investigate. It is helpful and on topic, though it promises a refund and a specific timeline before confirming the charge or the applicable policy."
+      }
+    },
+    {
+      "id": "edb179a4-0957-4ab6-b6f9-b16b1abadadb",
+      "candidate_key": "openrouter:openai/gpt-6-luna@medium",
+      "case_id": "c0b1e1d8-bfb3-404d-b17a-db852ec96247",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "I’m sorry—that’s frustrating. Please share your order number and the dates and amounts of both charges (not your full card details), and we can investigate; if a duplicate charge is confirmed and refunded, it usually takes 3–5 business days to appear.",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 3033.7,
+        "ttft_ms": 2000.3,
+        "tokens_per_s": 121.0
+      },
+      "usage": {
+        "cost": 0,
+        "is_byok": true,
+        "cost_details": {
+          "upstream_inference_cost": 6.86e-05,
+          "upstream_inference_prompt_cost": 6.1e-06,
+          "upstream_inference_completions_cost": 6.25e-05
+        },
+        "total_tokens": 186,
+        "prompt_tokens": 61,
+        "completion_tokens": 125,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "video_tokens": 0,
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "completion_tokens_details": {
+          "audio_tokens": 0,
+          "image_tokens": 0,
+          "reasoning_tokens": 66
+        }
+      },
+      "cost_usd": 6.86e-05,
+      "error": null,
+      "scores": {
+        "rubric_score": 1.0
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 1.0,
+        "jurors": [
+          {
+            "key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+            "score": 1.0,
+            "winner": null,
+            "reasoning": "The output is correct, complete, and on topic: it acknowledges the duplicate-charge issue, requests the necessary information without asking for full card details, explains the investigation path, and sets a reasonable refund timeline expectation.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [
+          "openrouter:openai/gpt-6-luna@low"
+        ],
+        "agreement": null,
+        "reasoning": "deepseek-ai/DeepSeek-V4.1-Flash-1017@low: The output is correct, complete, and on topic: it acknowledges the duplicate-charge issue, requests the necessary information without asking for full card details, explains the investigation path, and sets a reasonable refund timeline expectation."
+      }
+    },
+    {
+      "id": "ae7348fa-702f-444a-b498-19948286d63a",
+      "candidate_key": "openrouter:openai/gpt-6.1-sol@medium",
+      "case_id": "c0b1e1d8-bfb3-404d-b17a-db852ec96247",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "I’m sorry about the duplicate charge. Please share your order number so we can look into it; if a duplicate payment is confirmed, the refund will take 3–5 business days.",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 2361.9,
+        "ttft_ms": 1752.0,
+        "tokens_per_s": 68.9
+      },
+      "usage": {
+        "cost": 0,
+        "is_byok": true,
+        "cost_details": {
+          "upstream_inference_cost": 0.000542,
+          "upstream_inference_prompt_cost": 0.000122,
+          "upstream_inference_completions_cost": 0.00042
+        },
+        "total_tokens": 103,
+        "prompt_tokens": 61,
+        "completion_tokens": 42,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "video_tokens": 0,
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "completion_tokens_details": {
+          "audio_tokens": 0,
+          "image_tokens": 0,
+          "reasoning_tokens": 0
+        }
+      },
+      "cost_usd": 0.000542,
+      "error": null,
+      "scores": {
+        "rubric_score": 1.0
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 1.0,
+        "jurors": [
+          {
+            "key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+            "score": 1.0,
+            "winner": null,
+            "reasoning": "The output is correct, complete, and on topic: it acknowledges the duplicate charge, requests the order number needed to investigate, and clearly explains the expected refund timeline if a duplicate payment is confirmed.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [
+          "openrouter:openai/gpt-6-luna@low"
+        ],
+        "agreement": null,
+        "reasoning": "deepseek-ai/DeepSeek-V4.1-Flash-1017@low: The output is correct, complete, and on topic: it acknowledges the duplicate charge, requests the order number needed to investigate, and clearly explains the expected refund timeline if a duplicate payment is confirmed."
+      }
+    },
+    {
+      "id": "ef6b9d90-675f-44af-886c-7cf6bc2af9e2",
+      "candidate_key": "openrouter:xiaomi/mimo-v2.6-pro@medium",
+      "case_id": "c0b1e1d8-bfb3-404d-b17a-db852ec96247",
+      "repeat_idx": 0,
+      "output": {
+        "json": null,
+        "text": "I'm so sorry about the duplicate charge—that's definitely not right! Please share your order number so I can look into it, and I'll get the extra charge refunded to you right away; refunds typically take 3-5 business days to appear on your statement.",
+        "tool_calls": null,
+        "finish_reason": "stop"
+      },
+      "timing": {
+        "e2e_ms": 3944.0,
+        "ttft_ms": 1493.3,
+        "tokens_per_s": 46.5
+      },
+      "usage": {
+        "cost": 0.00012615,
+        "is_byok": false,
+        "cost_details": {
+          "upstream_inference_cost": 0.00012615,
+          "upstream_inference_prompt_cost": 2.697e-05,
+          "upstream_inference_completions_cost": 9.918e-05
+        },
+        "total_tokens": 176,
+        "prompt_tokens": 62,
+        "completion_tokens": 114,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "video_tokens": 0,
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "completion_tokens_details": {
+          "audio_tokens": 0,
+          "image_tokens": 0,
+          "reasoning_tokens": 58
+        }
+      },
+      "cost_usd": 0.00012615,
+      "error": null,
+      "scores": {
+        "rubric_score": 0.85
+      },
+      "judge": {
+        "mode": "rubric_score",
+        "score": 0.85,
+        "jurors": [
+          {
+            "key": "openrouter:openai/gpt-6-luna@low",
+            "score": 0.7,
+            "winner": null,
+            "reasoning": "The response is empathetic and asks for the order number to investigate the duplicate charge, but it promises an immediate refund before verifying the transaction or establishing that it can issue one.",
+            "reasoning_effort": "low"
+          },
+          {
+            "key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017@low",
+            "score": 1.0,
+            "winner": null,
+            "reasoning": "The output directly addresses the duplicate charge, apologizes, asks for the order number needed to investigate, and explains the refund process and timeline. It is correct, complete for the context, and on topic.",
+            "reasoning_effort": "low"
+          }
+        ],
+        "winner": null,
+        "abstained": [],
+        "agreement": false,
+        "reasoning": "openai/gpt-6-luna@low: The response is empathetic and asks for the order number to investigate the duplicate charge, but it promises an immediate refund before verifying the transaction or establishing that it can issue one.  |  deepseek-ai/DeepSeek-V4.1-Flash-1017@low: The output directly addresses the duplicate charge, apologizes, asks for the order number needed to investigate, and explains the refund process and timeline. It is correct, complete for the context, and on topic."
+      }
+    }
+  ]
+}

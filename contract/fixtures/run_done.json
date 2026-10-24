@@ -23,7 +23,9 @@
     {
       "provider": "openrouter",
       "model": "xiaomi/mimo-v2.6-pro",
-      "params": {}
+      "params": {
+        "reasoning_effort": "medium"
+      }
     },
     {
       "provider": "nebius",
@@ -36,9 +38,26 @@
       "params": {}
     }
   ],
+  "references": [
+    {
+      "provider": "openrouter",
+      "model": "openai/gpt-6.1-sol",
+      "params": {
+        "reasoning_effort": "medium"
+      }
+    },
+    {
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna",
+      "params": {
+        "reasoning_effort": "medium"
+      }
+    }
+  ],
   "repeats": 3,
   "est_cost_usd": 0.41,
   "actual_cost_usd": 0.37,
+  "judge_agreement": 0.86,
   "created_at": "2026-10-24T12:00:00Z",
   "started_at": "2026-10-24T12:00:03Z",
   "finished_at": "2026-10-24T12:09:00Z",
@@ -48,7 +67,10 @@
       "candidate_key": "nebius:zai-org/GLM-5.3-Flash",
       "provider": "nebius",
       "model": "zai-org/GLM-5.3-Flash",
-      "is_baseline": false,
+      "is_reference": false,
+      "reference_label": null,
+      "reasoning_effort": "default",
+      "avg_reasoning_tokens": 212.0,
       "n": 150,
       "quality": {
         "mean": 0.962,
@@ -100,7 +122,10 @@
       "candidate_key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017",
       "provider": "nebius",
       "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
-      "is_baseline": false,
+      "is_reference": false,
+      "reference_label": null,
+      "reasoning_effort": "default",
+      "avg_reasoning_tokens": 48.0,
       "n": 150,
       "quality": {
         "mean": 0.971,
@@ -149,10 +174,13 @@
       "rank": 2
     },
     {
-      "candidate_key": "openrouter:xiaomi/mimo-v2.6-pro",
+      "candidate_key": "openrouter:xiaomi/mimo-v2.6-pro@medium",
       "provider": "openrouter",
       "model": "xiaomi/mimo-v2.6-pro",
-      "is_baseline": false,
+      "is_reference": false,
+      "reference_label": null,
+      "reasoning_effort": "medium",
+      "avg_reasoning_tokens": 640.0,
       "n": 150,
       "quality": {
         "mean": 0.975,
@@ -204,7 +232,10 @@
       "candidate_key": "nebius:openai/gpt-oss-120b",
       "provider": "nebius",
       "model": "openai/gpt-oss-120b",
-      "is_baseline": false,
+      "is_reference": false,
+      "reference_label": null,
+      "reasoning_effort": "default",
+      "avg_reasoning_tokens": null,
       "n": 150,
       "quality": {
         "mean": 0.918,
@@ -256,7 +287,10 @@
       "candidate_key": "nebius:MiniMaxAI/MiniMax-M3.1-Flash",
       "provider": "nebius",
       "model": "MiniMaxAI/MiniMax-M3.1-Flash",
-      "is_baseline": false,
+      "is_reference": false,
+      "reference_label": null,
+      "reasoning_effort": "default",
+      "avg_reasoning_tokens": 95.0,
       "n": 150,
       "quality": {
         "mean": 0.884,
@@ -307,16 +341,19 @@
       "rank": null
     },
     {
-      "candidate_key": "openrouter:openai/gpt-4.1-mini",
+      "candidate_key": "openrouter:openai/gpt-6.1-sol@medium",
       "provider": "openrouter",
-      "model": "openai/gpt-4.1-mini",
-      "is_baseline": true,
+      "model": "openai/gpt-6.1-sol",
+      "is_reference": true,
+      "reference_label": "GPT-6.1 Sol",
+      "reasoning_effort": "medium",
+      "avg_reasoning_tokens": 410.0,
       "n": 150,
       "quality": {
-        "mean": 0.981,
-        "std": 0.022,
-        "ci_low": 0.974,
-        "ci_high": 0.988,
+        "mean": 0.985,
+        "std": 0.019,
+        "ci_low": 0.979,
+        "ci_high": 0.991,
         "n": 150
       },
       "metrics": {
@@ -328,30 +365,85 @@
           "n": 150
         },
         "field_accuracy": {
-          "mean": 0.981,
-          "std": 0.022,
-          "ci_low": 0.961,
+          "mean": 0.985,
+          "std": 0.019,
+          "ci_low": 0.965,
           "ci_high": 1.0,
           "n": 150
         }
       },
       "ttft_ms": {
-        "p50": 520.0,
-        "p95": 936.0
+        "p50": 900.0,
+        "p95": 1620.0
       },
       "e2e_ms": {
-        "p50": 1750.0,
-        "p95": 2975.0
+        "p50": 3100.0,
+        "p95": 5270.0
       },
-      "tokens_per_s": 102.9,
-      "cost_per_call_usd": 0.00046,
-      "cost_per_success_usd": 0.000469,
+      "tokens_per_s": 58.1,
+      "cost_per_call_usd": 0.0019,
+      "cost_per_success_usd": 0.001929,
       "error_rate": 0.0,
       "scores": {
-        "quality": 0.981,
-        "speed": 0.672,
+        "quality": 0.985,
+        "speed": 0.38,
+        "cost": 0.263,
+        "utility": 0.637
+      },
+      "passed_gates": true,
+      "failed_gates": [],
+      "pareto": false,
+      "rank": null
+    },
+    {
+      "candidate_key": "openrouter:openai/gpt-6-luna@medium",
+      "provider": "openrouter",
+      "model": "openai/gpt-6-luna",
+      "is_reference": true,
+      "reference_label": "GPT-6 Luna",
+      "reasoning_effort": "medium",
+      "avg_reasoning_tokens": 120.0,
+      "n": 150,
+      "quality": {
+        "mean": 0.958,
+        "std": 0.034,
+        "ci_low": 0.947,
+        "ci_high": 0.969,
+        "n": 150
+      },
+      "metrics": {
+        "json_schema_valid": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci_low": 1.0,
+          "ci_high": 1.0,
+          "n": 150
+        },
+        "field_accuracy": {
+          "mean": 0.958,
+          "std": 0.034,
+          "ci_low": 0.938,
+          "ci_high": 0.978,
+          "n": 150
+        }
+      },
+      "ttft_ms": {
+        "p50": 380.0,
+        "p95": 684.0
+      },
+      "e2e_ms": {
+        "p50": 1500.0,
+        "p95": 2550.0
+      },
+      "tokens_per_s": 120.0,
+      "cost_per_call_usd": 0.0001,
+      "cost_per_success_usd": 0.000104,
+      "error_rate": 0.0,
+      "scores": {
+        "quality": 0.958,
+        "speed": 0.784,
         "cost": 1.0,
-        "utility": 0.895
+        "utility": 0.917
       },
       "passed_gates": true,
       "failed_gates": [],
@@ -366,7 +458,7 @@
       "quality": 0.962,
       "cost_per_success_usd": 9.4e-05,
       "latency_ms": 2805.0,
-      "is_baseline": false,
+      "is_reference": false,
       "pareto": true
     },
     {
@@ -375,16 +467,16 @@
       "quality": 0.971,
       "cost_per_success_usd": 0.000216,
       "latency_ms": 2414.0,
-      "is_baseline": false,
+      "is_reference": false,
       "pareto": true
     },
     {
-      "candidate_key": "openrouter:xiaomi/mimo-v2.6-pro",
+      "candidate_key": "openrouter:xiaomi/mimo-v2.6-pro@medium",
       "label": "mimo-v2.6-pro",
       "quality": 0.975,
       "cost_per_success_usd": 0.000318,
       "latency_ms": 8670.0,
-      "is_baseline": false,
+      "is_reference": false,
       "pareto": true
     },
     {
@@ -393,7 +485,7 @@
       "quality": 0.918,
       "cost_per_success_usd": 0.000109,
       "latency_ms": 1666.0,
-      "is_baseline": false,
+      "is_reference": false,
       "pareto": false
     },
     {
@@ -402,16 +494,25 @@
       "quality": 0.884,
       "cost_per_success_usd": 0.000124,
       "latency_ms": 3230.0,
-      "is_baseline": false,
+      "is_reference": false,
       "pareto": false
     },
     {
-      "candidate_key": "openrouter:openai/gpt-4.1-mini",
-      "label": "gpt-4.1-mini",
-      "quality": 0.981,
-      "cost_per_success_usd": 0.000469,
-      "latency_ms": 2975.0,
-      "is_baseline": true,
+      "candidate_key": "openrouter:openai/gpt-6.1-sol@medium",
+      "label": "GPT-6.1 Sol",
+      "quality": 0.985,
+      "cost_per_success_usd": 0.001929,
+      "latency_ms": 5270.0,
+      "is_reference": true,
+      "pareto": false
+    },
+    {
+      "candidate_key": "openrouter:openai/gpt-6-luna@medium",
+      "label": "GPT-6 Luna",
+      "quality": 0.958,
+      "cost_per_success_usd": 0.000104,
+      "latency_ms": 2550.0,
+      "is_reference": true,
       "pareto": false
     }
   ],
@@ -419,15 +520,17 @@
     "candidate_key": "nebius:zai-org/GLM-5.3-Flash",
     "provider": "nebius",
     "model": "zai-org/GLM-5.3-Flash",
-    "headline": "Switch to GLM-5.3-Flash: 98% of today's quality at 1/5 of the cost",
+    "headline": "Switch to GLM-5.3-Flash: 98% of GPT-6.1 Sol's quality at 1/21 of the cost",
     "reasons": [
       "Passes every gate (schema valid 100%, no errors)",
-      "Field accuracy 0.962 vs 0.981 for gpt-4.1-mini; CIs overlap with DeepSeek-V4.1-Flash, so the cheaper one wins",
-      "p95 latency 2.8 s vs 3.0 s today"
+      "Quality 0.962 vs 0.985 for GPT-6.1 Sol",
+      "p95 latency 2.8 s vs 5.3 s for GPT-6.1 Sol",
+      "Statistical tie on quality with DeepSeek-V4.1-Flash-1017; ranked by the trade-off profile"
     ],
-    "quality_vs_baseline_pct": 98.1,
-    "cost_multiple_vs_baseline": 0.2,
-    "latency_delta_ms": -170.0,
+    "reference_key": "openrouter:openai/gpt-6.1-sol@medium",
+    "quality_vs_reference_pct": 97.7,
+    "cost_multiple_vs_reference": 0.0474,
+    "latency_delta_ms": -2465.0,
     "statistical_tie_with": [
       "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017"
     ],

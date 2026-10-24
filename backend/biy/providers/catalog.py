@@ -32,7 +32,8 @@ def price_per_1m(provider: str, model: str, endpoint: str | None = None) -> dict
     """
     m = get_model(provider, model)
     if not m:
-        return None
+        from .references import price_per_1m as reference_price  # closed references, not in the catalogue
+        return reference_price(model)
     if endpoint:
         for e in m.get("endpoints") or []:
             if e.get("provider") == endpoint:

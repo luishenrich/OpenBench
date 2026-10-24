@@ -13,6 +13,7 @@ from contract.schemas import (Estimate, EstimateLine, ModelRef, Progress, Result
 from .. import db, ranking, scoring
 from ..config import settings
 from ..providers import build_messages, catalog
+from ..providers import references as refs_info
 from ..providers.client import _verify
 from .errors import CostNotConfirmed, Invalid, NotFound
 from .use_cases import _brief, get_use_case, list_cases
@@ -28,7 +29,7 @@ _or_prices: dict[str, dict] | None = None
 
 
 async def _openrouter_price(model: str) -> dict | None:
-    """Live OpenRouter price for models outside the catalogue (closed baselines)."""
+    """Live OpenRouter price for models outside the catalogue and the reference table."""
     global _or_prices
     if _or_prices is None:
         try:
@@ -92,15 +93,33 @@ async def auto_candidates(workspace_id: UUID, use_case_id: UUID, n: int = 6) -> 
                 picked.append(by_role[r].pop(0))
     if not picked:
         raise Invalid(f"no shortlisted model has verified {sorted(needs)}; pick candidates from GET /api/models")
-    return [ModelRef(provider=m["provider"], model=m["id"]) for m in picked]
+    return [ModelRef(provider=m["provider"], model=m["id"], params=default_params(m)) for m in picked]
 
 
-def _baseline(uc: UseCase, req: RunIn) -> ModelRef | None:
-    if not (req.include_baseline and uc.current_model):
-        return None
-    if any(c.provider == uc.current_model.provider and c.model == uc.current_model.model for c in req.candidates):
-        return None
-    return uc.current_model
+def default_params(m: dict) -> dict:
+    """Pinned reasoning effort for a catalogue model: "medium" on OpenRouter when the endpoints
+    support it. On Nebius the parameter is accepted but models react inconsistently (GLM-5.3-Flash
+    nearly stops reasoning at any value, DeepSeek ignores it), so they keep the provider default."""
+    if not (m.get("verified") or {}).get("reasoning") or m["provider"] != "openrouter":
+        return {}
+    if any("reasoning" in (e.get("supported_parameters") or []) for e in m.get("endpoints") or []):
+        return {"reasoning_effort": "medium"}
+    return {}
+
+
+def references_for(uc: UseCase, req: RunIn) -> list[dict]:
+    """The run's references, labelled: req.references, plus the use case's current model as "today"
+    when it is a closed model (not in the open-weight catalogue)."""
+    if not req.include_references:
+        return []
+    out = [{**r.model_dump(mode="json"), "label": refs_info.label(r.model)} for r in req.references]
+    cur = uc.current_model
+    if cur and not catalog.get_model(cur.provider, cur.model):
+        today = {**cur.model_dump(mode="json"), "label": "today"}
+        if ranking.key_of(today) not in {ranking.key_of(r) for r in out}:
+            out.append(today)
+    cand_keys = {ranking.key_of(c.model_dump()) for c in req.candidates}
+    return [r for r in out if ranking.key_of(r) not in cand_keys]
 
 
 async def estimate_run(workspace_id: UUID, req: RunIn) -> Estimate:
@@ -115,10 +134,11 @@ async def estimate_run(workspace_id: UUID, req: RunIn) -> Estimate:
     out_default = min(io.get("params", {}).get("max_tokens") or 10**6, OUTPUT_TOKENS.get(uc.kind, 500))
 
     lines, total_in, total_out, cand_cost = [], 0, 0, 0.0
-    refs = list(req.candidates) + ([b] if (b := _baseline(uc, req)) else [])
-    for ref in refs:
+    references = [ModelRef(**{k: v for k, v in r.items() if k != "label"}) for r in references_for(uc, req)]
+    for ref in list(req.candidates) + references:
         m = catalog.get_model(ref.provider, ref.model) or {}
-        out = out_default * (REASONING_FACTOR if (m.get("verified") or {}).get("reasoning") else 1)
+        reasons = (m.get("verified") or {}).get("reasoning") or ref.model in refs_info.REFERENCES
+        out = out_default * (REASONING_FACTOR if reasons else 1)
         n_in, n_out = in_tokens * req.repeats, int(out * len(cases) * req.repeats)
         p = await _price(ref)
         cost = (n_in * (p.get("input") or 0) + n_out * (p.get("output") or 0)) / 1e6
@@ -129,12 +149,15 @@ async def estimate_run(workspace_id: UUID, req: RunIn) -> Estimate:
     judge_cost = 0.0
     judge_metrics = [m for m in uc.metrics if scoring.is_judge_metric(m.metric_id)]
     if judge_metrics:
-        judge = uc.judge or (await get_workspace(workspace_id)).default_judge
-        jp = await _price(ModelRef(provider=judge.provider, model=judge.model))
-        calls = sum(len(cases) * req.repeats * len(req.candidates) * (2 if m.metric_id == "pairwise_vs_baseline" else 1)
-                    for m in judge_metrics)
+        jury = (uc.judge or (await get_workspace(workspace_id)).default_judge).judges
+        outputs = len(cases) * req.repeats
         per_call_in = in_tokens / len(cases) + out_default * 2 + JUDGE_PROMPT_TOKENS
-        judge_cost = calls * (per_call_in * (jp.get("input") or 0) + JUDGE_OUTPUT_TOKENS * (jp.get("output") or 0)) / 1e6
+        for j in jury:  # every juror judges every output (abstentions are not subtracted: an upper bound)
+            jp = await _price(ModelRef(provider=j.provider, model=j.model))
+            calls = sum(outputs * (2 * len(req.candidates) if m.metric_id == "pairwise_vs_baseline"
+                                   else len(req.candidates) + len(references)) for m in judge_metrics)
+            judge_cost += calls * (per_call_in * (jp.get("input") or 0)
+                                   + JUDGE_OUTPUT_TOKENS * (jp.get("output") or 0)) / 1e6
 
     return Estimate(
         calls=sum(l.calls for l in lines), est_input_tokens=total_in, est_output_tokens=total_out,
@@ -149,21 +172,22 @@ async def start_run(workspace_id: UUID, req: RunIn) -> Run:
         raise CostNotConfirmed(est)
     uc = await get_use_case(workspace_id, req.use_case_id)
     ws = await get_workspace(workspace_id)
-    baseline = _baseline(uc, req)
+    references = references_for(uc, req)
     n_cases = uc.case_count
     snapshot = {
         "use_case": uc.model_dump(mode="json", exclude={"latest_run"}),
         "default_profile": ws.default_profile.model_dump(mode="json"),
         "judge": (uc.judge or ws.default_judge).model_dump(mode="json"),
-        "candidates": [c.model_dump(mode="json") for c in req.candidates],
-        "baseline": baseline.model_dump(mode="json") if baseline else None,
+        "candidates": [c.model_dump(mode="json") for c in req.candidates],  # params incl. reasoning_effort
+        "references": references,
+        "pairwise_reference": ranking.key_of(references[0]) if references else None,
         "estimate": est.model_dump(mode="json"),
     }
-    total = n_cases * req.repeats * (len(req.candidates) + (1 if baseline else 0))
-    run_id = await db.fetchval(
+    total = n_cases * req.repeats * (len(req.candidates) + len(references))
+    run_id = await db.fetchval(  # run.include_baseline now means "include references"
         """insert into run (workspace_id, use_case_id, candidates, repeats, include_baseline, config_snapshot,
                             est_cost_usd, total_jobs) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id""",
-        workspace_id, req.use_case_id, snapshot["candidates"], req.repeats, req.include_baseline, snapshot,
+        workspace_id, req.use_case_id, snapshot["candidates"], req.repeats, bool(references), snapshot,
         est.total_usd, total)
     await _enqueue(run_id)
     return await get_run(workspace_id, run_id)
@@ -176,7 +200,7 @@ async def _enqueue(run_id: UUID) -> None:
         raise RuntimeError("REDIS_URL is not set: runs need the worker")
     redis = await create_pool(RedisSettings.from_dsn(settings.redis_url))
     try:
-        await redis.enqueue_job("execute_run", str(run_id), _job_id=f"run:{run_id}")
+        await redis.enqueue_job("execute_run", str(run_id), _job_id=f"run:{run_id}", _queue_name=settings.arq_queue)
     finally:
         await redis.aclose()
 
@@ -190,6 +214,13 @@ RANKING_RESULTS_SQL = ("select r.*, c.reference from result r join test_case c o
                        "where r.run_id = $1")
 
 
+def judge_agreement(results: list[dict]) -> float | None:
+    """Share of judged results where the jurors agreed (results judged by one juror don't count)."""
+    votes = [j["agreement"] for r in results if isinstance(j := r.get("judge"), dict)
+             and j.get("agreement") is not None]
+    return round(sum(votes) / len(votes), 4) if len(votes) >= 2 else None
+
+
 async def get_run(workspace_id: UUID, run_id: UUID) -> Run:
     r = await db.fetchrow("select * from run where id = $1 and workspace_id = $2", run_id, workspace_id)
     if not r:
@@ -199,15 +230,19 @@ async def get_run(workspace_id: UUID, run_id: UUID) -> Run:
         """select count(*) done, count(*) filter (where error is not null) errors,
                   count(*) filter (where judge is not null) judged
            from result where run_id = $1""", run_id)
-    if r["status"] == "done" and r["summary"]:
-        summary = r["summary"]
-    else:
+    stored = r["summary"] or {}
+    if r["status"] == "done" and stored.get("leaderboard") and "is_reference" in stored["leaderboard"][0]:
+        summary = stored
+    else:  # running, or a summary from before references: rebuild from the results
         results = await db.fetch(RANKING_RESULTS_SQL, run_id)
-        summary = ranking.build(results, snap, done=False)
+        agreement = judge_agreement(results)
+        summary = ranking.build(results, snap, done=r["status"] == "done", judge_agreement=agreement)
         summary = {k: (v.model_dump(mode="json") if hasattr(v, "model_dump") else
                        [x.model_dump(mode="json") for x in v] if isinstance(v, list) else v)
-                   for k, v in summary.items()}
+                   for k, v in summary.items()} | {"judge_agreement": agreement}
     return Run(
+        references=[ModelRef(**{k: v for k, v in x.items() if k != "label"}) for x in ranking.references_of(snap)],
+        judge_agreement=summary.get("judge_agreement"),
         id=r["id"], use_case_id=r["use_case_id"], status=r["status"],
         progress=Progress(done=counts["done"], total=r["total_jobs"], errors=counts["errors"],
                           judged=counts["judged"], judge_total=(r["summary"] or {}).get("judge_total", 0)),

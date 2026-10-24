@@ -50,8 +50,7 @@
     ],
     "selector_priority": "core",
     "aliases": [
-      "field_accuracy_micro",
-      "field_f1"
+      "field_accuracy_micro"
     ]
   },
   {

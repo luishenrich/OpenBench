@@ -1,0 +1,50 @@
+[
+  {
+    "input": {
+      "vars": {
+        "question": "Can I change the delivery address after ordering?"
+      }
+    },
+    "reference": null,
+    "tags": [],
+    "source": "synthetic",
+    "id": "0cf2ef33-954c-4da0-ba0a-d9db142d2f74",
+    "use_case_id": "80d110b7-6aa7-4991-8ff7-aedfb4152094"
+  },
+  {
+    "input": {
+      "vars": {
+        "question": "When will my refund arrive? I returned the shoes on Monday."
+      }
+    },
+    "reference": null,
+    "tags": [],
+    "source": "synthetic",
+    "id": "77a327bf-5eba-4a04-b6b3-c1bd1fed15fe",
+    "use_case_id": "80d110b7-6aa7-4991-8ff7-aedfb4152094"
+  },
+  {
+    "input": {
+      "vars": {
+        "question": "My order hasn't shipped after one day, is something wrong?"
+      }
+    },
+    "reference": null,
+    "tags": [],
+    "source": "synthetic",
+    "id": "7c5839fa-42ba-4ba4-b1f0-cef8f917af05",
+    "use_case_id": "80d110b7-6aa7-4991-8ff7-aedfb4152094"
+  },
+  {
+    "input": {
+      "vars": {
+        "question": "I was charged twice for the same order."
+      }
+    },
+    "reference": null,
+    "tags": [],
+    "source": "synthetic",
+    "id": "c0b1e1d8-bfb3-404d-b17a-db852ec96247",
+    "use_case_id": "80d110b7-6aa7-4991-8ff7-aedfb4152094"
+  }
+]

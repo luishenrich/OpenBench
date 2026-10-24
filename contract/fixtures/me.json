@@ -13,8 +13,22 @@
       "targets": {}
     },
     "default_judge": {
-      "provider": "nebius",
-      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "judges": [
+        {
+          "provider": "openrouter",
+          "model": "openai/gpt-6-luna",
+          "params": {
+            "reasoning_effort": "low"
+          }
+        },
+        {
+          "provider": "nebius",
+          "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+          "params": {
+            "reasoning_effort": "low"
+          }
+        }
+      ],
       "mode": "rubric",
       "rubric": null
     }
