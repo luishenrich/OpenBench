@@ -1,6 +1,8 @@
 # Please redeploy main: MCP tools, /mcp without slash, ES256 auth
 
-From Raphaël. Needed for the demo rehearsal: please redeploy once PR "MCP tools + scan_repo" is merged.
+From Raphaël. Needed for the demo rehearsal: please redeploy once PR #10 (MCP tools + scan_repo) is merged.
+
+**MCP ETA (you asked):** the MCP side is **done and merged into `main`** with PR #10. It goes live **as soon as you redeploy**. Then, within ~15 min, I run the first real test over HTTP on `https://biy.studypdf.net/mcp` (connect from Claude Code, `/mcp__biy__scan_repo` on a small repo, one cheap run) and tell you the result. Rehearsing discovery on StudyPDF can start right after that.
 
 **What the redeploy brings** (nothing live has it yet):
 - PR #7: dashboard tokens verified via JWKS, **ES256 only**, no `SUPABASE_JWT_SECRET`.
