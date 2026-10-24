@@ -2,9 +2,9 @@
 
 The discovery agent (via MCP) and the dashboard choose from this list. Each metric has a stable `id`.
 
-**Every run can record the runner's timing, tokens, and cost.** Reliability rates are planned and are not on the default scorecard. Quality metrics are chosen per use case, and only from rows the runtime can compute.
+**Every run records timing, tokens, cost, and reliability rates from result rows.** `classification_f1` is runner-measured too: the ranking computes macro F1 over a candidate's cases, not one score per case. Quality metrics are chosen per use case, and only from rows the runtime can compute.
 
-Background and sources: [research/metrics.md](research/metrics.md). The machine-readable source of ids is [metric-bank/data/metric-bank.json](../metric-bank/data/metric-bank.json). Each bank row has `runtime_status`: `implemented` (`score()`), `judge` (`judge()`), `runner_measured` (the runner's timing, usage, and cost), or `planned`. The selector proposes only the first three unless the brief sets `include_planned`. `score()` raises on any other id. `None` still means the case does not apply.
+Background and sources: [research/metrics.md](research/metrics.md). The machine-readable source of ids is [metric-bank/data/metric-bank.json](../metric-bank/data/metric-bank.json). Each bank row has `runtime_status`: `implemented` (`score()`), `judge` (`judge()`), `runner_measured` (timing, usage, cost, reliability rates, and set-level `classification_f1`), or `planned`. The selector proposes only the first three unless the brief sets `include_planned`. `score()` raises on any other id. `None` still means the case does not apply.
 
 ## Runnable today
 
@@ -14,7 +14,7 @@ Background and sources: [research/metrics.md](research/metrics.md). The machine-
 |---|---|
 | implemented | `json_schema_valid`, `field_accuracy`, `field_f1`, `exact_match`, `classification_accuracy`, `character_accuracy`, `word_accuracy`, `cer`, `wer`, `bbox_iou`, `bbox_f1` |
 | judge | `rubric_score`, `pairwise_vs_baseline` |
-| runner_measured | `ttft_ms`, `e2e_ms`, `output_tps`, `tokens_in_per_case`, `tokens_out_per_case`, `cost_per_case_usd`, `cost_per_success_usd` |
+| runner_measured | `ttft_ms`, `e2e_ms`, `output_tps`, `tokens_in_per_case`, `tokens_out_per_case`, `cost_per_case_usd`, `cost_per_success_usd`, `error_rate`, `truncation_rate`, `throttle_rate`, `classification_f1` |
 
 ## Speed (always measured, streamed)
 
@@ -36,7 +36,9 @@ Background and sources: [research/metrics.md](research/metrics.md). The machine-
 | `tokens_out_per_case` | Output tokens, split into reasoning and answer |
 | `monthly_cost_usd` | `cost_per_case × user-entered monthly volume` (for the recommendation card) |
 
-## Reliability (planned; off the default scorecard)
+## Reliability
+
+`error_rate`, `truncation_rate`, and `throttle_rate` are runner-measured and on the default scorecard. `flip_rate` and `pass_hat_k` stay planned.
 
 | id | Definition |
 |---|---|
@@ -89,17 +91,17 @@ Background and sources: [research/metrics.md](research/metrics.md). The machine-
 
 ## Default metric sets by kind
 
-The discovery agent starts from these. They are the runnable defaults (`runtime_status` of implemented, judge, or runner_measured). `classification_f1`, `faithfulness`, the tool metrics, `g_eval`, `error_rate`, and `task_e2e_ms` are planned; `include_planned` puts the research set back.
+The discovery agent starts from these. They are the runnable defaults (`runtime_status` of implemented, judge, or runner_measured). `faithfulness`, the tool metrics, `g_eval`, and `task_e2e_ms` are planned; `include_planned` puts the research set back. `error_rate` is a task gate on every default card.
 
 | Kind | Quality metrics | Gates (defaults) | Speed metric |
 |---|---|---|---|
-| chat | `rubric_score` (`pairwise_vs_baseline` only when a baseline is in the run) | none | `ttft_ms` p95 |
-| batch | `rubric_score` | none | — |
-| extraction | `field_accuracy`, `json_schema_valid` | `json_schema_valid ≥ 0.99` | `e2e_ms` p95 |
-| classification | `classification_accuracy` | — | `e2e_ms` p95 |
-| agent | `rubric_score` | none | `e2e_ms` p95 |
-| rag | `rubric_score` | none | `ttft_ms` p95 |
-| summarization | `rubric_score` | — | `e2e_ms` p95 |
+| chat | `rubric_score` (`pairwise_vs_baseline` only when a baseline is in the run) | `error_rate ≤ 0.02` | `ttft_ms` p95 |
+| batch | `rubric_score` | `error_rate ≤ 0.05` | — |
+| extraction | `field_accuracy`, `json_schema_valid` | `error_rate`, `truncation_rate` when there is a schema, `json_schema_valid ≥ 0.99` | `e2e_ms` p95 |
+| classification | `classification_f1` | `error_rate ≤ 0.01` | `e2e_ms` p95 |
+| agent | `rubric_score` | `error_rate`, `truncation_rate` when the agent has tools | `e2e_ms` p95 |
+| rag | `rubric_score` | `error_rate ≤ 0.02` | `ttft_ms` p95 |
+| summarization | `rubric_score` | `error_rate ≤ 0.01` | `e2e_ms` p95 |
 
 ## Public suites (baseline / priors, stretch)
 
@@ -117,7 +119,7 @@ Generated from the metric bank. `utility_axis` is what may enter the quality ave
 | id | name | category | axis | priority | runtime |
 |---|---|---|---|---|---|
 | `classification_accuracy` | Classification accuracy | accuracy | quality | supporting | implemented |
-| `classification_f1` | Classification F1 | accuracy | quality | core | planned |
+| `classification_f1` | Classification F1 | accuracy | quality | core | runner_measured |
 | `classification_precision` | Classification precision | accuracy | quality | supporting | planned |
 | `classification_recall` | Classification recall | accuracy | quality | supporting | planned |
 | `contains_all` | Contains all | accuracy | quality | supporting | planned |
@@ -229,12 +231,12 @@ Generated from the metric bank. `utility_axis` is what may enter the quality ave
 | `self_consistency_rate` | Self-consistency rate | reasoning | none | diagnostic | planned |
 | `step_correctness` | Step correctness | reasoning | quality | core | planned |
 | `empty_output_rate` | Empty-output rate | reliability | none | diagnostic | planned |
-| `error_rate` | Error rate | reliability | gate_only | core | planned |
+| `error_rate` | Error rate | reliability | gate_only | core | runner_measured |
 | `flip_rate` | Flip rate | reliability | none | supporting | planned |
 | `pass_hat_k` | pass^k | reliability | none | core | planned |
-| `throttle_rate` | Throttle rate | reliability | gate_only | supporting | planned |
+| `throttle_rate` | Throttle rate | reliability | gate_only | supporting | runner_measured |
 | `timeout_rate` | Timeout rate | reliability | none | diagnostic | planned |
-| `truncation_rate` | Truncation rate | reliability | gate_only | core | planned |
+| `truncation_rate` | Truncation rate | reliability | gate_only | core | runner_measured |
 | `long_context_accuracy` | Long-context accuracy | robustness | quality | core | planned |
 | `lost_in_the_middle_drop` | Lost-in-the-middle drop | robustness | none | diagnostic | planned |
 | `negation_robustness` | Negation robustness | robustness | quality | supporting | planned |

@@ -244,7 +244,7 @@ def build() -> str:
   </table>
 
   <h2 id="scorecard">Five scorecards</h2>
-  <p>The default card keeps the operational metrics the runner records: cost per case, cost per success, and output tokens per case, plus time to first token or end-to-end latency when someone is waiting. Error rate, truncation, and throttle stay planned. Cost per success is the cost used for ranking. If a kind has no implemented quality metric, the quality slot is rubric_score.</p>
+  <p>The default card keeps the operational metrics computed from result rows: error rate, truncation, throttle, cost per case, cost per success, and output tokens per case, plus time to first token or end-to-end latency when someone is waiting. Cost per success is the cost used for ranking. Classification uses classification_f1, which the ranking computes over a candidate's cases. If a kind has no runnable quality metric, the quality slot is rubric_score.</p>
   <p>Selection rules, the signal table, and a prompt for the app's model are in <span class="mono">selection/GUIDE.md</span>. The cards below are the reference selector, not a hand-edited illustration, so they stay aligned with the guide and the tests.</p>
   {''.join(cards)}
 

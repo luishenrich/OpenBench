@@ -39,6 +39,8 @@ Three people, each with their own Claude Code. **Each person owns folders, not f
 
 **The contract (`/contract`) is shared and frozen at T+0:30.** Luis's Claude drafts it at kickoff so nobody waits; Raphaël owns it from then on. Anyone who needs a change asks Raphaël, who makes it and says so. The metric interface (`score(metric_id, case, output, config)` and `aggregate(values)`) is in `contract/services.md`, so Jad and Raphaël never wait on each other. Everyone builds against the contract and its fixture JSON, never against someone else's unfinished code.
 
+**Model policy (decided 2026-10-24, 14:30):** candidates are open-weight only (the catalogue). Closed frontier models (`openai/gpt-6-luna`, `openai/gpt-6.1-sol` via OpenRouter BYOK) run only as grey reference lines, never ranked or recommended; they replace `gpt-4.1-mini` as the comparison. The judge is a jury of two from different families, GPT-6 Luna + DeepSeek-V4.1-Flash; each abstains on its own model family. Every reasoning-capable model runs with a pinned, displayed `reasoning_effort` (references `medium`). BYOK cost = `usage.cost_details.upstream_inference_cost`.
+
 ## Stack (final)
 
 | Piece | Choice | Notes |
