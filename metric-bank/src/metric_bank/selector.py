@@ -35,8 +35,8 @@ EXAMPLES: list[dict] = [
         "waiting": True,
         "teaching_points": [
             "End-to-end latency is the speed metric the runner records. Time to first token does not matter, because the caller cannot use a partial object.",
-            "Field accuracy and JSON schema validity are implemented, so they are the default quality terms. Schema validity is also a gate at 0.99. Numeric tolerance is planned; pass include_planned to add it.",
-            "PHI leakage is planned, so the default card does not gate on it. It is not a quality term when it is included.",
+            "Field accuracy, numeric tolerance, and JSON schema validity are the quality terms. Schema validity is also a gate at 0.99.",
+            "PHI leakage is an implemented risk gate at zero. It is not a quality term.",
         ],
     },
     {
@@ -59,9 +59,9 @@ EXAMPLES: list[dict] = [
         "regulated_advice": True,
         "waiting": True,
         "teaching_points": [
-            "Faithfulness, brand fit, and answer relevancy name the constructs, but they are planned. The default quality slot is rubric_score until those scores exist.",
-            "Harmful compliance, over-refusal, and the advice boundary are the research risk gates. They are planned, so the default card does not include them. Pass include_planned to restore them.",
-            "Time to first token ranks speed, because the runner records it. Time to first answer token is planned and is not on the default card.",
+            "Faithfulness, brand fit, and answer relevancy are judge metrics. They are the default quality terms. The jury is Luna, DeepSeek-V4.1-Flash, and GLM-5.3. Each abstains on its own family, so an output still has two votes.",
+            "Harmful compliance, over-refusal, and the advice boundary are judge risk gates on the default card.",
+            "Time to first token ranks speed. Time to first answer token stays planned and is not on the default card.",
         ],
     },
     {
@@ -81,8 +81,8 @@ EXAMPLES: list[dict] = [
         "waiting": False,
         "teaching_points": [
             "Batch does not rank on latency. The speed weight in the product profile is zero.",
-            "Brand fit, banned strings, and the length window are planned. The default quality metric is rubric_score.",
-            "Cost per successful case is runner-measured and stays on the card. Monthly cost is planned, so a known volume does not add it unless include_planned is set.",
+            "Brand fit is a judge metric. Banned strings and the length window are implemented, and both are task gates as well as quality terms.",
+            "Cost per successful case is runner-measured and stays on the card. Monthly cost stays planned unless include_planned is set.",
         ],
     },
     {
@@ -102,9 +102,9 @@ EXAMPLES: list[dict] = [
         "code_can_merge": True,
         "waiting": True,
         "teaching_points": [
-            "Tool-call match, tool choice, tests, and task success are planned. The default quality metric is rubric_score. Pass include_planned to restore them.",
-            "Argument-schema validity and pass^k are planned, so they are not on the default card.",
-            "Task wall time is planned. The runner records end-to-end latency, so that is the ranking speed metric until task time is measured.",
+            "Tool-call match and tool choice are implemented quality terms. Unit tests and task success stay planned: they need a sandbox or a finished task, not one output.",
+            "Argument-schema validity is a task gate. Insecure-code rate is a risk gate. pass^k stays planned because score() sees one output.",
+            "Task wall time is planned. The runner records end-to-end latency, so that is the ranking speed metric.",
         ],
     },
     {
@@ -124,9 +124,9 @@ EXAMPLES: list[dict] = [
         "hard_grounding": True,
         "waiting": True,
         "teaching_points": [
-            "The research card is faithfulness, citations, abstention, and context recall. Those rows are planned, so the default quality metric is rubric_score.",
-            "Pass include_planned to restore that card. Answer relevancy is the first metric that does not fit its cap.",
-            "Hallucination rate stays off. It is the gate form of grounding, and it is not implemented.",
+            "Quality is faithfulness, citation precision, citation recall, unknown abstention, and context recall. Faithfulness is a judge metric and also a task gate at 0.9.",
+            "Answer relevancy is the first metric past the quality cap.",
+            "Hallucination rate stays off. It is the gate form of grounding, and faithfulness is already the measurement.",
         ],
     },
 ]
@@ -149,10 +149,13 @@ def _quality_candidates(brief: dict) -> list[str]:
             chosen.append(metric_id)
 
     if kind == "extraction":
-        add("field_accuracy")
-        add("numeric_tolerance_accuracy", brief.get("numeric_fields", False))
+        # A scan with no schema is a transcription. Field accuracy needs fields.
+        ocr_text = bool(brief.get("ocr")) and not brief.get("has_schema")
+        if not ocr_text:
+            add("field_accuracy")
+            add("numeric_tolerance_accuracy", brief.get("numeric_fields", False))
         add("json_schema_valid", brief.get("has_schema", False))
-        add("exact_match", brief.get("has_reference", False) and not brief.get("has_schema", False))
+        add("exact_match", brief.get("has_reference", False) and not brief.get("has_schema", False) and not brief.get("ocr"))
     elif kind == "classification":
         add("classification_f1")
         add("classification_recall", brief.get("recall_matters", False))
@@ -189,6 +192,8 @@ def _quality_candidates(brief: dict) -> list[str]:
         add("faithfulness", brief.get("knowledge_base", False))
         add("instruction_following", brief.get("has_constraints", False))
         add("pairwise_vs_baseline", brief.get("baseline_present", False))
+        # A schema is a score, not only a gate. Otherwise quality has nothing deterministic.
+        add("json_schema_valid", brief.get("has_schema", False))
     # Vision is orthogonal to kind. A scanned invoice is still an extraction.
     # These lead the list so a page-reading task is not crowded out by generic extraction metrics.
     vision: list[str] = []
@@ -257,6 +262,14 @@ def _finalize_quality(
             notes.append("At most one generic judge is selected. Dropped " + ", ".join(dropped) + ".")
         kept = [preferred]
 
+    # Grading writes a score and a comment. The score stays deterministic.
+    # rubric_score is the second quality term, for the comment only.
+    if brief.get("feedback_text") and "rubric_score" not in kept:
+        kept.append("rubric_score")
+        notes.append(
+            "Written feedback is scored with rubric_score beside the deterministic label or schema metric."
+        )
+
     if not kept and include_planned and brief.get("open_ended_without_spec", False):
         kept = ["rubric_score"]
         notes.append("No named metric applied, so rubric_score is the fallback judge.")
@@ -267,7 +280,14 @@ def _finalize_quality(
     elif not kept and not include_planned:
         fallback = _runnable_quality_fallback(brief)
         kept = [fallback]
-        notes.append(f"No runnable quality metric remained, so {fallback} fills the quality slot.")
+        if brief["kind"] == "agent" and fallback == "rubric_score":
+            notes.append(
+                "Agent quality fell back to rubric_score. "
+                "tool_call_correct and tool_choice_correct are used when the brief sets tools. "
+                "code_tests_pass and agent_task_success stay planned: they need a sandbox or a finished task, not one output."
+            )
+        else:
+            notes.append(f"No runnable quality metric remained, so {fallback} fills the quality slot.")
 
     business_kept = 0
     capped: list[str] = []
@@ -416,7 +436,27 @@ def select(brief: dict, bank: dict | None = None) -> dict:
         notes.append("Hallucination rate was not added. Faithfulness is already the grounding measurement.")
 
     waiting = enriched.get("waiting", enriched["kind"] != "batch")
-    ranking = SPEED_BY_KIND[enriched["kind"]] if waiting else None
+    kind = enriched["kind"]
+    ranking = SPEED_BY_KIND[kind] if waiting else None
+    # A person reading streamed text feels the first token. Chat, RAG, and generation
+    # are that shape. A summary or other text is too, when the brief says the user is
+    # watching a stream. Extraction, classification, and agents stay on their own speed metric.
+    streamed_text = kind in {"chat", "rag", "generation"} or (
+        kind in {"summarization", "other"} and (enriched.get("streaming") or enriched.get("user_facing"))
+    )
+    if waiting and streamed_text and ranking != "ttft_ms":
+        notes.append(
+            "Streamed text is ranked on ttft_ms. End-to-end time is not the speed axis, "
+            "because the caller reads tokens as they arrive."
+        )
+        ranking = "ttft_ms"
+    if enriched.get("ocr") and not enriched.get("has_schema"):
+        notes.append(
+            "OCR without a schema is a transcription: character_accuracy or word_accuracy is the quality term, "
+            "and cer and wer are reported. field_accuracy is not used."
+        )
+    if kind in {"batch", "generation", "other"} and enriched.get("has_schema") and "json_schema_valid" in quality:
+        notes.append("json_schema_valid is a quality score and a task gate. The schema is not only a gate.")
     also_speed: list[str] = []
     if ranking == "ttft_ms" and enriched.get("reasoning_models"):
         also_speed.append("ttfat_ms")

@@ -27,7 +27,7 @@ DESIGN_NOTES = (
     "A client scorecard should contain the always-on operational metrics, one speed "
     "metric chosen from the use-case kind, one to five quality metrics, and zero to "
     "five risk gates. Each row has runtime_status. The default selector proposes only "
-    "metrics score() implements, the two judges, and the timing, token, and cost "
+    "metrics score() implements, judge() rows (one rubric call, pairwise in both orders), and the timing, token, and cost "
     "metrics the runner records. Planned rows stay in the bank. Set include_planned "
     "to opt in. If filtering would leave quality empty, the selector uses an "
     "implemented metric for that kind, or rubric_score. Document vision is included "

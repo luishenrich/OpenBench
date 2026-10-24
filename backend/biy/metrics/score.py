@@ -19,7 +19,7 @@ class UnimplementedMetricError(ValueError):
         self.runtime_status = runtime_status
         hint = {
             "planned": "It is on the roadmap. The selector omits it unless include_planned is set.",
-            "judge": "Call judge() for rubric_score and pairwise_vs_baseline.",
+            "judge": "Call judge(). A single configured judge is one call; a judges list is the jury.",
             "runner_measured": "The runner records this from stream timing, usage, or cost.",
             "implemented": "The bank marks it implemented, but score() has no function for it.",
         }.get(runtime_status, "It is not a deterministic score().")
@@ -38,6 +38,7 @@ from metric_bank.illustrative import (
     word_error_rate,
 )
 
+from .deterministic import EXTRA_SCORERS, normalize_label
 from .types import CaseView, OutputView
 
 
@@ -209,7 +210,7 @@ def score_classification_accuracy(case: CaseView, output: OutputView, config: di
     predicted = _label(output.json if output.json is not None else output.text, field)
     if gold is None or predicted is None:
         return None
-    return 1.0 if str(predicted).casefold() == str(gold).casefold() else 0.0
+    return 1.0 if normalize_label(predicted) == normalize_label(gold) else 0.0
 
 
 def _transcript(value: Any) -> str | None:
@@ -356,4 +357,5 @@ SCORERS = {
     "wer": score_wer,
     "bbox_iou": score_bbox_iou,
     "bbox_f1": score_bbox_f1,
+    **EXTRA_SCORERS,
 }

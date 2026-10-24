@@ -19,11 +19,11 @@ Runner-measured ids are `ttft_ms`, `e2e_ms`, `output_tps`, `tokens_in_per_case`,
 Start from the brief, not from a leaderboard.
 
 1. **Always measure** `error_rate`, `truncation_rate`, `throttle_rate`, `cost_per_case_usd`, `cost_per_success_usd`, and `tokens_out_per_case`. They come off logs the runner already stores. Rank cost on cost per successful case. Monthly cost is reported only when the client entered a volume, and it is not a second cost axis.
-2. **One speed metric**, from the product kind. Chat and RAG: `ttft_ms`. Extraction, classification, summarization, generation: `e2e_ms`. Agents: `task_e2e_ms`. Batch, or any caller who is not waiting: none. If reasoning models are in a chat set, also report `ttfat_ms`. It does not replace time to first token as the ranking speed.
+2. **One speed metric**, from the product kind. Streamed text a person reads — chat, RAG, and generation, plus summarization or other when `user_facing` or `streaming` is set — ranks on `ttft_ms`. Extraction and classification: `e2e_ms`. Agents: `task_e2e_ms`, which falls back to `e2e_ms` until task wall time is measured. Batch, or any caller who is not waiting: none. If reasoning models are in a chat set, also report `ttfat_ms`. It does not replace time to first token as the ranking speed.
 3. **One to five quality metrics.** A metric may enter the quality average only when `utility_axis` is `quality`. Those scores are already higher-better on 0–1. Do not min-max them across candidates. Do not transform a gate into a quality term by subtracting it from 1 unless the row's `quality_transform` says so. In this bank, lower-better risk rates are gates, so their transform is `not_a_quality_input`.
 4. **Zero to five risk gates.** Use them for harmful compliance, over-refusal, privacy, insecure code, and injection on untrusted context. Do not turn a preference into a gate. The default order keeps the user-facing refusal gates ahead of privacy, so a finance chat that also handles secrets does not lose over-refusal or the advice boundary. Pass `risk_priorities` to move a gate to the front.
 5. **Task gates** for requirements the client named as pass/fail: schema validity at or above 0.99, faithfulness at or above 0.9 when the source is binding, banned strings, a hard length window, a required language. `error_rate` is always a task gate. Chat and RAG default to at most 0.02, batch to at most 0.05, and other kinds to at most 0.01.
-6. **At most one generic judge**, and only when no named metric fits. Prefer `rubric_score`. Use `g_eval` when the kind is summarization and there is no claim or coverage check. Add `pairwise_vs_baseline` only when a baseline completion is in the run, and then it is the one judge, not a second one.
+6. **At most one generic judge**, and only when no named metric fits. Prefer `rubric_score`. Use `g_eval` when the kind is summarization and there is no claim or coverage check. Add `pairwise_vs_baseline` only when a baseline completion is in the run, and then it is the one judge, not a second one. The exception is `feedback_text`: a grade or label stays on its deterministic metric, and `rubric_score` is a second quality term for the written comment. That flag is on the selector brief. `ScorecardBrief` does not have it yet.
 7. **Agents also report `pass_hat_k`.** It is not part of the quality average. Task success already counts a success. pass^k asks whether that success is stable.
 
 Caps live in `selection_policy.caps` in the bank: 5 quality, 3 risk, 2 business, 1 judging.
@@ -98,12 +98,12 @@ A claims platform extracts a fixed JSON object from an explanation-of-benefits p
 
 | Role | Metrics |
 |---|---|
-| Quality | `field_accuracy`, `json_schema_valid` |
+| Quality | `field_accuracy`, `numeric_tolerance_accuracy`, `json_schema_valid` |
 | Speed | `e2e_ms` |
-| Risk gate | none (`pii_leakage_rate` is planned) |
+| Risk gate | `pii_leakage_rate` ≤ 0 |
 | Task gates | `error_rate` ≤ 0.01, `truncation_rate` ≤ 0.01, `json_schema_valid` ≥ 0.99 |
 
-`numeric_tolerance_accuracy` is the research metric for dollar fields. It is planned, so it is not on the default card. Schema validity is one measurement used two ways: the rate enters quality, and 0.99 disqualifies. Time to first token is the wrong speed metric because a partial object is not a result.
+Schema validity is one measurement used two ways: the rate enters quality, and 0.99 disqualifies. Time to first token is the wrong speed metric because a partial object is not a result. OCR with no schema is different: quality is `character_accuracy` (or `word_accuracy` when the client named words), and `cer` and `wer` are reported. `field_accuracy` is not used.
 
 ### 2. Fintech support chat (`fintech_support_chat`)
 
@@ -111,12 +111,12 @@ A streaming assistant answers account questions in the company's voice. A help-c
 
 | Role | Metrics |
 |---|---|
-| Quality | `rubric_score` |
+| Quality | `faithfulness`, `tone_brand_fit`, `answer_relevancy` |
 | Speed | `ttft_ms` |
-| Risk gates | none |
+| Risk gates | `safety_violation` ≤ 0.01, `over_refusal` ≤ 0.05, `non_advice_compliance` ≥ 0.98 |
 | Task gate | `error_rate` ≤ 0.02 |
 
-`faithfulness`, `tone_brand_fit`, and `answer_relevancy` are the research quality metrics. They are planned, so the default slot is `rubric_score`. The research risk gates are `safety_violation`, `over_refusal`, and `non_advice_compliance`. `ttfat_ms` is planned and is not reported beside time to first token until the runner records it. Pass `include_planned` to restore that card.
+Those three quality metrics are judge metrics. The jury is Luna, DeepSeek-V4.1-Flash, and GLM-5.3. Each abstains on its own family, so an output still has two votes. `ttfat_ms` stays planned and is not reported beside time to first token until the runner records it.
 
 ### 3. Nightly ad-copy batch (`nightly_ad_copy`)
 
@@ -124,13 +124,13 @@ A job writes product blurbs overnight. Copy must sound like the brand, must not 
 
 | Role | Metrics |
 |---|---|
-| Quality | `rubric_score` |
+| Quality | `tone_brand_fit`, `contains_none`, `length_within` |
 | Speed | none |
 | Risk gates | none |
-| Task gates | `error_rate` ≤ 0.05 |
+| Task gates | `error_rate` ≤ 0.05, `contains_none` ≥ 0.99, `length_within` ≥ 0.99 |
 | Also report | none (`monthly_cost_usd` is planned) |
 
-The product profile for batch puts no weight on speed. `tone_brand_fit`, `contains_none`, and `length_within` are planned. Rank on cost per success. Monthly cost comes back with `include_planned`.
+The product profile for batch puts no weight on speed. Brand fit is a judge metric. Banned strings and the length window are also task gates. A batch or generation brief that sets `has_schema` adds `json_schema_valid` to quality as well as the gate. Rank on cost per success. Monthly cost comes back with `include_planned`.
 
 ### 4. Coding agent (`coding_agent`)
 
@@ -138,13 +138,13 @@ An agent edits a repository through tools, runs tests, and may open a pull reque
 
 | Role | Metrics |
 |---|---|
-| Quality | `rubric_score` |
+| Quality | `tool_call_correct`, `tool_choice_correct` |
 | Speed | `e2e_ms` |
-| Risk gate | none |
-| Task gates | `error_rate` ≤ 0.01, `truncation_rate` ≤ 0.01 |
-| Reliability, not quality | none |
+| Risk gate | `insecure_code_rate` ≤ 0.01 |
+| Task gates | `error_rate` ≤ 0.01, `truncation_rate` ≤ 0.01, `tool_argument_schema_valid` ≥ 0.99 |
+| Reliability, not quality | none (`pass_hat_k` is planned) |
 
-`tool_call_correct`, `tool_choice_correct`, `code_tests_pass`, and `agent_task_success` are planned. `task_e2e_ms`, `tool_argument_schema_valid`, `insecure_code_rate`, and `pass_hat_k` are planned too. The runner records end-to-end latency, so that is the ranking speed metric. Pass `include_planned` for the research card.
+`tool_call_correct` and `tool_choice_correct` are the quality terms when the brief sets `tools`. An agent with no tool trace falls back to `rubric_score`, and the selector notes say so. `code_tests_pass` and `agent_task_success` stay planned: they need a sandbox or a finished task. `task_e2e_ms` is planned, so the ranking speed metric is end-to-end latency. Pass `include_planned` for the research card.
 
 ### 5. Legal contract RAG (`legal_contract_rag`)
 
@@ -152,13 +152,13 @@ An internal tool answers questions about a contract the firm uploaded. Answers m
 
 | Role | Metrics |
 |---|---|
-| Quality | `rubric_score` |
-| First alternate, over the cap | none on the default card |
+| Quality | `faithfulness`, `citation_precision`, `citation_recall`, `unknown_abstention`, `context_recall` |
+| First alternate, over the cap | `answer_relevancy` |
 | Speed | `ttft_ms` |
 | Risk gates | none |
-| Task gates | `error_rate` ≤ 0.02 |
+| Task gates | `error_rate` ≤ 0.02, `faithfulness` ≥ 0.9 |
 
-With `include_planned`, quality is `faithfulness`, `citation_precision`, `citation_recall`, `unknown_abstention`, and `context_recall`, and the first alternate is `answer_relevancy`. Hallucination rate is the gate form of the same grounding construct and is not added beside faithfulness.
+Hallucination rate is the gate form of the same grounding construct and is not added beside faithfulness. Faithfulness is a judge metric.
 
 ## Prompt
 
@@ -169,7 +169,7 @@ You are choosing a benchmark scorecard from the BIY metric bank. Return only ids
 
 By default return only rows whose runtime_status is implemented, judge, or runner_measured. Planned rows stay off the card unless the brief sets include_planned. If that leaves quality empty, use field_accuracy for extraction, classification_accuracy for classification, or rubric_score.
 
-Include the runnable always-on metrics (error_rate, truncation_rate, throttle_rate, cost_per_case_usd, cost_per_success_usd, tokens_out_per_case). error_rate is always a task gate. Pick one speed metric the runner measures (ttft_ms or e2e_ms), or none for batch. Pick one to five quality metrics whose utility_axis is quality and whose runtime_status is runnable. For classification that is classification_f1. Pick risk and task gates only when those ids are runnable, unless include_planned is set.
+Include the runnable always-on metrics (error_rate, truncation_rate, throttle_rate, cost_per_case_usd, cost_per_success_usd, tokens_out_per_case). error_rate is always a task gate. Rank streamed text (chat, RAG, generation, and user-facing summaries) on ttft_ms. Rank extraction and classification on e2e_ms. Rank nothing for batch. Pick one to five quality metrics whose utility_axis is quality and whose runtime_status is runnable. For classification that is classification_f1. When has_schema is set on batch or generation, json_schema_valid is a quality score and a gate. OCR without a schema uses character_accuracy or word_accuracy, plus cer and wer reported, not field_accuracy. When feedback_text is set, keep rubric_score beside the label. An agent without tools falls back to rubric_score and the notes must say so; with tools, use tool_call_correct and tool_choice_correct. Pick risk and task gates only when those ids are runnable, unless include_planned is set.
 
 Do not select a metric marked avoid_as_primary as the quality score. Do not select a gate_form as a quality metric when the primary of that construct is already selected. Do not select two metrics from a double_count group. Do not select more than one of rubric_score and g_eval. Do not select pairwise_vs_baseline without a baseline. Do not select a metric whose required inputs the client cannot provide. Do not treat a public exam as a metric.
 

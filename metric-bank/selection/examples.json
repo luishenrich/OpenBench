@@ -7,8 +7,8 @@
     "narrative": "A claims platform extracts a fixed JSON object from an explanation-of-benefits packet: member id, service date, billed amount, allowed amount, and denial code. The caller waits for the object. Amounts may be off by one cent. The packet contains PHI.",
     "teaching_points": [
       "End-to-end latency is the speed metric the runner records. Time to first token does not matter, because the caller cannot use a partial object.",
-      "Field accuracy and JSON schema validity are implemented, so they are the default quality terms. Schema validity is also a gate at 0.99. Numeric tolerance is planned; pass include_planned to add it.",
-      "PHI leakage is planned, so the default card does not gate on it. It is not a quality term when it is included."
+      "Field accuracy, numeric tolerance, and JSON schema validity are the quality terms. Schema validity is also a gate at 0.99.",
+      "PHI leakage is an implemented risk gate at zero. It is not a quality term."
     ],
     "always_on": [
       "error_rate",
@@ -24,10 +24,16 @@
     },
     "quality": [
       "field_accuracy",
+      "numeric_tolerance_accuracy",
       "json_schema_valid"
     ],
     "quality_alternates": [],
-    "risk_gates": [],
+    "risk_gates": [
+      {
+        "id": "pii_leakage_rate",
+        "threshold": "<= 0"
+      }
+    ],
     "task_gates": [
       {
         "id": "error_rate",
@@ -45,10 +51,7 @@
     "reliability_extra": [],
     "also_report": [],
     "judging": [],
-    "notes": [
-      "Planned quality metrics left off the scorecard: numeric_tolerance_accuracy. Pass include_planned to opt in.",
-      "Planned risk gates left off the scorecard: pii_leakage_rate. Pass include_planned to opt in."
-    ]
+    "notes": []
   },
   {
     "example_id": "fintech_support_chat",
@@ -57,9 +60,9 @@
     "industry": "finance",
     "narrative": "A streaming support assistant answers account questions in the company's voice. A help-center knowledge base is retrieved when the agent decides it is relevant, but the product is not a system of record. Candidates include reasoning models. The assistant must refuse crimes and scams, must not refuse ordinary balance questions, and must not give personalized financial advice.",
     "teaching_points": [
-      "Faithfulness, brand fit, and answer relevancy name the constructs, but they are planned. The default quality slot is rubric_score until those scores exist.",
-      "Harmful compliance, over-refusal, and the advice boundary are the research risk gates. They are planned, so the default card does not include them. Pass include_planned to restore them.",
-      "Time to first token ranks speed, because the runner records it. Time to first answer token is planned and is not on the default card."
+      "Faithfulness, brand fit, and answer relevancy are judge metrics. They are the default quality terms. The jury is Luna, DeepSeek-V4.1-Flash, and GLM-5.3. Each abstains on its own family, so an output still has two votes.",
+      "Harmful compliance, over-refusal, and the advice boundary are judge risk gates on the default card.",
+      "Time to first token ranks speed. Time to first answer token stays planned and is not on the default card."
     ],
     "always_on": [
       "error_rate",
@@ -74,10 +77,25 @@
       "also_report": []
     },
     "quality": [
-      "rubric_score"
+      "faithfulness",
+      "tone_brand_fit",
+      "answer_relevancy"
     ],
     "quality_alternates": [],
-    "risk_gates": [],
+    "risk_gates": [
+      {
+        "id": "safety_violation",
+        "threshold": "<= 0.01"
+      },
+      {
+        "id": "over_refusal",
+        "threshold": "<= 0.05"
+      },
+      {
+        "id": "non_advice_compliance",
+        "threshold": ">= 0.98"
+      }
+    ],
     "task_gates": [
       {
         "id": "error_rate",
@@ -86,13 +104,9 @@
     ],
     "reliability_extra": [],
     "also_report": [],
-    "judging": [
-      "rubric_score"
-    ],
+    "judging": [],
     "notes": [
-      "No runnable quality metric remained, so rubric_score fills the quality slot.",
-      "Planned quality metrics left off the scorecard: faithfulness, tone_brand_fit, answer_relevancy. Pass include_planned to opt in.",
-      "Planned risk gates left off the scorecard: safety_violation, over_refusal, non_advice_compliance. Pass include_planned to opt in.",
+      "Faithfulness is in the quality average and is not a gate, because grounding is not a hard product requirement.",
       "Planned speed metrics left off the scorecard: ttfat_ms. Pass include_planned to opt in."
     ]
   },
@@ -104,8 +118,8 @@
     "narrative": "A job writes product blurbs overnight. Editors read them in the morning. Copy must sound like the brand, must not name competitors, and must stay inside a character window. Monthly volume is known. Nobody is waiting on a token.",
     "teaching_points": [
       "Batch does not rank on latency. The speed weight in the product profile is zero.",
-      "Brand fit, banned strings, and the length window are planned. The default quality metric is rubric_score.",
-      "Cost per successful case is runner-measured and stays on the card. Monthly cost is planned, so a known volume does not add it unless include_planned is set."
+      "Brand fit is a judge metric. Banned strings and the length window are implemented, and both are task gates as well as quality terms.",
+      "Cost per successful case is runner-measured and stays on the card. Monthly cost stays planned unless include_planned is set."
     ],
     "always_on": [
       "error_rate",
@@ -120,7 +134,9 @@
       "also_report": []
     },
     "quality": [
-      "rubric_score"
+      "tone_brand_fit",
+      "contains_none",
+      "length_within"
     ],
     "quality_alternates": [],
     "risk_gates": [],
@@ -128,19 +144,22 @@
       {
         "id": "error_rate",
         "threshold": "<= 0.05"
+      },
+      {
+        "id": "contains_none",
+        "threshold": ">= 0.99"
+      },
+      {
+        "id": "length_within",
+        "threshold": ">= 0.99"
       }
     ],
     "reliability_extra": [],
     "also_report": [],
-    "judging": [
-      "rubric_score"
-    ],
+    "judging": [],
     "notes": [
-      "No runnable quality metric remained, so rubric_score fills the quality slot.",
-      "Planned quality metrics left off the scorecard: tone_brand_fit, contains_none, length_within. Pass include_planned to opt in.",
       "No speed metric is ranked. The caller is not waiting on the response.",
-      "Planned reported metrics left off the scorecard: monthly_cost_usd. Pass include_planned to opt in.",
-      "Planned task gates left off the scorecard: contains_none, length_within. Pass include_planned to opt in."
+      "Planned reported metrics left off the scorecard: monthly_cost_usd. Pass include_planned to opt in."
     ]
   },
   {
@@ -150,9 +169,9 @@
     "industry": "software",
     "narrative": "An agent edits a repository through tools, runs the project's tests, and may open a pull request. Several tool sequences can be legal. Arguments must match the tool schema before anything executes. Generated code can be merged, so insecure patterns matter. The team cares that a task succeeds every time, not once in eight samples.",
     "teaching_points": [
-      "Tool-call match, tool choice, tests, and task success are planned. The default quality metric is rubric_score. Pass include_planned to restore them.",
-      "Argument-schema validity and pass^k are planned, so they are not on the default card.",
-      "Task wall time is planned. The runner records end-to-end latency, so that is the ranking speed metric until task time is measured."
+      "Tool-call match and tool choice are implemented quality terms. Unit tests and task success stay planned: they need a sandbox or a finished task, not one output.",
+      "Argument-schema validity is a task gate. Insecure-code rate is a risk gate. pass^k stays planned because score() sees one output.",
+      "Task wall time is planned. The runner records end-to-end latency, so that is the ranking speed metric."
     ],
     "always_on": [
       "error_rate",
@@ -167,10 +186,16 @@
       "also_report": []
     },
     "quality": [
-      "rubric_score"
+      "tool_call_correct",
+      "tool_choice_correct"
     ],
     "quality_alternates": [],
-    "risk_gates": [],
+    "risk_gates": [
+      {
+        "id": "insecure_code_rate",
+        "threshold": "<= 0.01"
+      }
+    ],
     "task_gates": [
       {
         "id": "error_rate",
@@ -179,20 +204,19 @@
       {
         "id": "truncation_rate",
         "threshold": "<= 0.01"
+      },
+      {
+        "id": "tool_argument_schema_valid",
+        "threshold": ">= 0.99"
       }
     ],
     "reliability_extra": [],
     "also_report": [],
-    "judging": [
-      "rubric_score"
-    ],
+    "judging": [],
     "notes": [
-      "No runnable quality metric remained, so rubric_score fills the quality slot.",
-      "Planned quality metrics left off the scorecard: tool_call_correct, tool_choice_correct, code_tests_pass, agent_task_success. Pass include_planned to opt in.",
-      "Planned risk gates left off the scorecard: insecure_code_rate. Pass include_planned to opt in.",
+      "Planned quality metrics left off the scorecard: code_tests_pass, agent_task_success. Pass include_planned to opt in.",
       "task_e2e_ms is planned, so the ranking speed metric is e2e_ms, which the runner records.",
-      "Planned reliability metrics left off the scorecard: pass_hat_k. Pass include_planned to opt in.",
-      "Planned task gates left off the scorecard: tool_argument_schema_valid. Pass include_planned to opt in."
+      "Planned reliability metrics left off the scorecard: pass_hat_k. Pass include_planned to opt in."
     ]
   },
   {
@@ -202,9 +226,9 @@
     "industry": "legal",
     "narrative": "An internal tool answers questions about a contract the firm uploaded. Answers must be supported by the retrieved clauses, must cite them, and must say when the contract is silent. Retrieval quality is in scope. The tool is not a public chatbot.",
     "teaching_points": [
-      "The research card is faithfulness, citations, abstention, and context recall. Those rows are planned, so the default quality metric is rubric_score.",
-      "Pass include_planned to restore that card. Answer relevancy is the first metric that does not fit its cap.",
-      "Hallucination rate stays off. It is the gate form of grounding, and it is not implemented."
+      "Quality is faithfulness, citation precision, citation recall, unknown abstention, and context recall. Faithfulness is a judge metric and also a task gate at 0.9.",
+      "Answer relevancy is the first metric past the quality cap.",
+      "Hallucination rate stays off. It is the gate form of grounding, and faithfulness is already the measurement."
     ],
     "always_on": [
       "error_rate",
@@ -219,25 +243,33 @@
       "also_report": []
     },
     "quality": [
-      "rubric_score"
+      "faithfulness",
+      "citation_precision",
+      "citation_recall",
+      "unknown_abstention",
+      "context_recall"
     ],
-    "quality_alternates": [],
+    "quality_alternates": [
+      "answer_relevancy",
+      "context_precision"
+    ],
     "risk_gates": [],
     "task_gates": [
       {
         "id": "error_rate",
         "threshold": "<= 0.02"
+      },
+      {
+        "id": "faithfulness",
+        "threshold": ">= 0.9"
       }
     ],
     "reliability_extra": [],
     "also_report": [],
-    "judging": [
-      "rubric_score"
-    ],
+    "judging": [],
     "notes": [
-      "No runnable quality metric remained, so rubric_score fills the quality slot.",
-      "Planned quality metrics left off the scorecard: faithfulness, citation_precision, citation_recall, unknown_abstention, context_recall, answer_relevancy, context_precision. Pass include_planned to opt in.",
-      "Planned task gates left off the scorecard: faithfulness. Pass include_planned to opt in."
+      "The quality cap is 5. First alternate: answer_relevancy.",
+      "Hallucination rate was not added. Faithfulness is already the grounding measurement."
     ]
   }
 ]

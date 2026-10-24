@@ -21,7 +21,7 @@ SPEED_BY_KIND = {
     "classification": "e2e_ms",
     "summarization": "e2e_ms",
     "agent": "task_e2e_ms",
-    "generation": "e2e_ms",
+    "generation": "ttft_ms",
     "batch": None,
     "other": "e2e_ms",
 }
