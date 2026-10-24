@@ -74,7 +74,9 @@ def _brief(u) -> dict:
     """Compact use case for tool replies (full objects filled agents' context: ~76k chars for 27).
     The full object is biy_use_cases_get."""
     prompt = bool(u.io_spec.system_prompt or u.io_spec.user_template)
-    needs = ([] if prompt else ["prompt not attached"]) + ([] if u.case_count else ["no cases"]) \
+    # image use cases: scan_repo writes "needs page images" in the description when the repo has none
+    data = "needs page images" if "needs page images" in (u.description or "").lower() else "no cases"
+    needs = ([] if prompt else ["prompt not attached"]) + ([] if u.case_count else [data]) \
         + ([] if u.metrics else ["no metrics"])
     return {"id": str(u.id), "name": u.name, "kind": u.kind,
             "url": f"{settings.public_base_url.rstrip('/')}/use-cases/{u.id}",
@@ -265,7 +267,7 @@ async def biy_cases_generate(use_case_id: UUID, n: int = 20, strategy: str = "au
 async def biy_upload_url(use_case_id: UUID, field: str) -> ToolResult:
     """One-time URL to upload a large field straight from a file, so its bytes never go through your
     tool arguments. Use it for any prompt over ~4,000 characters, big schemas or tool lists, many cases,
-    and images. Then run from your shell:  curl -sf --data-binary @path/to/file <url>
+    and images. Then run from your shell:  curl -fsS --retry 3 --data-binary @path/to/file <url>
 
     field: system_prompt | user_template (text) | response_schema | tools (JSON) |
            cases_jsonl (one CaseIn JSON object per line) | image (PNG/JPEG/WebP/PDF → returns its URL;
