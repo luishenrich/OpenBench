@@ -65,6 +65,13 @@ CATEGORIES = [
         "selector_notes": "Gate on schema validity. Put field accuracy in the quality average. Do not also gate on raw JSON parse when the schema gate exists.",
     },
     {
+        "id": "vision",
+        "name": "Document vision",
+        "description": "Transcription error on text read from an image, and overlap between predicted and reference regions.",
+        "always_on": False,
+        "selector_notes": "Use character accuracy when a reference transcription exists, and report character and word error beside it. Add box F1 and IoU only when the task is to locate regions. Do not apply these to a text-only prompt.",
+    },
+    {
         "id": "agents_tools",
         "name": "Agents and tool use",
         "description": "Tool choice, argument match, task success, and trajectory discipline.",

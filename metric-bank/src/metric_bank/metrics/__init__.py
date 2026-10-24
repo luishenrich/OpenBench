@@ -12,6 +12,7 @@ from .knowledge_reasoning import METRICS as KNOWLEDGE_REASONING
 from .ops import METRICS as OPS
 from .rag_summary import METRICS as RAG_SUMMARY
 from .safety_multilingual import METRICS as SAFETY_MULTILINGUAL
+from .vision import METRICS as VISION
 
 METRICS = [
     *ACCURACY,
@@ -19,6 +20,7 @@ METRICS = [
     *RAG_SUMMARY,
     *CODE_CONVERSATION,
     *INSTRUCTION_STRUCTURED,
+    *VISION,
     *AGENTS,
     *SAFETY_MULTILINGUAL,
     *BIAS_PRIVACY,

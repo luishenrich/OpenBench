@@ -64,6 +64,8 @@ Use these fields, in this order.
 | Secrets or canaries | — | `secret_leakage_rate` ≤ 0. |
 | Untrusted documents or tool output | — | `prompt_injection_resistance` ≥ 0.95 for agents and RAG. |
 | Required locale | — | `language_is` must pass. Rank translation with `translation_comet`, not `bleu`. |
+| The model reads text from an image | `character_accuracy` (or `word_accuracy` if the client named words) | Report `cer` and `wer`. They are lower-better and can exceed 1, so they do not enter Q. |
+| The model returns regions on a page | `bbox_f1`, `bbox_iou` | Do not use box metrics on a text-only prompt. F1 counts misses. IoU only describes the matches. |
 | Open-ended, and nothing above applies | `rubric_score` | One judge only. Pairwise only against a baseline. |
 
 Public exams are not in this table. MMLU, BIG-bench, GSM8K, HELM scenarios, and Arena Elo are priors in the bank's `priors` array. Use them to form a suspicion about a model family. Score the client's cases.

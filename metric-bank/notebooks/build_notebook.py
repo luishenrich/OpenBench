@@ -128,7 +128,10 @@ for example in EXAMPLES:
     r'''
 from metric_bank.illustrative import (
     ambiguous_context_bias,
+    bbox_iou,
     case_cost_usd,
+    character_accuracy,
+    character_error_rate,
     expected_calibration_error,
     faithfulness_from_verdicts,
     json_schema_valid,
@@ -154,6 +157,8 @@ print("p95 of e2e ms", percentile([80, 90, 100, 110, 400], 95))
 print("target score at 2x", round(target_score(200, 100, 1000), 3))
 print("ROUGE-L, for contrast only", round(rouge_l("the claim was denied", "the claim was paid"), 3))
 print("BBQ-style bias", round(ambiguous_context_bias(accuracy=0.4, stereotype_aligned=7, non_unknown=10), 3))
+print("CER", round(character_error_rate("120.50", "120.00"), 3), "accuracy", round(character_accuracy("120.50", "120.00"), 3))
+print("box IoU", round(bbox_iou((0, 0, 10, 10), (5, 5, 15, 15)), 3))
 ''',
     r'''
 print(f"{'prior':<28} {'kind':<22} citation")

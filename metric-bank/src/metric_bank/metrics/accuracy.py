@@ -270,7 +270,7 @@ METRICS = [
         quality_transform="identity",
         construct_group="classification",
         group_role="alternate",
-        aliases=["top1_accuracy"],
+        aliases=["top1_accuracy", "label_accuracy"],
         config={"type": "object", "properties": {"labels": {"type": "array", "items": {"type": "string"}}}},
     ),
     metric(

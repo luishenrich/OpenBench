@@ -23,8 +23,8 @@ def test_bank_matches_schema_and_catalogue():
     ).validate(bank)
     ids = {item["id"] for item in bank["metrics"]}
     assert CATALOG_IDS <= ids
-    assert len(bank["metrics"]) == 152
-    assert len(bank["categories"]) == 21
+    assert len(bank["metrics"]) == 158
+    assert len(bank["categories"]) == 22
     on_disk = json.loads((ROOT / "data" / "metric-bank.json").read_text(encoding="utf-8"))
     assert on_disk == bank
 
@@ -104,6 +104,32 @@ def test_open_ended_falls_back_to_one_judge():
     assert card["judging"] == ["rubric_score"]
 
 
+def test_scanned_page_uses_vision_metrics():
+    card = select(
+        {
+            "id": "scanned_page",
+            "title": "Scanned page",
+            "kind": "extraction",
+            "industry": "insurance",
+            "narrative": "Read a scanned explanation of benefits and return the text plus field boxes.",
+            "ocr": True,
+            "layout_boxes": True,
+            "has_schema": True,
+            "waiting": True,
+        }
+    )
+    assert card["quality"] == [
+        "character_accuracy",
+        "bbox_f1",
+        "bbox_iou",
+        "field_accuracy",
+        "json_schema_valid",
+    ]
+    assert card["also_report"] == ["cer", "wer"]
+    assert "cer" not in card["quality"]
+    assert "wer" not in card["quality"]
+
+
 def test_formula_sketches():
     assert sketch.exact_match("The Cat.", "the cat")
     assert sketch.token_f1("the cat sat", "cat sat") == 0.8
@@ -123,4 +149,10 @@ def test_formula_sketches():
     assert sketch.json_schema_valid({"a": 1}, {"type": "object", "required": ["a"]})
     assert not sketch.json_schema_valid({}, {"type": "object", "required": ["a"]})
     assert sketch.case_cost_usd(1_000_000, 200_000, 100_000, {"input": 3, "cached": 0.3, "output": 15}) == 3.96
+    assert sketch.character_error_rate("cat", "cat") == 0
+    assert abs(sketch.character_error_rate("car", "cat") - 1 / 3) < 1e-12
+    assert abs(sketch.character_accuracy("car", "cat") - (2 / 3)) < 1e-12
+    assert abs(sketch.word_error_rate("the cat sat", "the cat") - 0.5) < 1e-12
+    assert sketch.bbox_iou((0, 0, 2, 2), (0, 0, 2, 2)) == 1
+    assert sketch.bbox_iou((0, 0, 1, 1), (2, 2, 3, 3)) == 0
     assert sketch.percentile([1, 2, 3, 4], 100) == 4

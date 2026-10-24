@@ -73,9 +73,9 @@
   <h1>A metric bank for client-specific LLM benchmarks</h1>
   <p class="lede">Companies do not need another copy of MMLU. They need a small scorecard, chosen from a library, that measures the task they actually run. This note is the research decision behind that library, and a map of what is in it.</p>
   <div class="statrow">
-    <div class="stat"><b>152</b><span>metrics</span></div>
-    <div class="stat"><b>21</b><span>categories</span></div>
-    <div class="stat"><b>49</b><span>core rows</span></div>
+    <div class="stat"><b>158</b><span>metrics</span></div>
+    <div class="stat"><b>22</b><span>categories</span></div>
+    <div class="stat"><b>53</b><span>core rows</span></div>
     <div class="stat"><b>40</b><span>catalogue ids kept</span></div>
     <div class="stat"><b>17</b><span>priors, not rows</span></div>
   </div>
@@ -90,8 +90,8 @@
 </header>
 <main>
   <h2 id="decision">How many metrics are warranted</h2>
-  <p>The bank has one row per measurement a client benchmark can actually run. Public exams (MMLU, BIG-bench, GSM8K, HELM scenarios, Arena Elo) are priors, not metrics. Where Ragas and DeepEval name the same construct, one row is kept and the other name is an alias. Metrics marked avoid_as_primary exist so a selector can refuse BLEU, ROUGE, BERTScore, fluency, or embedding cosine as the sole quality score. Operational metrics are measured on the same run as quality. Only utility_axis=quality scores enter the 0–1 quality average, and they must already be higher-better. Lower-better risk rates are gates. A client scorecard should contain the always-on operational metrics, one speed metric chosen from the use-case kind, one to five quality metrics, and zero to three risk gates. The bank is a library, not a list to run in full.</p>
-  <p>152 metrics sit in 21 categories (5 avoid_as_primary, 49 core, 24 diagnostic, 74 supporting). Core rows are the ones a selector should consider first when the brief matches. The avoid-as-primary rows exist so BLEU, ROUGE-L, BERTScore, summary fluency, and embedding cosine can be refused as the quality score. The remaining rows are supporting measurements or diagnostics.</p>
+  <p>The bank has one row per measurement a client benchmark can actually run. Public exams (MMLU, BIG-bench, GSM8K, HELM scenarios, Arena Elo) are priors, not metrics. Where Ragas and DeepEval name the same construct, one row is kept and the other name is an alias. Metrics marked avoid_as_primary exist so a selector can refuse BLEU, ROUGE, BERTScore, fluency, or embedding cosine as the sole quality score. Operational metrics are measured on the same run as quality. Only utility_axis=quality scores enter the 0–1 quality average, and they must already be higher-better. Lower-better risk rates are gates. A client scorecard should contain the always-on operational metrics, one speed metric chosen from the use-case kind, one to five quality metrics, and zero to three risk gates. Document vision is included for pages and scans: character and word error, plus box overlap. Speech, image aesthetics, and caption preference are not. The bank is a library, not a list to run in full.</p>
+  <p>158 metrics sit in 22 categories (5 avoid_as_primary, 53 core, 24 diagnostic, 76 supporting). Core rows are the ones a selector should consider first when the brief matches. The avoid-as-primary rows exist so BLEU, ROUGE-L, BERTScore, summary fluency, and embedding cosine can be refused as the quality score. The remaining rows are supporting measurements or diagnostics.</p>
   <p>A row earned a place when three things were true. A client can compute it on their own cases. Two teams would otherwise implement it under different names. And the number can change a ship decision: quality, a hard gate, speed, cost, or a business outcome. A public exam fails the first test. An alias fails the second. A vanity score fails the third.</p>
   <p>The existing product catalogue, in <span class="mono">docs/metrics-catalog.md</span>, already fixed forty ids. Every one of those ids is in this bank with the same spelling, so a later <span class="mono">biy_metrics_list</span> can serve this file without a rename. This folder does not edit that catalogue. The bank is the superset.</p>
   <p>A client scorecard is not the bank. It is the six always-on operational metrics, one speed metric chosen from the kind, one to five quality metrics, and zero to three risk gates. The reference selector in <span class="mono">src/metric_bank/selector.py</span> applies that budget. The five clients further down are its output.</p>
@@ -103,7 +103,7 @@
   <p>IFEval contributes the instruction metrics: a prompt passes strictly when every verifiable constraint passes on the raw output. The client's constraints replace the public constraint list, which frontier models have saturated. BFCL contributes tool-call AST match, tool choice, and irrelevance. τ-bench contributes task success in a sandbox and pass^k, the probability that all k trials succeed. SWE-bench contributes patch resolution when the client has a repository and tests. Those are rows. The leaderboards themselves are priors.</p>
   <p>OpenAI Evals contributes the small deterministic assertions: exact match, contains, and a pattern. LMSYS Arena and AlpacaEval contribute pairwise comparison against a fixed baseline, both orders, and a warning that uncorrected win rates follow length. The length-controlled win rate is in the bank as a diagnostic, not as the quality score. Artificial Analysis contributes the operational vocabulary — time to first token, output tokens per second, price — and is explicit that an intelligence index is not the client's quality.</p>
   <p>Safety and bias are gates and diagnostics, not quality-average terms. BBQ's ambiguous-context score is signed and best at zero, so it cannot enter a higher-better average. RealToxicityPrompts, XSTest, and HarmBench justify measuring toxicity, over-refusal, and harmful compliance on a reviewed set. The bank records how to score those sets. It does not contain attack strings, and the selector is told not to synthesize any in order to produce a number.</p>
-  <p>Three families were considered and left out. Perplexity is not comparable across tokenizers and is not a task score. MAUVE compares a distribution of generations to a reference distribution; a client with a few dozen cases cannot estimate it, and it does not say whether the answer was supported. Speech, image, and video metrics are outside a text-LLM benchmark. Arena Elo was left out because it moves when the field of opponents moves.</p>
+  <p>Perplexity is not comparable across tokenizers and is not a task score, so it is not a row. MAUVE compares a distribution of generations to a reference distribution; a client with a few dozen cases cannot estimate it, and it does not say whether the answer was supported. Speech, image aesthetics, and caption preference are out of scope. Document vision is in scope: when the model reads a page, character error, word error, and box overlap are things the client can compute from a transcription and a set of rectangles. Arena Elo was left out because it moves when the field of opponents moves.</p>
 
   <h2>How a row is shaped</h2>
   <p>Every metric carries an id, a name, a category, a description, what it measures, when to use it, when not to, the inputs it requires, a computation method and formula, a score range with an interpretation, a cost, known limitations, related metrics, and tags. Around that, the selector needs a few controls the prose fields cannot express.</p>
@@ -130,6 +130,7 @@
 <tr><td>conversation</td><td>Conversation</td><td>6</td><td>2</td><td>Lead with conversation completeness when a goal exists. Do not apply single-turn RAG metrics to a whole transcript.</td></tr>
 <tr><td>instruction_following</td><td>Instruction following</td><td>5</td><td>1</td><td>Write deterministic verifiers. A judge is a last resort. JSON schema is not this category.</td></tr>
 <tr><td>structured_output</td><td>Structured output</td><td>9</td><td>3</td><td>Gate on schema validity. Put field accuracy in the quality average. Do not also gate on raw JSON parse when the schema gate exists.</td></tr>
+<tr><td>vision</td><td>Document vision</td><td>6</td><td>4</td><td>Use character accuracy when a reference transcription exists, and report character and word error beside it. Add box F1 and IoU only when the task is to locate regions. Do not apply these to a text-only prompt.</td></tr>
 <tr><td>agents_tools</td><td>Agents and tool use</td><td>11</td><td>3</td><td>Single-step products use tool-call match. Multi-step products with a sandbox use task success. Do not exact-match a trajectory when several paths are legal.</td></tr>
 <tr><td>multilingual</td><td>Multilinguality</td><td>6</td><td>2</td><td>Gate on language match when a locale is required. Rank translation with COMET, not BLEU.</td></tr>
 <tr><td>safety</td><td>Safety</td><td>9</td><td>3</td><td>These are gates, not quality-average terms. Always pair harmful compliance with over-refusal on user-facing assistants.</td></tr>
@@ -144,7 +145,7 @@
 <tr><td>judging</td><td>Judging methods</td><td>4</td><td>3</td><td>Select at most one of rubric score and G-Eval. Add pairwise versus baseline only when a baseline model is in the run.</td></tr>
     </tbody>
   </table>
-  <p class="muted">Names in the source: Accuracy and classification, Reasoning, Knowledge and factuality, RAG and grounding, Summarization, Code, Conversation, Instruction following, Structured output, Agents and tool use, Multilinguality, Safety, Bias and fairness, Privacy, Robustness, Calibration and hallucination, Efficiency, Cost, Reliability, Business and UX, Judging methods.</p>
+  <p class="muted">Names in the source: Accuracy and classification, Reasoning, Knowledge and factuality, RAG and grounding, Summarization, Code, Conversation, Instruction following, Structured output, Document vision, Agents and tool use, Multilinguality, Safety, Bias and fairness, Privacy, Robustness, Calibration and hallucination, Efficiency, Cost, Reliability, Business and UX, Judging methods.</p>
 
   <h3>Refused as a primary quality score</h3>
   <table>
@@ -311,7 +312,13 @@
 <tr><td>summarization</td><td>summary_conciseness</td><td>Summary conciseness</td><td>supporting</td><td>quality</td><td>quality</td></tr>
 <tr><td>summarization</td><td>summary_coverage</td><td>Summary coverage</td><td>core</td><td>quality</td><td>quality</td></tr>
 <tr><td>summarization</td><td>summary_fluency</td><td>Summary fluency</td><td>avoid_as_primary</td><td>none</td><td>quality</td></tr>
-<tr><td>summarization</td><td>summary_relevance</td><td>Summary relevance</td><td>supporting</td><td>quality</td><td>quality</td></tr></tbody>
+<tr><td>summarization</td><td>summary_relevance</td><td>Summary relevance</td><td>supporting</td><td>quality</td><td>quality</td></tr>
+<tr><td>vision</td><td>bbox_f1</td><td>Box F1</td><td>core</td><td>quality</td><td>quality</td></tr>
+<tr><td>vision</td><td>bbox_iou</td><td>Box IoU</td><td>core</td><td>quality</td><td>quality</td></tr>
+<tr><td>vision</td><td>cer</td><td>Character error rate</td><td>core</td><td>none</td><td>quality</td></tr>
+<tr><td>vision</td><td>character_accuracy</td><td>Character accuracy</td><td>core</td><td>quality</td><td>quality</td></tr>
+<tr><td>vision</td><td>wer</td><td>Word error rate</td><td>supporting</td><td>none</td><td>quality</td></tr>
+<tr><td>vision</td><td>word_accuracy</td><td>Word accuracy</td><td>supporting</td><td>quality</td><td>quality</td></tr></tbody>
   </table>
 
   <h2 id="scorecard">Five scorecards</h2>
@@ -431,7 +438,7 @@
   <p>Within the repo, the constraints this bank respects are the metric catalogue, the scoring section of the architecture note, and the research brief on metrics. Those files are the product's. This summary does not replace them.</p>
 </main>
 <footer>
-  Generated from the metric bank so the counts cannot drift. 152 metrics, 21 categories. Selector notes for the first category, accuracy: Prefer these over a judge whenever a gold string, label, or list exists. Lead classification with F1 unless the client named precision or recall.
+  Generated from the metric bank so the counts cannot drift. 158 metrics, 22 categories. Selector notes for the first category, accuracy: Prefer these over a judge whenever a gold string, label, or list exists. Lead classification with F1 unless the client named precision or recall.
 </footer>
 </body>
 </html>

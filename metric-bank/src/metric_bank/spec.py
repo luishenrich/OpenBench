@@ -21,6 +21,7 @@ CATEGORIES = (
     "conversation",
     "instruction_following",
     "structured_output",
+    "vision",
     "agents_tools",
     "multilingual",
     "safety",

@@ -220,6 +220,64 @@ def target_score(x: float, target: float, maximum: float) -> float:
     return 1.0 - math.log(x / target) / math.log(maximum / target)
 
 
+def _levenshtein(left: list, right: list) -> int:
+    if left == right:
+        return 0
+    if not left:
+        return len(right)
+    if not right:
+        return len(left)
+    previous = list(range(len(right) + 1))
+    for i, item in enumerate(left, start=1):
+        current = [i]
+        for j, other in enumerate(right, start=1):
+            current.append(min(current[-1] + 1, previous[j] + 1, previous[j - 1] + (item != other)))
+        previous = current
+    return previous[-1]
+
+
+def character_error_rate(prediction: str, reference: str) -> float:
+    """Levenshtein over characters divided by the reference length."""
+    if reference == "":
+        return 0.0 if prediction == "" else 1.0
+    return _levenshtein(list(prediction), list(reference)) / len(reference)
+
+
+def character_accuracy(prediction: str, reference: str) -> float:
+    """max(0, 1 - CER). This is the value that can enter Q."""
+    return max(0.0, 1.0 - character_error_rate(prediction, reference))
+
+
+def word_error_rate(prediction: str, reference: str) -> float:
+    """Levenshtein over whitespace tokens divided by the reference word count."""
+    predicted = prediction.split()
+    gold = reference.split()
+    if not gold:
+        return 0.0 if not predicted else 1.0
+    return _levenshtein(predicted, gold) / len(gold)
+
+
+def word_accuracy(prediction: str, reference: str) -> float:
+    """max(0, 1 - WER)."""
+    return max(0.0, 1.0 - word_error_rate(prediction, reference))
+
+
+def bbox_iou(box: tuple[float, float, float, float], other: tuple[float, float, float, float]) -> float:
+    """Intersection over union for two axis-aligned boxes (x0, y0, x1, y1)."""
+    left = max(box[0], other[0])
+    top = max(box[1], other[1])
+    right = min(box[2], other[2])
+    bottom = min(box[3], other[3])
+    intersection = max(0.0, right - left) * max(0.0, bottom - top)
+    if intersection == 0:
+        return 0.0
+    area = (box[2] - box[0]) * (box[3] - box[1]) + (other[2] - other[0]) * (other[3] - other[1])
+    union = area - intersection
+    if union <= 0:
+        raise ValueError("boxes must have positive area")
+    return intersection / union
+
+
 def ambiguous_context_bias(accuracy: float, stereotype_aligned: int, non_unknown: int) -> float:
     """BBQ ambiguous-context bias: (1 - accuracy) * s, with s in [-1, 1].
 

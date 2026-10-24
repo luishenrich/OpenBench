@@ -192,7 +192,17 @@ def _quality_candidates(brief: dict) -> list[str]:
         add("faithfulness", brief.get("knowledge_base", False))
         add("instruction_following", brief.get("has_constraints", False))
         add("pairwise_vs_baseline", brief.get("baseline_present", False))
-    return chosen
+    # Vision is orthogonal to kind. A scanned invoice is still an extraction.
+    # These lead the list so a page-reading task is not crowded out by generic extraction metrics.
+    vision: list[str] = []
+    if brief.get("ocr"):
+        vision.append("word_accuracy" if brief.get("word_errors") else "character_accuracy")
+    if brief.get("layout_boxes"):
+        vision.extend(["bbox_f1", "bbox_iou"])
+    for metric_id in vision:
+        if metric_id in chosen:
+            chosen.remove(metric_id)
+    return vision + chosen
 
 
 def _finalize_quality(candidates: list[str], by_id: dict, brief: dict) -> tuple[list[str], list[str], list[str]]:
@@ -347,6 +357,9 @@ def select(brief: dict, bank: dict | None = None) -> dict:
     also_report: list[str] = []
     if enriched.get("monthly_volume"):
         also_report.append("monthly_cost_usd")
+    if enriched.get("ocr"):
+        also_report.extend(["cer", "wer"])
+        notes.append("cer and wer are reported beside character or word accuracy and do not enter Q. They can exceed 1.")
     reliability: list[str] = []
     if enriched["kind"] == "agent":
         reliability.append("pass_hat_k")

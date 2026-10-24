@@ -528,7 +528,7 @@ METRICS = [
         quality_transform="identity",
         construct_group="field_values",
         group_role="primary",
-        aliases=["field_accuracy_micro"],
+        aliases=["field_accuracy_micro", "field_f1"],
     ),
     metric(
         id="required_field_recall",
