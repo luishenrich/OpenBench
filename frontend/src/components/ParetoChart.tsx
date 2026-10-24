@@ -1,5 +1,5 @@
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, usePlotArea, useXAxisScale, useYAxisScale, XAxis, YAxis } from 'recharts'
-import { ms, pct, usd } from '@/lib/format'
+import { effortOf, ms, pct, usd } from '@/lib/format'
 import { makerOf } from '@/lib/modelMakers'
 import type { ParetoPoint } from '@/types'
 
@@ -8,7 +8,7 @@ const FRONT = '#ff6b3d'
 const FAINT = '#62626b'
 const MUTED = '#9a9aa3'
 
-type Pt = ParetoPoint & { x: number; y: number; recommended: boolean }
+type Pt = ParetoPoint & { x: number; y: number; recommended: boolean; today: boolean; effort: string | null }
 
 // 1, 2, 5 × 10^k ticks inside [lo, hi]
 function logTicks(lo: number, hi: number): number[] {
@@ -25,9 +25,11 @@ function logTicks(lo: number, hi: number): number[] {
 type Box = { x0: number; y0: number; x1: number; y1: number }
 const overlap = (a: Box, b: Box) => Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) * Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0))
 
-const radius = (p: Pt) => (p.is_baseline ? 7 : p.pareto ? (p.recommended ? 6 : 4.5) : 5)
-const labelText = (p: Pt) => (p.is_baseline ? `${p.label} (today)` : p.label)
-const labelFont = (p: Pt) => (p.pareto && !p.is_baseline ? { size: 12, weight: 600, fill: FG } : p.is_baseline ? { size: 12, weight: 500, fill: FG } : { size: 11, weight: 400, fill: MUTED })
+// Closed references (incl. "today") are grey rings, never on the front. Effort is part of the name.
+const radius = (p: Pt) => (p.today ? 7 : p.is_reference ? 5.5 : p.pareto ? (p.recommended ? 6 : 4.5) : 5)
+const effortText = (e: string | null) => (!e ? '' : e === 'default' ? '' : ` · ${e}`)
+const labelText = (p: Pt) => (p.today ? 'Today' : p.is_reference ? `${p.label}${effortText(p.effort)} (ref)` : `${p.label}${effortText(p.effort)}`)
+const labelFont = (p: Pt) => (p.today ? { size: 12, weight: 500, fill: FG } : p.is_reference ? { size: 11, weight: 400, fill: FAINT } : p.pareto ? { size: 12, weight: 600, fill: FG } : { size: 11, weight: 400, fill: MUTED })
 
 let ctx: CanvasRenderingContext2D | null | undefined
 function textWidth(text: string, size: number, weight: number): number {
@@ -43,7 +45,8 @@ function Dot(props: { cx?: number; cy?: number; payload?: Pt }) {
   const { cx = 0, cy = 0, payload: p } = props
   if (!p) return null
   const r = radius(p)
-  if (p.is_baseline) return <circle cx={cx} cy={cy} r={r} fill="#09090b" stroke={FG} strokeWidth={2} />
+  if (p.today) return <circle cx={cx} cy={cy} r={r} fill="#09090b" stroke={FG} strokeWidth={2} />
+  if (p.is_reference) return <circle cx={cx} cy={cy} r={r} fill="#09090b" stroke={FAINT} strokeWidth={1.5} strokeDasharray="2 2" />
   if (p.pareto) {
     return <rect x={cx - r} y={cy - r} width={r * 2} height={r * 2} rx={1.5} fill={p.recommended ? FRONT : '#09090b'} stroke={FRONT} strokeWidth={1.5} />
   }
@@ -79,7 +82,7 @@ function PointLabels({ data, front }: { data: Pt[]; front: Pt[] }) {
     obstacles.push({ x0: a.cx, y0: a.cy - 1.5, x1: b.cx, y1: a.cy + 1.5 }, { x0: b.cx - 1.5, y0: Math.min(a.cy, b.cy), x1: b.cx + 1.5, y1: Math.max(a.cy, b.cy) })
   }
   const bounds: Box = { x0: area.x + 2, y0: area.y - 20, x1: area.x + area.width + 28, y1: area.y + area.height - 2 }
-  const rank = (p: Pt) => (p.recommended ? 0 : p.is_baseline ? 1 : p.pareto ? 2 : 3)
+  const rank = (p: Pt) => (p.recommended ? 0 : p.today ? 1 : p.pareto ? 2 : p.is_reference ? 3 : 4)
   const placed: { p: Pt; x: number; top: number; h: number; icon: string | null; iw: number; lead: [number, number, number, number] | null }[] = []
   const taken: Box[] = []
 
@@ -91,7 +94,7 @@ function PointLabels({ data, front }: { data: Pt[]; front: Pt[] }) {
     const w = textWidth(labelText(p), f.size, f.weight) + iw
     const h = f.size
     const g = radius(p) + 5
-    const sides = ORDER[p.is_baseline ? 'base' : p.pareto ? 'front' : 'other']
+    const sides = ORDER[p.is_reference ? 'base' : p.pareto ? 'front' : 'other']
     let best: { box: Box; x: number; y: number; cost: number; lead: [number, number, number, number] | null } | null = null
     // level 0 hugs the point; levels 1–2 move the label further up or down with a leader line
     search: for (let level = 0; level < 3; level++) {
@@ -126,7 +129,7 @@ function PointLabels({ data, front }: { data: Pt[]; front: Pt[] }) {
         return (
           <g key={p.candidate_key}>
             {lead && <line x1={lead[0]} y1={lead[1]} x2={lead[2]} y2={lead[3]} stroke={FAINT} strokeWidth={1} />}
-            {icon && <image href={icon} x={x} y={top + (h - ICON) / 2 - 0.5} width={ICON} height={ICON} opacity={p.pareto || p.is_baseline ? 1 : 0.7} />}
+            {icon && <image href={icon} x={x} y={top + (h - ICON) / 2 - 0.5} width={ICON} height={ICON} opacity={p.pareto || p.today ? 1 : 0.7} />}
             <text x={x + iw} y={top + h * 0.8} fontSize={f.size} fontWeight={f.weight} fill={f.fill}>{labelText(p)}</text>
           </g>
         )
@@ -135,14 +138,21 @@ function PointLabels({ data, front }: { data: Pt[]; front: Pt[] }) {
   )
 }
 
-export default function ParetoChart({ points, recommended }: { points: ParetoPoint[]; recommended: string | null }) {
+export default function ParetoChart({ points, recommended, efforts = {} }: {
+  points: ParetoPoint[]; recommended: string | null
+  /** candidate key → reasoning effort, from the leaderboard */
+  efforts?: Record<string, string | null | undefined>
+}) {
   const data: Pt[] = points
     .filter((p) => p.cost_per_success_usd != null && p.cost_per_success_usd > 0)
-    .map((p) => ({ ...p, x: p.cost_per_success_usd!, y: p.quality, recommended: p.candidate_key === recommended }))
+    .map((p) => ({
+      ...p, x: p.cost_per_success_usd!, y: p.quality, recommended: p.candidate_key === recommended && !p.is_reference,
+      today: p.is_reference && p.label.toLowerCase() === 'today', effort: efforts[p.candidate_key] ?? effortOf(p.candidate_key),
+    }))
   if (data.length === 0) return null
-  // today's model belongs on the front when nothing beats it (a "keep" verdict); it still draws as the white ring
-  const front = data.filter((p) => p.pareto).sort((a, b) => a.x - b.x)
-  const others = data.filter((p) => !p.pareto)
+  // references never sit on the front, even if a backend flags them
+  const front = data.filter((p) => p.pareto && !p.is_reference).sort((a, b) => a.x - b.x)
+  const others = data.filter((p) => !p.pareto || p.is_reference)
   const xs = data.map((d) => d.x)
   const xLo = Math.min(...xs) / 1.6
   const xHi = Math.max(...xs) * 1.6
@@ -170,7 +180,7 @@ export default function ParetoChart({ points, recommended }: { points: ParetoPoi
               if (!p) return null
               return (
                 <div className="rounded-md border border-line bg-raised px-3 py-2 text-xs">
-                  <div className="font-medium">{p.label}{p.is_baseline ? ' (today)' : ''}</div>
+                  <div className="font-medium">{labelText(p)}{p.is_reference && !p.today ? ', closed reference' : ''}</div>
                   <div className="text-muted">quality {pct(p.quality)}, {usd(p.cost_per_success_usd)} per success, p95 {ms(p.latency_ms)}</div>
                 </div>
               )

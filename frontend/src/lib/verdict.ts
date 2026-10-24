@@ -12,9 +12,7 @@ export function verdictOf(headline: string | null | undefined): Verdict | null {
 
 export function runVerdict(run: Run): Verdict | null {
   if (!run.recommendation) return null
-  const base = run.leaderboard.find((c) => c.is_baseline)
-  const pick = run.leaderboard.find((c) => c.candidate_key === run.recommendation!.candidate_key)
-  if (base?.rank != null && pick?.rank != null && base.rank < pick.rank) return 'keep'
+  // References (incl. today's model) are never ranked, so the headline alone carries keep / switch / use.
   return verdictOf(run.recommendation.headline)
 }
 

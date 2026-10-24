@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 // Small pulsing dot for "this updates live". The pulse is motion-safe only (and index.css also
 // switches animations off under prefers-reduced-motion).
@@ -13,6 +14,9 @@ export function WaitingForAgent() {
     <div className="rounded-xl border border-dashed border-line-strong px-6 py-14 text-center">
       <p className="title">No use cases yet</p>
       <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted">Connect your coding agent and run the scan. It creates the use cases for you.</p>
+      <Link to="/connections" className="mt-5 inline-flex items-center justify-center rounded-md bg-fg px-3.5 py-2 text-sm font-medium text-bg transition-colors hover:bg-white">
+        Connect your coding agent
+      </Link>
       <div className="mt-6" role="status">
         <p className="inline-flex items-center gap-2.5 rounded-full border border-line bg-panel px-3.5 py-1.5 text-[13px] text-fg">
           <LiveDot /> Waiting for your agent…

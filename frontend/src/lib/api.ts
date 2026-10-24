@@ -1,6 +1,7 @@
 import type {
-  Case, CatalogModel, Estimate, Me, MetricInfo, ResultsPage, Run, RunBrief, RunIn, UseCase, UseCasePatch,
+  Case, CaseIn, CatalogModel, GenerateCasesIn, Estimate, Me, MetricInfo, ResultsPage, Run, RunBrief, RunIn, UseCase, UseCasePatch,
 } from '@/types'
+import type { Workspace, WorkspacePatch } from '@/types'
 import { FIXTURES } from './mode'
 import { supabase } from './supabase'
 import * as fx from './fixtures'
@@ -38,12 +39,17 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 const live = {
   me: () => request<Me>('GET', '/me'),
   rotateMcpKey: () => request<{ key: string }>('POST', '/me/mcp-key'),
+  /** Workspace defaults that use cases inherit. 404/405 until the backend ships it. */
+  updateWorkspace: (patch: WorkspacePatch) => request<Workspace>('PATCH', '/workspace', patch),
   models: () => request<CatalogModel[]>('GET', '/models?shortlist=true'),
   metrics: () => request<MetricInfo[]>('GET', '/metrics'),
   useCases: () => request<UseCase[]>('GET', '/use-cases'),
   useCase: (id: string) => request<UseCase>('GET', `/use-cases/${id}`),
   updateUseCase: (id: string, patch: UseCasePatch) => request<UseCase>('PATCH', `/use-cases/${id}`, patch),
   cases: (id: string) => request<Case[]>('GET', `/use-cases/${id}/cases`),
+  addCases: (id: string, cases: CaseIn[]) => request<Case[]>('POST', `/use-cases/${id}/cases`, cases),
+  generateCases: (id: string, body: GenerateCasesIn = { n: 20, strategy: 'auto' }) =>
+    request<Case[]>('POST', `/use-cases/${id}/cases/generate`, body),
   runs: (id: string) => request<RunBrief[]>('GET', `/use-cases/${id}/runs`),
   estimate: (req: RunIn) => request<Estimate>('POST', '/runs/estimate', req),
   startRun: (req: RunIn) => request<Run>('POST', '/runs', req),

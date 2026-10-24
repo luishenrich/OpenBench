@@ -10,7 +10,7 @@ const verdictDot = { switch: 'bg-win', keep: 'bg-muted', use: 'bg-front' } as co
 const verdictWord = { switch: 'Switch', keep: 'Keep', use: 'Use' } as const
 
 // Shared with the column header in ProjectList so labels line up with the cells.
-export const ROW_GRID = 'md:grid-cols-[minmax(0,1fr)_150px_64px_150px_16px]'
+export const ROW_GRID = 'md:grid-cols-[minmax(0,1fr)_150px_64px_150px_16px] lg:grid-cols-[minmax(0,1fr)_180px_64px_170px_16px]'
 
 export function UseCaseRow({ uc, fresh }: { uc: UseCase; fresh: boolean }) {
   const ref = uc.source_refs[0]
@@ -29,11 +29,17 @@ export function UseCaseRow({ uc, fresh }: { uc: UseCase; fresh: boolean }) {
           <div className="truncate text-[14.5px] font-medium text-fg">{uc.name}</div>
           <div className="mt-0.5 flex min-w-0 items-center gap-2">
             {ref && (
-              <span className="truncate font-mono text-[11.5px] text-faint" title={`${ref.path}${ref.line ? `:${ref.line}` : ''}`}>
+              <span className={`truncate font-mono text-[11.5px] text-faint ${run?.status === 'done' ? 'lg:max-w-[55%] lg:shrink-0' : ''}`} title={`${ref.path}${ref.line ? `:${ref.line}` : ''}`}>
                 {ref.path}{ref.line ? `:${ref.line}` : ''}
               </span>
             )}
             {uc.created_by === 'mcp' && <span className="shrink-0 text-[11px] text-front/80">found by agent</span>}
+            {run?.status === 'done' && run.recommendation_headline && (
+              // wide screens: the verdict headline sits inline, next to the path
+              <span className="hidden min-w-0 truncate text-[12.5px] text-muted lg:inline" title={run.recommendation_headline}>
+                <span className="text-faint">· </span>{run.recommendation_headline}
+              </span>
+            )}
           </div>
         </div>
 
@@ -59,7 +65,7 @@ export function UseCaseRow({ uc, fresh }: { uc: UseCase; fresh: boolean }) {
           ) : (
             <>
               <span className={`size-1.5 shrink-0 rounded-[1px] ${stateDot[state]}`} />
-              <span className={state === 'ready' ? 'text-fg' : 'text-muted'}>{stateLabel[state]}</span>
+              <span className={state === 'data' ? 'font-medium text-front' : state === 'ready' ? 'text-fg' : 'text-muted'}>{stateLabel[state]}</span>
             </>
           )}
         </div>
@@ -70,7 +76,7 @@ export function UseCaseRow({ uc, fresh }: { uc: UseCase; fresh: boolean }) {
       </div>
 
       {run?.status === 'done' && run.recommendation_headline && (
-        <p className="mt-1 truncate text-[12.5px] text-muted" title={run.recommendation_headline}>
+        <p className="mt-1 truncate text-[12.5px] text-muted lg:hidden" title={run.recommendation_headline}>
           {run.recommendation_headline}
           {run.finished_at && <span className="ml-2 text-faint">{ago(run.finished_at)}</span>}
         </p>
