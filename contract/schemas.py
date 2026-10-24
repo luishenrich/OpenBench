@@ -397,6 +397,7 @@ class CandidateResult(BaseModel):
     reference_label: str | None = None  # "GPT-6.1 Sol", "today" (the use case's current model)
     reasoning_effort: str | None = None  # pinned effort; "default" = the provider's own default
     avg_reasoning_tokens: float | None = None  # per call (usage.completion_tokens_details.reasoning_tokens)
+    dropped_params: list[str] = []  # use-case params this endpoint rejects, e.g. ["temperature"]: ran at its default
     n: int
     quality: Stat
     metrics: dict[str, Stat]
