@@ -1,29 +1,31 @@
-// Connect a coding agent to BIY over MCP: the key, a snippet per client, and what to run next.
-import { useState } from 'react'
-import { Button, ErrorNote } from '@/components/ui'
+// Connect a coding agent to BIY over MCP. Primary: OAuth (the client opens a browser to sign in and approve).
+// Secondary: a workspace key sent as a header, for CI, headless runs and clients without OAuth.
+import { useState, type ReactNode } from 'react'
 import { SettingsSection } from '@/components/settings/controls'
-import { CopyButton, mcpUrl, useMcpKey } from '@/components/connections/mcp'
+import { Tag } from '@/components/ui'
+import { KeyMethod } from '@/components/connections/KeyMethod'
+import { ClientTabs, CopyButton, Snippet, mcpUrl, type Client } from '@/components/connections/mcp'
 
-type Client = 'claude' | 'cursor' | 'other'
-const CLIENTS: { key: Client; label: string }[] = [
-  { key: 'claude', label: 'Claude Code' },
-  { key: 'cursor', label: 'Cursor' },
-  { key: 'other', label: 'Codex / other' },
-]
-
-function snippet(client: Client, url: string, key: string): { where: string; text: string } {
+function oauthSnippet(client: Client, url: string): { where: string; text: string; then: ReactNode } {
   if (client === 'claude') {
-    return { where: 'Run in a terminal', text: `claude mcp add --transport http biy ${url} --header "Authorization: Bearer ${key}"` }
+    return {
+      where: 'Run in a terminal',
+      text: `claude mcp add --transport http biy ${url}`,
+      then: <>Then run <code className="font-mono text-fg">/mcp</code>, choose biy, Authenticate. Your browser opens to approve.</>,
+    }
   }
   if (client === 'cursor') {
-    const json = { mcpServers: { biy: { url, headers: { Authorization: `Bearer ${key}` } } } }
-    return { where: 'Add to .cursor/mcp.json in your repo', text: JSON.stringify(json, null, 2) }
+    return {
+      where: 'Add to .cursor/mcp.json in your repo',
+      text: JSON.stringify({ mcpServers: { biy: { url } } }, null, 2),
+      then: 'Then Cursor prompts you to sign in. Your browser opens to approve.',
+    }
   }
-  return {
-    where: 'Any client that speaks Streamable HTTP',
-    text: `URL        ${url}\nTransport  Streamable HTTP\nHeader     Authorization: Bearer ${key}`,
-  }
+  return { where: 'Server URL', text: url, then: 'Any MCP client with OAuth support: just the URL. It opens your browser to sign in.' }
 }
+
+// Remove once the MCP server's OAuth (401 + WWW-Authenticate) is live in production.
+const ROLLOUT_NOTE = 'OAuth sign-in is rolling out; if your client says the server needs no auth or fails, use a key.'
 
 const SCAN = '/mcp__biy__scan_repo'
 const STEPS = [
@@ -33,11 +35,10 @@ const STEPS = [
 ]
 
 export default function Connections() {
-  const k = useMcpKey()
   const [client, setClient] = useState<Client>('claude')
-  const [confirming, setConfirming] = useState(false)
+  const [keyOpen, setKeyOpen] = useState(false)
   const url = mcpUrl()
-  const s = snippet(client, url, k.shown)
+  const s = oauthSnippet(client, url)
 
   return (
     <div>
@@ -49,79 +50,19 @@ export default function Connections() {
       </header>
 
       <div className="mt-10">
-        <SettingsSection title="Key" help="Your agent sends this key with every request. One key per workspace.">
-          <div className="rounded-lg border border-line bg-panel px-4 py-3.5">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-              <div className="min-w-0 flex-1">
-                {k.full ? (
-                  <code className="block font-mono text-sm break-all text-fg">{k.full}</code>
-                ) : (
-                  <code className="font-mono text-sm text-fg">
-                    {k.last4 ? <>biy_<span className="text-faint">••••••••••••</span>{k.last4}</> : <span className="text-muted">No key yet</span>}
-                  </code>
-                )}
-                <div className="mt-1 text-xs text-faint">
-                  {k.full ? 'Copy it now. It is shown only once.' : k.last4 ? `Ends in ${k.last4}` : 'Create a key to connect an agent.'}
-                </div>
-              </div>
-              {k.full && <CopyButton text={k.full} label="Copy key" variant="primary" />}
-              {!confirming && (
-                <Button
-                  variant="secondary"
-                  className="px-2.5 py-1 text-xs"
-                  onClick={() => (k.hasKey ? setConfirming(true) : k.rotate.mutate())}
-                  disabled={k.rotate.isPending}
-                >
-                  {k.rotate.isPending ? 'Creating…' : k.hasKey ? 'Replace key' : 'Create key'}
-                </Button>
-              )}
-            </div>
-            {confirming && (
-              <div role="alertdialog" aria-label="Replace key" className="mt-3 flex flex-wrap items-center gap-3 border-t border-line pt-3">
-                <p className="min-w-0 flex-1 text-sm text-muted">
-                  The old key stops working immediately. Agents that use it disconnect until you paste the new one.
-                </p>
-                <Button variant="ghost" className="px-2.5 py-1 text-xs" onClick={() => setConfirming(false)}>Cancel</Button>
-                <Button
-                  variant="danger"
-                  className="px-2.5 py-1 text-xs"
-                  onClick={() => { k.rotate.mutate(); setConfirming(false) }}
-                >
-                  Replace key
-                </Button>
-              </div>
-            )}
+        <SettingsSection
+          title="Add BIY to your agent"
+          help="Add the server, then sign in from your agent. No key to copy: your browser opens to approve the connection."
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            <ClientTabs value={client} onChange={setClient} />
+            <Tag tone="win">Recommended</Tag>
           </div>
-          {k.rotate.error && <div className="mt-3"><ErrorNote error={k.rotate.error} /></div>}
-        </SettingsSection>
-
-        <SettingsSection title="Add BIY to your agent" help="Pick your client and paste the snippet. The server URL is the same for every client.">
-          <div role="tablist" aria-label="Client" className="inline-flex overflow-hidden rounded-md border border-line">
-            {CLIENTS.map((c) => (
-              <button
-                key={c.key}
-                role="tab"
-                type="button"
-                aria-selected={client === c.key}
-                onClick={() => setClient(c.key)}
-                className={`border-l border-line px-3 py-1.5 text-sm first:border-l-0 ${client === c.key ? 'bg-raised text-fg' : 'text-muted hover:text-fg'}`}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
-          <div role="tabpanel" className="mt-3 overflow-hidden rounded-lg border border-line bg-bg">
-            <div className="flex items-center justify-between gap-3 border-b border-line bg-panel px-3.5 py-2">
-              <span className="text-xs text-muted">{s.where}</span>
-              <CopyButton text={s.text} />
-            </div>
-            <pre className="overflow-x-auto p-3.5 font-mono text-[12px] leading-relaxed whitespace-pre-wrap break-words text-muted">{s.text}</pre>
-          </div>
-          {!k.full && k.hasKey && (
-            <p className="mt-2.5 text-xs text-faint">
-              The snippet shows your key masked. Replace the key to get a full one you can paste; the API shows a key only once.
-            </p>
-          )}
+          <Snippet where={s.where} text={s.text} />
+          <p className="mt-3 text-sm leading-relaxed text-muted">
+            {s.then}
+          </p>
+          {ROLLOUT_NOTE && <p className="mt-4 text-xs text-faint">{ROLLOUT_NOTE}</p>}
         </SettingsSection>
 
         <SettingsSection title="Then run" help="Open your product repo in the agent and run the scan.">
@@ -143,6 +84,20 @@ export default function Connections() {
           <p className="mt-4 text-xs text-faint">
             To check the connection, run <code className="font-mono text-muted">/mcp</code> in Claude Code: biy should show as connected.
           </p>
+        </SettingsSection>
+
+        <SettingsSection title="Use a key instead" help="For CI, headless runs and clients without OAuth. The agent sends a workspace key with every request.">
+          <button
+            type="button"
+            aria-expanded={keyOpen}
+            aria-controls="key-method"
+            onClick={() => setKeyOpen((o) => !o)}
+            className="flex w-full items-center justify-between gap-3 rounded-lg border border-line bg-panel px-4 py-3 text-left text-sm text-muted hover:border-line-strong hover:text-fg"
+          >
+            <span>{keyOpen ? 'Hide key setup' : 'Set up with a key'}</span>
+            <span aria-hidden className={`text-faint transition-transform ${keyOpen ? 'rotate-90' : ''}`}>›</span>
+          </button>
+          {keyOpen && <div id="key-method" className="mt-5"><KeyMethod /></div>}
         </SettingsSection>
       </div>
     </div>

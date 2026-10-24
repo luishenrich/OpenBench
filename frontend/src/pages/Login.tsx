@@ -12,7 +12,9 @@ const field = 'mt-1.5 w-full rounded-md border border-line bg-bg px-3 py-2 text-
 export default function Login() {
   const auth = useAuth()
   const navigate = useNavigate()
-  const from = (useLocation().state as { from?: string } | null)?.from ?? '/'
+  // Where to go after sign-in: the path plus its query (e.g. /oauth/consent?authorization_id=…). Only same-app paths.
+  const stated = (useLocation().state as { from?: string } | null)?.from
+  const from = stated && stated.startsWith('/') && !stated.startsWith('//') ? stated : '/'
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

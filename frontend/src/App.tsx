@@ -4,6 +4,7 @@ import { useAuth } from './lib/auth'
 import Connections from './pages/Connections'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
+import OAuthConsent from './pages/OAuthConsent'
 import RunPage from './pages/RunPage'
 import Settings from './pages/Settings'
 import UseCasePage from './pages/UseCasePage'
@@ -16,7 +17,7 @@ function Gate() {
   if (!auth.ready) return null
   if (auth.signedIn) return <Layout />
   if (location.pathname === '/') return <Landing />
-  return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />
 }
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/landing" element={<Landing />} />
+      <Route path="/oauth/consent" element={<OAuthConsent />} />
       <Route path="/" element={<Gate />}>
         <Route index element={<UseCases />} />
         <Route path="use-cases/:id" element={<UseCasePage />} />
