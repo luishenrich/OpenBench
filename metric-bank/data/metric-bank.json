@@ -2,11 +2,11 @@
   "bank_version": "1.0.0",
   "updated": "2026-10-24",
   "name": "BIY metric bank",
-  "design_notes": "The bank has one row per measurement a client benchmark can actually run. Public exams (MMLU, BIG-bench, GSM8K, HELM scenarios, Arena Elo) are priors, not metrics. Where Ragas and DeepEval name the same construct, one row is kept and the other name is an alias. Metrics marked avoid_as_primary exist so a selector can refuse BLEU, ROUGE, BERTScore, fluency, or embedding cosine as the sole quality score. Operational metrics are measured on the same run as quality. Only utility_axis=quality scores enter the 0–1 quality average, and they must already be higher-better. Lower-better risk rates are gates. A client scorecard should contain the always-on operational metrics, one speed metric chosen from the use-case kind, one to five quality metrics, and zero to three risk gates. Document vision is included for pages and scans: character and word error, plus box overlap. Speech, image aesthetics, and caption preference are not. The bank is a library, not a list to run in full.",
+  "design_notes": "The bank has one row per measurement a client benchmark can actually run. Public exams (MMLU, BIG-bench, GSM8K, HELM scenarios, Arena Elo) are priors, not metrics. Where Ragas and DeepEval name the same construct, one row is kept and the other name is an alias. Metrics marked avoid_as_primary exist so a selector can refuse BLEU, ROUGE, BERTScore, fluency, or embedding cosine as the sole quality score. Operational metrics are measured on the same run as quality. Only utility_axis=quality scores enter the 0–1 quality average, and they must already be higher-better. Lower-better risk rates are gates. A client scorecard should contain the always-on operational metrics, one speed metric chosen from the use-case kind, one to five quality metrics, and zero to five risk gates. Document vision is included for pages and scans: character and word error, plus box overlap. Speech, image aesthetics, and caption preference are not. The bank is a library, not a list to run in full.",
   "selection_policy": {
     "caps": {
       "quality_metrics": 5,
-      "risk_metrics": 3,
+      "risk_metrics": 5,
       "business_metrics": 2,
       "judging_metrics": 1
     },
@@ -113,7 +113,7 @@
       "name": "Document vision",
       "description": "Transcription error on text read from an image, and overlap between predicted and reference regions.",
       "always_on": false,
-      "selector_notes": "Use character accuracy when a reference transcription exists, and report character and word error beside it. Add box F1 and IoU only when the task is to locate regions. Do not apply these to a text-only prompt."
+      "selector_notes": "Use character accuracy when a reference transcription exists, and report character and word error beside it. Put bbox_f1 in the quality average and report bbox_iou. Do not apply these to a text-only prompt."
     },
     {
       "id": "agents_tools",
@@ -16317,6 +16317,7 @@
       },
       "when_not_to_use": [
         "There is no reference object. Schema validity is all you can say.",
+        "Extra or hallucinated fields should count. field_accuracy ignores keys that are not in the reference. Use field_f1.",
         "Fields are long prose. Exact field match will punish paraphrase. Use a per-field rubric or factual_correctness on those fields only."
       ],
       "required_inputs": {
@@ -16372,6 +16373,7 @@
         "A matcher that is too loose, especially on names, inflates the score."
       ],
       "related_metrics": [
+        "field_f1",
         "json_schema_valid",
         "numeric_tolerance_accuracy",
         "exact_match",
@@ -16401,12 +16403,123 @@
       "construct_group": "field_values",
       "group_role": "primary",
       "aliases": [
-        "field_accuracy_micro",
-        "field_f1"
+        "field_accuracy_micro"
       ],
       "config": {},
       "reported_statistics": [],
       "catalog_match": true
+    },
+    {
+      "id": "field_f1",
+      "name": "Field F1",
+      "category": "structured_output",
+      "description": "F1 over extracted fields, where a true positive is a field present in both the prediction and the reference with a matching value. An extra key is a false positive. A missing or wrong key is a false negative. A value mismatch is both. field_accuracy only scores reference keys, so a hallucinated field does not move it. This metric does.",
+      "measures": "Precision and recall of extracted fields, including extras the reference does not have.",
+      "when_to_use": {
+        "use_cases": [
+          "extraction where invented fields are a failure",
+          "comparing models that add keys the schema does not want"
+        ],
+        "industries": [
+          "finance",
+          "insurance",
+          "healthcare",
+          "legal",
+          "retail"
+        ],
+        "signals": [
+          "A reference object exists",
+          "An extra or hallucinated field should lower the score",
+          "field_accuracy would hide keys that are not in the reference"
+        ]
+      },
+      "when_not_to_use": [
+        "There is no reference object.",
+        "The schema allows additional properties and extra keys are harmless. field_accuracy is the right average then."
+      ],
+      "required_inputs": {
+        "inputs": [
+          "model_output",
+          "reference_answer",
+          "json_schema"
+        ],
+        "notes": "Same per-field matchers as field_accuracy. The field set is the union of prediction keys and reference keys, flattened by dotted path."
+      },
+      "computation": {
+        "method": "deterministic",
+        "formula": "F1 = 2PR/(P+R). TP: key in both and values match. FP: key only in the prediction, or a mismatched value. FN: key only in the reference, or a mismatched value.",
+        "procedure": [
+          "Flatten both objects by dotted path.",
+          "Score each key in the union with the field matcher.",
+          "Compute precision, recall, and F1. Report field_accuracy beside it when extras are not the question."
+        ],
+        "implementations": [
+          "BIY field F1",
+          "backend/biy/metrics score('field_f1')"
+        ]
+      },
+      "score": {
+        "min": 0,
+        "max": 1,
+        "unit": "ratio",
+        "direction": "higher_better",
+        "interpretation": [
+          {
+            "at": "1",
+            "meaning": "Every reference field matched and the prediction had no extra fields."
+          },
+          {
+            "at": "0.5",
+            "meaning": "Precision and recall are balanced well below a clean extraction. Read which one failed."
+          },
+          {
+            "at": "0",
+            "meaning": "No field was a true positive."
+          }
+        ],
+        "aggregation": "Micro over fields, one F1 per document, then the mean across documents.",
+        "suggested_gate": null
+      },
+      "cost_effort": {
+        "level": "low",
+        "driver": "Per-field comparisons.",
+        "notes": "Cheap once the reference objects exist. No judge and no extra model call."
+      },
+      "limitations": [
+        "A mismatch counts as both a false positive and a false negative, so one wrong value costs more than field_accuracy.",
+        "Nested objects are flattened. A list is one value, not a set of items, unless the matcher says otherwise."
+      ],
+      "related_metrics": [
+        "field_accuracy",
+        "json_schema_valid",
+        "exact_match"
+      ],
+      "tags": [
+        "extraction",
+        "fields",
+        "f1",
+        "hallucinated-fields",
+        "structured-output"
+      ],
+      "provenance": [
+        "BIY contract: field_f1 is not an alias of field_accuracy"
+      ],
+      "granularity": "case",
+      "layer": "quality",
+      "selector_priority": "supporting",
+      "gate_suitable": false,
+      "always_on": false,
+      "default_for_kinds": [],
+      "utility_axis": "quality",
+      "quality_transform": "identity",
+      "construct_group": "field_values",
+      "group_role": "alternate",
+      "aliases": [
+        "field_f1_micro"
+      ],
+      "config": {},
+      "reported_statistics": [],
+      "catalog_match": false
     },
     {
       "id": "format_valid",

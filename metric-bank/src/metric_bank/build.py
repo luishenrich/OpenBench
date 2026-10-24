@@ -25,7 +25,7 @@ DESIGN_NOTES = (
     "they must already be higher-better. Lower-better risk rates are gates. "
     "A client scorecard should contain the always-on operational metrics, one speed "
     "metric chosen from the use-case kind, one to five quality metrics, and zero to "
-    "three risk gates. Document vision is included for pages and scans: character "
+    "five risk gates. Document vision is included for pages and scans: character "
     "and word error, plus box overlap. Speech, image aesthetics, and caption "
     "preference are not. The bank is a library, not a list to run in full."
 )

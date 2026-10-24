@@ -7,13 +7,24 @@ product runner. No model is called.
 from __future__ import annotations
 
 import math
-import re
+import unicodedata
 from collections import Counter
 
 
 def _tokens(text: str) -> list[str]:
-    cleaned = re.sub(r"[^a-z0-9\s]", " ", text.lower())
-    return [token for token in cleaned.split() if token]
+    """NFKC, casefold, then drop characters whose Unicode category is punctuation.
+
+    Letters outside ASCII stay tokens. ``北京`` does not match ``上海``, and
+    ``Ärger`` does not match ``Rger``.
+    """
+    normalized = unicodedata.normalize("NFKC", text).casefold()
+    cleaned = []
+    for char in normalized:
+        if unicodedata.category(char).startswith("P"):
+            cleaned.append(" ")
+        else:
+            cleaned.append(char)
+    return [token for token in "".join(cleaned).split() if token]
 
 
 def exact_match(prediction: str, reference: str, normalize: bool = True) -> bool:

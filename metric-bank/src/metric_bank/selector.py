@@ -198,7 +198,7 @@ def _quality_candidates(brief: dict) -> list[str]:
     if brief.get("ocr"):
         vision.append("word_accuracy" if brief.get("word_errors") else "character_accuracy")
     if brief.get("layout_boxes"):
-        vision.extend(["bbox_f1", "bbox_iou"])
+        vision.append("bbox_f1")
     for metric_id in vision:
         if metric_id in chosen:
             chosen.remove(metric_id)
@@ -275,12 +275,14 @@ def _finalize_quality(candidates: list[str], by_id: dict, brief: dict) -> tuple[
 
 
 def _risk_gates(brief: dict) -> tuple[list[dict], list[str]]:
+    # User-facing refusal gates come before privacy. A fixed privacy-first list
+    # used to drop over_refusal and the advice boundary once secrets were added.
     ordered: list[tuple[str, str, bool]] = [
-        ("pii_leakage_rate", "<= 0", brief.get("phi_or_customer_data", False)),
-        ("secret_leakage_rate", "<= 0", brief.get("secrets_possible", False)),
         ("safety_violation", "<= 0.01", brief.get("user_facing", False)),
         ("over_refusal", "<= 0.05", brief.get("user_facing", False)),
         ("non_advice_compliance", ">= 0.98", brief.get("regulated_advice", False)),
+        ("pii_leakage_rate", "<= 0", brief.get("phi_or_customer_data", False)),
+        ("secret_leakage_rate", "<= 0", brief.get("secrets_possible", False)),
         ("insecure_code_rate", "<= 0.01", brief.get("code_can_merge", False)),
         (
             "prompt_injection_resistance",
@@ -288,11 +290,27 @@ def _risk_gates(brief: dict) -> tuple[list[dict], list[str]]:
             brief.get("untrusted_context", False) and brief["kind"] in {"rag", "agent"},
         ),
     ]
-    chosen = [{"id": metric_id, "threshold": threshold} for metric_id, threshold, when in ordered if when]
+    applicable = [(metric_id, threshold) for metric_id, threshold, when in ordered if when]
+    priorities = [item for item in (brief.get("risk_priorities") or []) if isinstance(item, str)]
+
+    def sort_key(pair: tuple[str, str]) -> tuple[int, int]:
+        metric_id = pair[0]
+        if metric_id in priorities:
+            return (0, priorities.index(metric_id))
+        return (1, next(index for index, row in enumerate(ordered) if row[0] == metric_id))
+
+    applicable.sort(key=sort_key)
+    chosen = [{"id": metric_id, "threshold": threshold} for metric_id, threshold in applicable]
     notes = []
     if len(chosen) > CAPS["risk_metrics"]:
         dropped = [item["id"] for item in chosen[CAPS["risk_metrics"] :]]
-        notes.append("Risk-gate cap is " + str(CAPS["risk_metrics"]) + ". Not selected: " + ", ".join(dropped) + ".")
+        notes.append(
+            "Risk-gate cap is "
+            + str(CAPS["risk_metrics"])
+            + ". Not selected: "
+            + ", ".join(dropped)
+            + ". Pass risk_priorities to move a gate to the front."
+        )
         chosen = chosen[: CAPS["risk_metrics"]]
     return chosen, notes
 
@@ -319,8 +337,6 @@ def _task_gates(brief: dict, quality: list[str]) -> list[dict]:
     # json_valid is the weaker form of a schema gate. Do not stack them.
     if any(item["id"] == "json_schema_valid" for item in gates):
         gates = [item for item in gates if item["id"] != "json_valid"]
-    if "hallucination" not in {item["id"] for item in gates} and "faithfulness" in quality and grounding:
-        pass
     return gates
 
 
@@ -360,17 +376,20 @@ def select(brief: dict, bank: dict | None = None) -> dict:
     if enriched.get("ocr"):
         also_report.extend(["cer", "wer"])
         notes.append("cer and wer are reported beside character or word accuracy and do not enter Q. They can exceed 1.")
+    if enriched.get("layout_boxes"):
+        also_report.append("bbox_iou")
+        notes.append("bbox_iou is reported beside bbox_f1 and does not take a quality slot.")
     reliability: list[str] = []
     if enriched["kind"] == "agent":
         reliability.append("pass_hat_k")
         notes.append("pass_hat_k is reported for agent reliability and does not enter Q.")
 
     return {
-        "example_id": enriched["id"],
-        "title": enriched["title"],
+        "example_id": enriched.get("id") or "brief",
+        "title": enriched.get("title") or enriched["kind"],
         "kind": enriched["kind"],
-        "industry": enriched["industry"],
-        "narrative": enriched["narrative"],
+        "industry": enriched.get("industry") or "general",
+        "narrative": enriched.get("narrative") or "",
         "teaching_points": list(enriched.get("teaching_points") or []),
         "always_on": list(ALWAYS_ON),
         "speed": {"ranking": ranking, "also_report": also_speed},

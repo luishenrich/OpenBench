@@ -26,12 +26,9 @@ SPEED_BY_KIND = {
     "other": "e2e_ms",
 }
 
-# When the caller is not waiting, drop the speed metric even if the kind has one.
-BATCH_LIKE_SPEED = None
-
 CAPS = {
     "quality_metrics": 5,
-    "risk_metrics": 3,
+    "risk_metrics": 5,
     "business_metrics": 2,
     "judging_metrics": 1,
 }
