@@ -95,12 +95,14 @@ export default function Login() {
             <p className="mt-8 text-sm text-muted">Sign-in is not configured in this build (no Supabase URL).</p>
           )}
 
-          {FIXTURES && (
+          {(FIXTURES || import.meta.env.DEV) && (
             <div className="mt-8 border-t border-rule pt-6">
               <Button variant="secondary" className="w-full" onClick={() => { auth.signInDemo(); navigate(from, { replace: true }) }}>
-                Continue with fixture data
+                {FIXTURES ? 'Continue with fixture data' : 'Continue without sign-in'}
               </Button>
-              <p className="mt-2 text-xs text-muted">Shows contract/fixtures without calling the API.</p>
+              <p className="mt-2 text-xs text-muted">
+                {FIXTURES ? 'Shows contract/fixtures without calling the API.' : 'Dev only: needs a local API started with BIY_DEV_NO_AUTH=1.'}
+              </p>
             </div>
           )}
         </div>
