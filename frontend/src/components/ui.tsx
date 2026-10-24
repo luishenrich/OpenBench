@@ -4,10 +4,10 @@ import type { RunStatus } from '@/types'
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-ink text-white hover:bg-[#252f47] disabled:bg-faint',
-  secondary: 'bg-surface text-ink border border-rule hover:border-faint disabled:text-faint',
-  ghost: 'text-muted hover:text-ink hover:bg-white/60',
-  danger: 'bg-surface text-bad border border-rule hover:border-bad',
+  primary: 'bg-fg text-bg hover:bg-white disabled:bg-line-strong disabled:text-faint',
+  secondary: 'bg-raised text-fg border border-line hover:border-line-strong disabled:text-faint',
+  ghost: 'text-muted hover:text-fg hover:bg-raised',
+  danger: 'bg-raised text-bad border border-line hover:border-bad/60',
 }
 
 export function Button({ variant = 'primary', className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
@@ -19,36 +19,48 @@ export function Button({ variant = 'primary', className = '', ...props }: Button
   )
 }
 
-const statusStyle: Record<RunStatus, string> = {
-  queued: 'bg-paper text-muted',
-  running: 'bg-accent-soft text-accent',
-  scoring: 'bg-accent-soft text-accent',
-  done: 'bg-win-soft text-win',
-  failed: 'bg-bad-soft text-bad',
-  cancelled: 'bg-paper text-muted',
+// Mono eyebrow badge with a coloured square, as in the brand reference
+export function Badge({ children, tone = 'muted' }: { children: ReactNode; tone?: 'muted' | 'signal' | 'win' | 'bad' | 'front' }) {
+  const color = { muted: 'text-faint', signal: 'text-signal', win: 'text-win', bad: 'text-bad', front: 'text-front' }[tone]
+  return (
+    <span className="badge">
+      <span className={`badge-dot ${color}`} />
+      {children}
+    </span>
+  )
+}
+
+const statusTone: Record<RunStatus, string> = {
+  queued: 'text-muted', running: 'text-signal', scoring: 'text-signal', done: 'text-win', failed: 'text-bad', cancelled: 'text-faint',
 }
 
 export function StatusPill({ status }: { status: RunStatus }) {
   const live = status === 'running' || status === 'scoring' || status === 'queued'
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${statusStyle[status]}`}>
-      {live && <span className="size-1.5 animate-pulse rounded-full bg-current" />}
+    <span className={`inline-flex items-center gap-1.5 rounded-md border border-line bg-panel px-2 py-0.5 text-xs font-medium ${statusTone[status]}`}>
+      <span className={`size-1.5 rounded-[1px] bg-current ${live ? 'animate-pulse' : ''}`} />
       {status}
     </span>
   )
 }
 
-export function Tag({ children, tone = 'plain' }: { children: ReactNode; tone?: 'plain' | 'win' | 'bad' | 'accent' }) {
-  const t = { plain: 'bg-paper text-muted', win: 'bg-win-soft text-win', bad: 'bg-bad-soft text-bad', accent: 'bg-accent-soft text-accent' }[tone]
-  return <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium ${t}`}>{children}</span>
+export function Tag({ children, tone = 'plain' }: { children: ReactNode; tone?: 'plain' | 'win' | 'bad' | 'front' | 'signal' }) {
+  const t = {
+    plain: 'border-line text-muted',
+    win: 'border-win/40 text-win',
+    bad: 'border-bad/40 text-bad',
+    front: 'border-front/40 text-front',
+    signal: 'border-signal/40 text-signal',
+  }[tone]
+  return <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium ${t}`}>{children}</span>
 }
 
 export function Section({ title, aside, children, className = '' }: { title: string; aside?: ReactNode; children: ReactNode; className?: string }) {
   return (
     <section className={className}>
-      <div className="mb-3 flex items-baseline justify-between gap-4">
-        <h2 className="text-base font-semibold">{title}</h2>
-        {aside}
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+        <h2 className="title text-lg">{title}</h2>
+        {aside && <div className="text-sm text-muted">{aside}</div>}
       </div>
       {children}
     </section>
@@ -56,7 +68,7 @@ export function Section({ title, aside, children, className = '' }: { title: str
 }
 
 export function Panel({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-lg border border-rule bg-surface ${className}`}>{children}</div>
+  return <div className={`rounded-xl border border-line bg-panel ${className}`}>{children}</div>
 }
 
 export function Loading({ label = 'Loading' }: { label?: string }) {
@@ -65,9 +77,5 @@ export function Loading({ label = 'Loading' }: { label?: string }) {
 
 export function ErrorNote({ error }: { error: unknown }) {
   const msg = error instanceof Error ? error.message : String(error)
-  return (
-    <div className="rounded-md border border-bad/30 bg-bad-soft px-3 py-2 text-sm text-bad">
-      {msg}
-    </div>
-  )
+  return <div className="rounded-md border border-bad/40 bg-bad/10 px-3 py-2 text-sm text-bad">{msg}</div>
 }

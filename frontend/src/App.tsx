@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Layout from './components/Layout'
 import { useAuth } from './lib/auth'
+import Landing from './pages/Landing'
 import Login from './pages/Login'
 import RunPage from './pages/RunPage'
 import UseCasePage from './pages/UseCasePage'
@@ -19,6 +20,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/landing" element={<Landing />} />
       <Route element={<RequireAuth><Layout /></RequireAuth>}>
         <Route index element={<UseCases />} />
         <Route path="use-cases/:id" element={<UseCasePage />} />
