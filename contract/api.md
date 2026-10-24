@@ -49,6 +49,7 @@ Every request carries `Authorization: Bearer <token>`. The token is one of:
 ### Rules worth knowing
 
 - **Cost confirmation:** `POST /api/runs` returns `409 {"detail": "...", "estimate": Estimate}` if `confirm_cost_usd` is missing or below the estimate. The MCP run tool shows that estimate to the user and asks before retrying.
+- **Gates on unmeasured metrics.** A gate whose metric has no value for any candidate in the run (never computed, e.g. a planned metric) is *not evaluated*: it goes to `CandidateResult.unmeasured_gates`, never to `failed_gates`, and the recommendation's first reason lists it. A metric measured for some candidates but missing for another still fails that candidate.
 - **The confirmed cost holds.** A run stops starting calls once it has spent 1.2 × `confirm_cost_usd`. It then finishes as `done` with what's measured and judged so far; results no juror reached stay unjudged, not scored 0. `Run.error` says `Stopped at $X, over the confirmed $Y (+20%)…`. Calls already in flight finish. The jury estimate counts every juror × every output (× 2 orders for pairwise). Abstentions aren't subtracted, so it's an upper bound. Each juror call is counted with its reasoning tokens, by pinned effort.
 - **Candidates:** `ModelRef.provider` + `model` must match a row of `GET /api/models` (`id` + `provider`). Image-input use cases accept only models with `verified.vision == true`; others return `422`.
 - **Candidates are open-weight only** (rows of `GET /api/models`); anything else is `422`.
