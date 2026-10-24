@@ -39,7 +39,7 @@ export interface ListOps {
   remove: (items: UseCase[]) => void
 }
 
-export function ProjectList({ useCases, all, fallbackName, fresh, sort, flat, filtering, ops }: {
+export function ProjectList({ useCases, all, fallbackName, fresh, sort, flat, filtering, ops, single = false }: {
   /** after search and status filter */
   useCases: UseCase[]
   /** everything, for the project header numbers */
@@ -51,6 +51,8 @@ export function ProjectList({ useCases, all, fallbackName, fresh, sort, flat, fi
   /** a search or filter is active: every section opens so matches are visible */
   filtering: boolean
   ops: ListOps
+  /** the page is scoped to one project and its h1 already names it: the project header drops its title */
+  single?: boolean
 }) {
   const projects = groupUseCases(useCases, fallbackName, { sort, flat, isPinned: ops.isPinned })
   const [prefs, setPrefs] = useState(loadPrefs)
@@ -79,14 +81,14 @@ export function ProjectList({ useCases, all, fallbackName, fresh, sort, flat, fi
       {projects.map((p) => (
         <Project
           key={p.key} project={p} projectAll={all.filter((u) => projectOf(u, fallbackName) === p.name)}
-          isOpen={isOpen} toggle={toggle} openAll={openAll} fresh={fresh} ops={ops}
+          isOpen={isOpen} toggle={toggle} openAll={openAll} fresh={fresh} ops={ops} hideTitle={single}
         />
       ))}
     </div>
   )
 }
 
-function ColumnHeader() {
+export function ColumnHeader() {
   return (
     <div className="hidden border-b border-line bg-bg py-2 text-xs text-faint md:flex">
       <span className={`shrink-0 ${SELECT_W}`} />
@@ -98,9 +100,9 @@ function ColumnHeader() {
   )
 }
 
-function Project({ project, projectAll, isOpen, toggle, openAll, fresh, ops }: {
+function Project({ project, projectAll, isOpen, toggle, openAll, fresh, ops, hideTitle = false }: {
   project: ProjectGroup; projectAll: UseCase[]; isOpen: (k: string) => boolean; toggle: (k: string) => void; openAll: (keys: string[]) => void
-  fresh: Set<string>; ops: ListOps
+  fresh: Set<string>; ops: ListOps; hideTitle?: boolean
 }) {
   const n = projectAll.length
   const c = countStates(projectAll)
@@ -112,10 +114,14 @@ function Project({ project, projectAll, isOpen, toggle, openAll, fresh, ops }: {
     <section aria-label={project.name}>
       <header className="mb-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
         <div className="min-w-0">
-          <h2 className="title truncate text-xl">
-            {owner && <span className="text-faint">{owner}</span>}{repo}
-          </h2>
-          <p className="mt-1 text-sm text-muted">
+          {hideTitle ? (
+            <h2 className="sr-only">{project.name}</h2>
+          ) : (
+            <h2 className="title truncate text-xl">
+              {owner && <span className="text-faint">{owner}</span>}{repo}
+            </h2>
+          )}
+          <p className={`${hideTitle ? '' : 'mt-1 '}text-sm text-muted`}>
             {n} LLM {n === 1 ? 'call' : 'calls'} found · {setUp} of {n} set up · {c.done} benchmarked
             {c.setup > 0 && (
               <>

@@ -53,7 +53,8 @@ export function applyView(list: UseCase[], view: ListView, now = Date.now()): Us
 
 export const isFiltering = (v: ListView) => v.q.trim() !== '' || v.status !== 'all'
 
-export function Toolbar({ all, view, update, now }: { all: UseCase[]; view: ListView; update: (p: Partial<ListView>) => void; now: number }) {
+/** Search and status filter; `controls={false}` leaves sort and grouping to a ViewControls placed elsewhere (the page header). */
+export function Toolbar({ all, view, update, now, controls = true }: { all: UseCase[]; view: ListView; update: (p: Partial<ListView>) => void; now: number; controls?: boolean }) {
   const search = useRef<HTMLInputElement>(null)
   // "/" focuses search, unless the user is typing somewhere
   useEffect(() => {
@@ -98,26 +99,33 @@ export function Toolbar({ all, view, update, now }: { all: UseCase[]; view: List
         })}
       </div>
 
-      <div className="ml-auto flex items-center gap-2 text-[13px]">
-        <label className="flex items-center gap-1.5 text-faint">
-          Sort
-          <select
-            value={view.sort} onChange={(e) => update({ sort: e.target.value as SortKey })}
-            className={`rounded-md border border-line bg-panel px-2 py-1 text-fg hover:border-line-strong ${focusRing}`}
+      {controls && <ViewControls view={view} update={update} className="ml-auto" />}
+    </div>
+  )
+}
+
+/** Sort and grouping. */
+export function ViewControls({ view, update, className = '' }: { view: ListView; update: (p: Partial<ListView>) => void; className?: string }) {
+  return (
+    <div className={`flex items-center gap-2 text-[13px] ${className}`}>
+      <label className="flex items-center gap-1.5 text-faint">
+        Sort
+        <select
+          value={view.sort} onChange={(e) => update({ sort: e.target.value as SortKey })}
+          className={`rounded-md border border-line bg-panel px-2 py-1 text-fg hover:border-line-strong ${focusRing}`}
+        >
+          {(Object.keys(sortLabel) as SortKey[]).map((k) => <option key={k} value={k}>{sortLabel[k]}</option>)}
+        </select>
+      </label>
+      <div className="flex rounded-md border border-line p-0.5" role="radiogroup" aria-label="Group by">
+        {(['kind', 'none'] as const).map((g) => (
+          <button
+            key={g} type="button" role="radio" aria-checked={view.group === g} onClick={() => update({ group: g })}
+            className={`rounded-[5px] px-2 py-0.5 transition-colors ${view.group === g ? 'bg-raised text-fg' : 'text-faint hover:text-fg'} ${focusRing}`}
           >
-            {(Object.keys(sortLabel) as SortKey[]).map((k) => <option key={k} value={k}>{sortLabel[k]}</option>)}
-          </select>
-        </label>
-        <div className="flex rounded-md border border-line p-0.5" role="radiogroup" aria-label="Group by">
-          {(['kind', 'none'] as const).map((g) => (
-            <button
-              key={g} type="button" role="radio" aria-checked={view.group === g} onClick={() => update({ group: g })}
-              className={`rounded-[5px] px-2 py-0.5 transition-colors ${view.group === g ? 'bg-raised text-fg' : 'text-faint hover:text-fg'} ${focusRing}`}
-            >
-              {g === 'kind' ? 'By kind' : 'Flat'}
-            </button>
-          ))}
-        </div>
+            {g === 'kind' ? 'By kind' : 'Flat'}
+          </button>
+        ))}
       </div>
     </div>
   )
