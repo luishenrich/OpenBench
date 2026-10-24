@@ -4,6 +4,7 @@ The BIY MCP server (tools prefixed `biy_`) is connected. Work through the steps 
 
 The dashboard fills in live while you work, so **create each use case as soon as you have grouped it** (step 2),
 then complete them one at a time (step 3). Never build one big payload for everything.
+**Send BIY tool calls one at a time**, never several in parallel.
 
 ## 1. Find and group every LLM call site
 
@@ -11,6 +12,8 @@ First, note the **repo name**: `git remote get-url origin` (the last path part, 
 Every `source_refs` entry gets `"repo": "<that name>"`, so the dashboard shows the scan as one project.
 
 Search the whole repository (all packages of a monorepo) with grep/ripgrep, then read the code around each hit.
+**Large monorepo** (several apps or services): first list them with a rough count of LLM call sites each, and ask me
+which to scan first. Then scan those completely.
 
 - **Python imports:** openai, anthropic, google.genai, google.generativeai, mistralai, groq, together, cohere, ollama, litellm, langchain*, llama_index, instructor, dspy, transformers, vllm
 - **JS/TS imports:** openai, @anthropic-ai/sdk, @google/genai, ai, @ai-sdk/*, @langchain/*, llamaindex, @mastra/*
@@ -21,7 +24,8 @@ Search the whole repository (all packages of a monorepo) with grep/ripgrep, then
 
 **Grouping rule:** one use case = **one prompt/template + one output shape**. Call sites that reuse the same prompt or the
 same wrapper function are `source_refs` of that one use case, not separate use cases. Different prompts or different
-output shapes are different use cases. Report every call site; don't drop or pick favourites.
+output shapes are different use cases. Report every call site; don't drop or pick favourites. **Never skip a use case for lack of data**: create it and say what's
+missing (step 2).
 Skip embeddings, reranking and speech for now; list them at the end as "not benchmarked yet".
 For a multi-step agent, benchmark **single steps**: one use case per distinct LLM step whose input you can reproduce.
 
@@ -36,7 +40,7 @@ As soon as a use case is grouped, call **`biy_use_cases_create` with a list of o
   `"anthropic/<model>"` or `"google/<model>"`, the closest current OpenRouter id for the model the code uses. BIY runs it
   as the "today" reference next to GPT-6.1 Sol and GPT-6 Luna; references are compared with, never recommended.
 
-It shows up in the dashboard immediately. Keep its `id` for step 3.
+It shows up in the dashboard immediately. Keep its `id` and `url` for step 3 and the final list.
 
 ## 3. Complete each use case, one at a time
 
@@ -63,18 +67,33 @@ first. Give a one-sentence reason for every override.
 `response_schema` as JSON Schema, converted from pydantic / zod / TypedDict; `tools` in OpenAI format; `params`),
 `metrics`, `gates`, and `profile` only when you override the weights.
 
+**Large fields go by upload, never through your tool arguments.** A prompt over ~4,000 characters, a big schema or tool
+list: call **`biy_upload_url`** (`field`: `system_prompt`, `user_template`, `response_schema` or `tools`), then from your shell
+`curl -sf --data-binary @<file> <url>`. Use the prompt's own file, or a scratch file you assemble from template literals or
+f-strings, character for character. **Never truncate, shorten or paraphrase a prompt.** If you can't attach it exactly,
+leave it empty and say "prompt not attached" in the description: BIY refuses to run a use case without a prompt, so a
+placeholder is never benchmarked.
+
 **e. Test cases:** collect realistic inputs from unit tests, fixtures, mocks, seed or demo data, few-shot examples inside
 prompts, and docs. Add them with **`biy_cases_add`**: `input` is `{"vars": {...}}` matching the template variables, or
 `{"messages": [...]}`; `reference` is the expected output when the repo has one (expected JSON, label, text); `source: "repo"`.
+Many cases: write them to a JSONL file (one case per line) and send it with `biy_upload_url` field `cases_jsonl` + curl.
 If the use case has fewer than ~20 cases, call **`biy_cases_generate`** (`n` up to 30, `strategy: "auto"`) to reach 20–50;
 it seeds from the cases you added. If it fails or returns too few, write realistic synthetic cases yourself (vary length,
 difficulty, language and edge cases; for extraction write the expected JSON first, then the document) and add them with
 `biy_cases_add`, `source: "synthetic"`.
 
+**Image / document input with no images in the repo** (OCR, vision): still create the use case, and put
+"needs page images" in its description. The user adds files in the dashboard. Optionally, you can make **synthetic
+documents with an exact reference**: write the expected output first (text, Markdown, JSON), render it to a PNG with a
+local script (HTML → screenshot, or LaTeX → PDF → PNG), upload the image with `biy_upload_url` field `image` + curl (it
+returns the image URL), then `biy_cases_add` with `input.images = [url]`, `reference` = what you wrote, `source: "synthetic"`.
+
 Then move on to the next use case.
 
 **Data rules, no exceptions:**
-- Only templates, schemas and test data from the repo, or synthetic data, go to BIY. **Never real user content or uploads.**
+- Only templates, schemas and test data from the repo, or synthetic data, go to BIY. **Never real user content or uploads**,
+  including benchmark bundles or exports that contain real users' text or files. The user decides about those in the dashboard.
 - Never send secrets, API keys, tokens or anything that looks like real customer data, PII or health data. Replace names,
   emails, ids, addresses and numbers with realistic fakes. If unsure, leave it out and say so.
 
@@ -83,9 +102,12 @@ Then move on to the next use case.
 For each use case, call **`biy_runs_estimate`** with no `candidates` (BIY picks shortlisted open-weight models with
 verified capabilities for it) and `repeats: 3`. Then show me one table:
 
-| use case | kind | waiting? | weights q/s/c | quality metrics | gates | cases (repo + synthetic) | today's model | est. cost |
+| use case | kind | waiting? | weights q/s/c | quality metrics | gates | cases (repo + synthetic) | today's model | needs | est. cost |
 
 Below it, list: call sites you grouped together, anything you skipped and why, and anything you were unsure about.
+Then **"Needs your input in the dashboard:"** one line per use case that can't run yet, with its link (the `url` BIY
+returned, e.g. `https://biy.studypdf.net/use-cases/<id>`) and what's missing ("needs page images", "prompt not attached").
+Skip the estimate for those.
 
 **Ask me whether to start.** Only after I say yes, call **`biy_runs_start`** for each use case with the same arguments and
 `confirm_cost_usd` = that use case's estimated total. Then poll `biy_runs_status` until every run is done and summarise
