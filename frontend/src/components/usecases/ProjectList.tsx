@@ -107,7 +107,6 @@ function Project({ project, projectAll, isOpen, toggle, openAll, fresh, ops }: {
   const setUp = c.ready + c.running + c.done + c.failed
   const savings = savingsOf(projectAll)
   const [owner, repo] = project.name.includes('/') ? [project.name.slice(0, project.name.lastIndexOf('/') + 1), project.name.slice(project.name.lastIndexOf('/') + 1)] : ['', project.name]
-  const anyOpen = project.pinned.length > 0 || project.kinds.some((k) => isOpen(k.key))
 
   return (
     <section aria-label={project.name}>
@@ -156,7 +155,8 @@ function Project({ project, projectAll, isOpen, toggle, openAll, fresh, ops }: {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-line">
-        {anyOpen && <ColumnHeader />}
+        {/* always shown, so opening or closing a section never shifts the table */}
+        <ColumnHeader />
         {project.pinned.length > 0 && (
           <div>
             <div className="flex items-center gap-2 border-b border-line bg-panel px-4 py-2 text-xs text-muted">
