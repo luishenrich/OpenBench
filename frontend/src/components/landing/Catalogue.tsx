@@ -29,7 +29,7 @@ export default function Catalogue() {
   const [makersRef, makersIn] = useInView<HTMLDivElement>(0.5)
   const [bankRef, bankIn] = useInView<HTMLDivElement>(0.5)
   return (
-    <section aria-labelledby="metrics-title" id="metrics" className="scroll-mt-16 border-b border-line/60 py-24 sm:py-32">
+    <section aria-labelledby="metrics-title" id="metrics" className="scroll-mt-16 border-b border-line/60 py-20 sm:py-28">
       <Container>
         <SectionHead id="metrics-title" badge="Catalogue and metrics" tone="win" title="Measured, not copied from a spec sheet."
           lede="Prices are what the endpoint really charges. The official list price is kept next to it for reference." />

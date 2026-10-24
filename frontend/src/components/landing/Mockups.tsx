@@ -50,7 +50,7 @@ export function DiscoverMock() {
         <div className="lp-lift absolute top-0 right-3 z-10 flex gap-1.5" style={lift(-6)}>
           <Chip className="lp-t lp-up" style={d(80)}><Mark name="github" size={12} />acme/api</Chip>
           <Chip className="lp-t lp-up" style={d(150)}><Mark name="cursor" size={12} />Cursor</Chip>
-          <Chip className="lp-t lp-up" style={d(220)}><Mark name="claudecode" size={12} />Claude Code</Chip>
+          <span className="hidden sm:contents"><Chip className="lp-t lp-up" style={d(220)}><Mark name="claudecode" size={12} />Claude Code</Chip></span>
         </div>
 
         <div className={`lp-lift ${card}`} style={lift(-2)}>
@@ -228,7 +228,7 @@ export function DecideMock() {
               <rect className="lp-t lp-pt" style={d(550)} x={pts.f1[0] - 3} y={pts.f1[1] - 3} width={6} height={6} fill="#111113" stroke="#ff6b3d" strokeWidth={1.25} />
               <rect className="lp-t lp-pt" style={d(600)} x={pts.pick[0] - 4} y={pts.pick[1] - 4} width={8} height={8} fill="#ff6b3d" />
             </svg>
-            <span className="lp-t lp-fade absolute right-0 font-mono text-[10px] text-faint" style={{ top: `${((REF_Y - 13) / 116) * 100}%`, ...d(500) }}>Reference: GPT-6.1 Sol</span>
+            <span className="lp-t lp-fade absolute right-0 font-mono text-[10px] text-faint" style={{ top: `${(REF_Y / 116) * 100}%`, translate: '0 calc(-100% - 3px)', ...d(500) }}>Reference: GPT-6.1 Sol</span>
             <span className="lp-t lp-fade absolute font-mono text-[10px] text-front" style={{ left: `${(pts.pick[0] / 300) * 100}%`, top: `${((pts.pick[1] + 8) / 116) * 100}%`, ...d(900) }}>pick</span>
             <span className="lp-t lp-fade absolute font-mono text-[10px] text-muted" style={{ left: `${((pts.today[0] - 4) / 300) * 100}%`, top: `${((pts.today[1] + 7) / 116) * 100}%`, translate: '-50% 0', ...d(700) }}>today</span>
           </div>

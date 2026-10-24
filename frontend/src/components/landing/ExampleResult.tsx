@@ -124,7 +124,7 @@ function ParetoMini() {
               }}>
               {/* icons only from sm up: on a phone the labels need every pixel */}
               <span className="hidden sm:contents"><ModelIcon model={r.id} size={11} /></span>
-              {r.kind === 'today' ? `${r.name}, today` : r.name}
+              {r.name}{r.kind === 'today' && <span className="hidden sm:inline">, today</span>}
             </span>
           )
         })}
@@ -191,7 +191,7 @@ export default function ExampleResult() {
   const spot = useSpotlight<HTMLDivElement>()
   const [figRef, figIn] = useInView<HTMLDListElement>(0.4)
   return (
-    <section aria-labelledby="example-title" className="border-b border-line/60 py-24 sm:py-32">
+    <section aria-labelledby="example-title" className="border-b border-line/60 py-20 sm:py-28">
       <Container>
         <SectionHead id="example-title" badge="Example result" tone="front" title="A recommendation you can defend."
           lede="Every pick comes with the numbers behind it: the front it sits on, the intervals it was compared with, and what you save." />

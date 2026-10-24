@@ -121,7 +121,7 @@ export default function HowItWorks() {
   }, [])
 
   return (
-    <section aria-labelledby="how-title" id="how" className="scroll-mt-16 border-b border-line/60 py-24 sm:py-32">
+    <section aria-labelledby="how-title" id="how" className="scroll-mt-16 border-b border-line/60 py-20 sm:py-28">
       <Container>
         <SectionHead id="how-title" badge="How it works" tone="signal" title="From your repo to a pick, in three steps." />
         <ol ref={listRef} className="relative mt-16">

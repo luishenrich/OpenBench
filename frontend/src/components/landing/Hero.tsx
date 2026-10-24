@@ -37,11 +37,11 @@ export function Hero() {
       {/* Light first, then the front draws itself, then the pick lands (sequence in landing.css). */}
       <div aria-hidden className="lp-light lp-hero-light pointer-events-none absolute inset-0" />
       {/* At phone width the frame is kept wide and pinned right, so the coral front stays in view instead of being cropped away. */}
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-full min-w-[980px] opacity-55 sm:opacity-100">
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-full min-w-[980px] opacity-40 sm:opacity-100">
         <HeroBackdrop />
       </div>
       {/* On laptops the hero fills the first screen (minus the nav), so the CTAs are always above the fold. */}
-      <Container className="relative flex flex-col justify-center pt-20 pb-24 sm:pt-28 sm:pb-32 lg:min-h-[calc(100svh-4rem)] lg:py-16">
+      <Container className="relative flex flex-col justify-center pt-20 pb-16 sm:pt-28 sm:pb-32 lg:min-h-[calc(100svh-4rem)] lg:py-16">
         <div className="lp-in" style={d(150)}>
           <Eyebrow tone="front">Benchmark it yourself</Eyebrow>
         </div>

@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Code, Container, SectionHead, linkPrimary } from './shared'
 
-const PARTS = ['claude mcp add', '--transport http', 'biy', 'https://biy.studypdf.net/mcp', '--header', '"Authorization: Bearer biy_…"']
+// OAuth: no key in the command. Claude Code opens the BIY sign-in when you authenticate.
+const PARTS = ['claude mcp add', '--transport http', 'biy', 'https://biy.studypdf.net/mcp']
 const COMMAND = PARTS.join(' ')
 
 export default function Connect() {
@@ -19,7 +20,7 @@ export default function Connect() {
   }
 
   return (
-    <section aria-labelledby="connect-title" id="connect" className="scroll-mt-16 border-b border-line/60 py-24 sm:py-32">
+    <section aria-labelledby="connect-title" id="connect" className="scroll-mt-16 border-b border-line/60 py-20 sm:py-28">
       <Container className="grid gap-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
         <SectionHead id="connect-title" badge="MCP" tone="front" title="Connect your agent."
           lede="BIY is an MCP server. Any coding agent that speaks MCP over HTTP can use it; this is the command for Claude Code." />
@@ -28,13 +29,6 @@ export default function Connect() {
           <ol className="space-y-8">
             <li className="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
               <span className="font-mono text-xs leading-6 text-faint">01</span>
-              <div>
-                <p className="font-medium">Sign in and create a key</p>
-                <p className="mt-1 text-sm text-muted">The key is shown once. It replaces <Code>biy_…</Code> below.</p>
-              </div>
-            </li>
-            <li className="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
-              <span className="font-mono text-xs leading-6 text-faint">02</span>
               <div className="min-w-0">
                 <p className="font-medium">Add the server</p>
                 {/* the terminal: hairline light on its edge and a little coral light pooled under it */}
@@ -60,6 +54,15 @@ export default function Connect() {
               </div>
             </li>
             <li className="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
+              <span className="font-mono text-xs leading-6 text-faint">02</span>
+              <div>
+                <p className="font-medium">Authenticate</p>
+                <p className="mt-1 text-sm text-muted">
+                  Then run <Code>/mcp</Code> → Authenticate. You sign in to BIY in the browser; there is no key to paste.
+                </p>
+              </div>
+            </li>
+            <li className="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
               <span className="font-mono text-xs leading-6 text-faint">03</span>
               <div>
                 <p className="font-medium">Open your repo and scan it</p>
@@ -70,7 +73,7 @@ export default function Connect() {
             </li>
           </ol>
           <div className="mt-10 pl-11">
-            <Link to="/login" className={`${linkPrimary} lp-cta`}>Sign in to get a key</Link>
+            <Link to="/login" className={`${linkPrimary} lp-cta`}>Sign in</Link>
           </div>
         </div>
       </Container>
