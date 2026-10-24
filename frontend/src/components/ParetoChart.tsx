@@ -2,10 +2,10 @@ import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAx
 import { ms, pct, usd } from '@/lib/format'
 import type { ParetoPoint } from '@/types'
 
-const INK = '#141b2d'
-const WIN = '#0f8a5f'
-const FAINT = '#8a94a6'
-const MUTED = '#5a6478'
+const FG = '#ededef'
+const FRONT = '#ff6b3d'
+const FAINT = '#62626b'
+const MUTED = '#9a9aa3'
 
 type Pt = ParetoPoint & { x: number; y: number; recommended: boolean }
 
@@ -28,17 +28,17 @@ function Dot(props: { cx?: number; cy?: number; payload?: Pt }) {
   if (p.is_baseline) {
     return (
       <g>
-        <circle cx={cx} cy={cy} r={7} fill="#fff" stroke={INK} strokeWidth={2} />
-        <text x={cx} y={cy + 22} textAnchor="middle" fontSize={12} fill={INK}>{p.label} (today)</text>
+        <circle cx={cx} cy={cy} r={7} fill="#09090b" stroke={FG} strokeWidth={2} />
+        <text x={cx} y={cy + 22} textAnchor="middle" fontSize={12} fill={FG}>{p.label} (today)</text>
       </g>
     )
   }
   if (p.pareto) {
-    const r = p.recommended ? 9 : 6
+    const r = p.recommended ? 6 : 4.5
     return (
       <g>
-        <circle cx={cx} cy={cy} r={r} fill={WIN} stroke="#fff" strokeWidth={2} />
-        <text x={cx} y={cy - r - 7} textAnchor="middle" fontSize={12} fontWeight={600} fill={INK}>{p.label}</text>
+        <rect x={cx - r} y={cy - r} width={r * 2} height={r * 2} rx={1.5} fill={p.recommended ? FRONT : "#09090b"} stroke={FRONT} strokeWidth={1.5} />
+        <text x={cx} y={cy - r - 7} textAnchor="middle" fontSize={12} fontWeight={600} fill={FG}>{p.label}</text>
       </g>
     )
   }
@@ -67,15 +67,15 @@ export default function ParetoChart({ points, recommended }: { points: ParetoPoi
     <div className="h-[360px] w-full">
       <ResponsiveContainer>
         <ScatterChart margin={{ top: 24, right: 32, bottom: 28, left: 8 }}>
-          <CartesianGrid stroke="#e6eaf0" />
+          <CartesianGrid stroke="#1f1f23" />
           <XAxis
             type="number" dataKey="x" scale="log" domain={[xLo, xHi]} ticks={logTicks(xLo, xHi)} tickFormatter={(v) => usd(v)}
-            tick={{ fontSize: 12, fill: MUTED }} stroke="#d9dfe7" allowDataOverflow
+            tick={{ fontSize: 12, fill: MUTED }} stroke="#3a3a40" allowDataOverflow
             label={{ value: 'Cost per successful call, log scale (cheaper is left)', position: 'bottom', offset: 10, fontSize: 12, fill: MUTED }}
           />
           <YAxis
             type="number" dataKey="y" domain={[yLo, 1]} ticks={yTicks} tickFormatter={(v) => pct(v, 0)}
-            tick={{ fontSize: 12, fill: MUTED }} stroke="#d9dfe7" width={44}
+            tick={{ fontSize: 12, fill: MUTED }} stroke="#3a3a40" width={44}
           />
           <Tooltip
             cursor={false}
@@ -83,7 +83,7 @@ export default function ParetoChart({ points, recommended }: { points: ParetoPoi
               const p = payload?.[0]?.payload as Pt | undefined
               if (!p) return null
               return (
-                <div className="rounded-md border border-rule bg-surface px-3 py-2 text-xs shadow-sm">
+                <div className="rounded-md border border-line bg-raised px-3 py-2 text-xs">
                   <div className="font-medium">{p.label}{p.is_baseline ? ' (today)' : ''}</div>
                   <div className="text-muted">quality {pct(p.quality)}, {usd(p.cost_per_success_usd)} per success, p95 {ms(p.latency_ms)}</div>
                 </div>
@@ -91,7 +91,7 @@ export default function ParetoChart({ points, recommended }: { points: ParetoPoi
             }}
           />
           <Scatter data={front} shape={Dot} isAnimationActive={false}
-            line={{ stroke: WIN, strokeWidth: 1.5, strokeDasharray: '4 3' }} lineType="joint" />
+            line={{ stroke: FRONT, strokeWidth: 1.25 }} lineType="joint" />
           <Scatter data={others} shape={Dot} isAnimationActive={false} />
         </ScatterChart>
       </ResponsiveContainer>
