@@ -90,6 +90,11 @@ export default function Leaderboard({ rows, metrics, recommended, closest = null
           <div className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs text-faint">
             <ProviderIcon provider={r.provider} size={11} />via {r.provider}, n = {r.n}
             {note && <span>· {note}</span>}
+            {!!r.dropped_params?.length && (
+              <span title="This model does not accept these settings, so it ran at the provider's default">
+                · {r.dropped_params.join(', ')} not supported, ran at provider default
+              </span>
+            )}
 
           </div>
           {Object.keys(r.metrics).length > 0 && (
