@@ -70,7 +70,8 @@ Call `biy_workspace_get` once for the company's default trade-off profile. Then,
 A person waiting on streamed text → speed matters more. Background batch → speed near 0, cost matters. Agents → quality
 first. Give a one-sentence reason for every override.
 
-**d. Fill it in** with **`biy_use_cases_update`**: `io_spec` (`system_prompt`; `user_template` with `{{variable}}` placeholders;
+**d. Fill it in with one call, `biy_use_cases_fill`** (pass the brief from b as `brief` instead of calling
+`biy_metrics_select`, and the repo cases from e as `cases`; it marks the use case complete). Or, step by step, with **`biy_use_cases_update`**: `io_spec` (`system_prompt`; `user_template` with `{{variable}}` placeholders;
 `response_schema` as JSON Schema, converted from pydantic / zod / TypedDict; `tools` in OpenAI format; `params`),
 `metrics`, `gates`, and `profile` only when you override the weights.
 

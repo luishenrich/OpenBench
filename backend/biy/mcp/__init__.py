@@ -208,6 +208,32 @@ async def biy_use_cases_update(use_case_id: UUID, patch: UseCasePatch) -> ToolRe
 
 
 @mcp.tool
+async def biy_use_cases_fill(use_case_id: UUID, patch: UseCasePatch, brief: ScorecardBrief | None = None,
+                             cases: list[CaseIn] | None = None, complete: bool = True) -> ToolResult:
+    """Fill in ONE use case in a single call (scan_repo step 3), instead of metrics_select + update + cases_add.
+    patch: io_spec (system_prompt, user_template, response_schema, tools, params), profile, and metrics/gates if
+    you already have them. Large prompts or schemas still go by biy_upload_url first.
+    brief: when patch has no metrics, BIY selects metrics + gates from it (same as biy_metrics_select).
+    cases: added as with biy_cases_add (for many, upload a cases_jsonl instead).
+    complete: marks setup_state "complete" (the default); pass false if you'll come back to it."""
+    ws = await _ws()
+    fields = patch.model_dump(exclude_unset=True)
+    if brief and patch.metrics is None:
+        try:
+            card = metrics.scorecard(brief)
+        except Exception as e:
+            raise ToolError(f"metric selection failed: {e}. Check the brief fields (kind is required).") from e
+        fields["metrics"] = card.metrics
+        fields.setdefault("gates", card.gates)
+    if complete:
+        fields.setdefault("setup_state", "complete")
+    u = await _call(uc_service.update_use_case(ws, use_case_id, UseCasePatch(**fields)))
+    added = await _call(uc_service.add_cases(ws, use_case_id, cases)) if cases else []
+    if added:
+        u = await _call(uc_service.get_use_case(ws, use_case_id))
+    return _result(f"Filled: {_brief_line(_brief(u))}" + (f"; added {len(added)} cases" if added else ""), _brief(u))
+
+@mcp.tool
 async def biy_cases_add(use_case_id: UUID, cases: list[CaseIn]) -> ToolResult:
     """Add test cases. input is {"vars": {...}} for io_spec.user_template, or {"messages": [...]};
     reference is the expected output (JSON / label / text) when known. source: repo | synthetic.
