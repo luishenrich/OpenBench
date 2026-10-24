@@ -27,8 +27,8 @@ export function SectionHead({ id, badge, tone = 'muted', title, lede }: {
   return (
     <div>
       <Badge tone={tone}>{badge}</Badge>
-      <h2 id={id} className="display mt-5 max-w-[18ch] text-4xl sm:text-5xl">{title}</h2>
-      {lede && <p className="mt-5 max-w-xl text-base leading-relaxed text-muted sm:text-lg">{lede}</p>}
+      <h2 id={id} className="display mt-5 max-w-[18ch] text-4xl text-balance sm:text-5xl">{title}</h2>
+      {lede && <p className="mt-5 max-w-xl text-base leading-relaxed text-pretty text-muted sm:text-lg">{lede}</p>}
     </div>
   )
 }
