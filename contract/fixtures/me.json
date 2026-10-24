@@ -36,7 +36,30 @@
       ],
       "mode": "rubric",
       "rubric": null
-    }
+    },
+    "default_references": [
+      {
+        "provider": "openrouter",
+        "model": "openai/gpt-6.1-sol",
+        "params": {
+          "reasoning_effort": "medium"
+        }
+      },
+      {
+        "provider": "openrouter",
+        "model": "openai/gpt-6-luna",
+        "params": {
+          "reasoning_effort": "medium"
+        }
+      }
+    ],
+    "candidate_pool": {
+      "shortlist_only": true,
+      "exclude_providers": [],
+      "max_output_usd_per_1m": null
+    },
+    "default_repeats": 3,
+    "max_run_cost_usd": null
   },
   "mcp_key_last4": "9f3a"
 }

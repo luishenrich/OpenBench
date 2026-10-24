@@ -48,5 +48,10 @@
       "calls": 150,
       "est_cost_usd": 0.015
     }
-  ]
+  ],
+  "candidates": [],
+  "references": [],
+  "repeats": 3,
+  "max_run_cost_usd": null,
+  "over_cap": false
 }
