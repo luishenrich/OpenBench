@@ -8,7 +8,7 @@ Shared shapes for the REST API, the MCP tools and the frontend. **Owner: Raphaë
 | `fixtures/*.json` | One example response per endpoint, built through `schemas.py` (`python3 -m contract.make_fixtures`). The frontend builds on these before the API exists |
 | `api.md` | Endpoints, auth, errors, MCP tools |
 | `services.md` | Python signatures the REST routes and MCP tools both call, including the metric interface (Jad) |
-| `schema.sql` | Supabase tables *(coming next)* |
+| `schema.sql` | Supabase tables; run once in the SQL editor (idempotent, RLS on, no policies) |
 
 Fixture → endpoint:
 

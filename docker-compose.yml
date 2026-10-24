@@ -1,0 +1,38 @@
+# Coolify deploys this file. Set the env vars in Coolify (see docs/hackathon-plan.md#env-vars)
+# and give the `api` service the domain; the worker needs no domain.
+x-env: &env
+  DATABASE_URL: ${DATABASE_URL}
+  REDIS_URL: ${REDIS_URL}
+  SUPABASE_URL: ${SUPABASE_URL}
+  SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+  NEBIUS_API_KEY: ${NEBIUS_API_KEY}
+  OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+
+services:
+  api:
+    build:
+      context: .
+      args:
+        VITE_SUPABASE_URL: ${SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+    environment: *env
+    expose:
+      - "8000"
+    mem_limit: 1g
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  worker:
+    build:
+      context: .
+      args:
+        VITE_SUPABASE_URL: ${SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+    command: ["arq", "biy.worker.WorkerSettings"]
+    environment: *env
+    mem_limit: 1g
+    restart: unless-stopped
