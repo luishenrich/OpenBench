@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { api, ApiError } from '@/lib/api'
 import { usd } from '@/lib/format'
 import type { Estimate, ModelRef, UseCase } from '@/types'
+import { ModelIcon, ProviderIcon } from './ModelIcon'
 import { Badge, Button, ErrorNote, Panel } from './ui'
 
 export default function StartRun({ useCase, needsVision }: { useCase: UseCase; needsVision: boolean }) {
@@ -59,12 +60,17 @@ export default function StartRun({ useCase, needsVision }: { useCase: UseCase; n
         {eligible.map((m) => {
           const key = `${m.provider}:${m.id}`
           return (
-            <label key={key} className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 hover:bg-raised">
-              <input type="checkbox" checked={selected.has(key)} onChange={() => toggle(key)} className="accent-[var(--color-front)]" />
+            <label key={key} className="flex cursor-pointer items-start gap-3 rounded-md px-2 py-1.5 hover:bg-raised">
+              <input type="checkbox" checked={selected.has(key)} onChange={() => toggle(key)} className="mt-[3px] accent-[var(--color-front)]" />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium">{m.name}</span>
-                <span className="block text-xs text-faint">
-                  {m.provider}, ${m.pricing_usd_per_1m.input ?? '?'} in / ${m.pricing_usd_per_1m.output ?? '?'} out per 1M tokens{m.aa_index ? `, AA index ${m.aa_index}` : ''}
+                <span className="flex min-w-0 items-center gap-2">
+                  <ModelIcon model={key} size={14} />
+                  <span className="truncate text-sm font-medium" title={m.name}>{m.name}</span>
+                </span>
+                <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-faint">
+                  <span className="inline-flex items-center gap-1.5"><ProviderIcon provider={m.provider} size={11} />{m.provider}</span>
+                  <span>${m.pricing_usd_per_1m.input ?? '?'} in, ${m.pricing_usd_per_1m.output ?? '?'} out per 1M</span>
+                  {m.aa_index ? <span>AA index {m.aa_index}</span> : null}
                 </span>
               </span>
             </label>

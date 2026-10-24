@@ -8,6 +8,7 @@ import { api } from '@/lib/api'
 import { ago, shortModel, usd } from '@/lib/format'
 import { briefVerdict } from '@/lib/verdict'
 import type { Case, Gate, MetricInfo, Profile } from '@/types'
+import { ModelIcon, ProviderIcon } from '@/components/ModelIcon'
 
 function preview(x: unknown, max = 140): string {
   if (x == null) return '–'
@@ -21,17 +22,56 @@ function caseInput(c: Case): string {
   return preview(c.input.messages)
 }
 
-// A gate on a 0–1 ruler: the shaded side passes.
-function GateRuler({ gate }: { gate: Gate }) {
+const OP: Record<string, string> = { '>=': '≥', '<=': '≤', '>': '>', '<': '<', '==': '=' }
+const pctLabel = (v: number) => `${+(v * 100).toFixed(1)}%`
+
+// A gate as a ruler. Thresholds near 0 or 1 (≥ 0.99, ≤ 0.02) would leave a 1–2 % sliver on a 0–100 % scale,
+// so the ruler zooms to the last 10 % next to that end and labels both ends: zoomed, never stretched.
+function GateRow({ gate, name }: { gate: Gate; name: string }) {
   const ratio = gate.value >= 0 && gate.value <= 1
-  if (!ratio) return <span className="font-mono text-xs text-muted">{gate.op} {gate.value}</span>
-  const x = gate.value * 100
-  const passRight = gate.op === '>=' || gate.op === '>'
+  const passUp = gate.op === '>=' || gate.op === '>'
+  const op = OP[gate.op] ?? gate.op
+  const value = ratio ? pctLabel(gate.value) : String(gate.value)
+  let lo = 0
+  let hi = 1
+  if (ratio && gate.value >= 0.9) lo = 0.9
+  else if (ratio && gate.value <= 0.1) hi = 0.1
+  const at = ((gate.value - lo) / (hi - lo)) * 100
+  const zoomed = hi - lo < 1
+  const passWidth = passUp ? 100 - at : at
+
   return (
-    <div className="relative h-4 w-40" aria-hidden>
-      <div className="absolute inset-x-0 top-[7px] h-px bg-line-strong" />
-      <div className="absolute top-[5px] h-[5px] rounded-[1px] bg-win/50" style={passRight ? { left: `${x}%`, right: 0 } : { left: 0, width: `${x}%` }} />
-      <div className="absolute top-0 h-4 w-px bg-fg" style={{ left: `${x}%` }} />
+    <div className="p-4">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <div className="text-sm">{name}</div>
+          <div className="mt-0.5 text-xs text-faint">
+            {ratio ? `passes at ${value} ${passUp ? 'or more' : 'or less'}` : `${gate.metric_id} ${op} ${gate.value}`}
+          </div>
+        </div>
+        <div className="title shrink-0 text-2xl">
+          <span className="mr-1 text-muted">{op}</span>{value}
+        </div>
+      </div>
+      {ratio && (
+        <div className="mt-3" aria-hidden>
+          <div className="relative h-5 overflow-hidden rounded-[4px] bg-bad/[0.12] text-[10px] leading-5 font-medium">
+            <div className="absolute inset-y-0 bg-win/30" style={passUp ? { left: `${at}%`, right: 0 } : { left: 0, width: `${at}%` }} />
+            {Array.from({ length: 9 }, (_, i) => (
+              <span key={i} className="absolute bottom-0 h-1.5 w-px bg-fg/15" style={{ left: `${(i + 1) * 10}%` }} />
+            ))}
+            <span className="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-fg" style={{ left: `${at}%` }} />
+            {passWidth >= 9 && (
+              <span className="absolute inset-y-0 text-center text-win" style={passUp ? { left: `${at}%`, right: 0 } : { left: 0, width: `${at}%` }}>pass</span>
+            )}
+            <span className={`absolute inset-y-0 px-2 text-bad/90 ${passUp ? 'text-right' : ''}`} style={passUp ? { left: 0, width: `${at}%` } : { left: `${at}%`, right: 0 }}>fail</span>
+          </div>
+          <div className="mt-1 flex justify-between font-mono text-[10.5px] text-faint">
+            <span>{zoomed && lo > 0 ? '… ' : ''}{pctLabel(lo)}</span>
+            <span>{pctLabel(hi)}{zoomed && hi < 1 ? ' …' : ''}</span>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -72,7 +112,7 @@ export default function UseCasePage() {
         <Badge tone="front">{u.kind}</Badge>
         {u.created_by === 'mcp' && <Badge tone="signal">Found by agent</Badge>}
       </div>
-      <h1 className="display mt-4 max-w-4xl text-4xl sm:text-6xl">{u.name}</h1>
+      <h1 className="display mt-4 max-w-4xl text-4xl text-balance sm:text-6xl">{u.name}</h1>
       {u.description && <p className="mt-4 max-w-2xl text-lg text-muted">{u.description}</p>}
 
       <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-4">
@@ -85,8 +125,8 @@ export default function UseCasePage() {
         </div>
         <div className="bg-panel p-4">
           <dt className="text-xs text-faint">Model today</dt>
-          <dd className="mt-1 font-medium">{u.current_model ? shortModel(u.current_model.model) : 'not set'}</dd>
-          {u.current_model && <dd className="text-xs text-muted">via {u.current_model.provider}</dd>}
+          <dd className="mt-1 flex items-center gap-2 font-medium">{u.current_model && <ModelIcon model={u.current_model.model} size={16} />}{u.current_model ? shortModel(u.current_model.model) : 'not set'}</dd>
+          {u.current_model && <dd className="mt-1 flex items-center gap-1.5 text-xs text-muted"><ProviderIcon provider={u.current_model.provider} size={11} />via {u.current_model.provider}</dd>}
         </div>
         <div className="bg-panel p-4">
           <dt className="text-xs text-faint">Test cases</dt>
@@ -99,7 +139,7 @@ export default function UseCasePage() {
       </dl>
 
       <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_380px]">
-        <div className="space-y-12">
+        <div className="min-w-0 space-y-12">
           <Section
             title="What matters for this job"
             aside={draft ? (
@@ -119,15 +159,7 @@ export default function UseCasePage() {
             <Section title="Must pass">
               <Panel className="divide-y divide-line">
                 {u.gates.length === 0 && <p className="p-4 text-sm text-muted">No gates.</p>}
-                {u.gates.map((g) => (
-                  <div key={g.metric_id + g.op} className="flex items-center justify-between gap-4 p-4">
-                    <div>
-                      <div className="text-sm">{metricName(g.metric_id)}</div>
-                      <div className="font-mono text-[11.5px] text-faint">{g.op} {g.value}</div>
-                    </div>
-                    <GateRuler gate={g} />
-                  </div>
-                ))}
+                {u.gates.map((g) => <GateRow key={g.metric_id + g.op} gate={g} name={metricName(g.metric_id)} />)}
               </Panel>
             </Section>
             <Section title="Quality is measured by">
@@ -156,7 +188,7 @@ export default function UseCasePage() {
             )}
             {!!cases.data?.length && (
               <div className="overflow-x-auto rounded-xl border border-line">
-                <table className="w-full text-left text-sm">
+                <table className="w-full min-w-[600px] text-left text-sm">
                   <thead className="bg-panel text-xs text-faint">
                     <tr><th className="px-4 py-2.5 font-medium">Input</th><th className="px-4 py-2.5 font-medium">Expected</th><th className="px-4 py-2.5 font-medium">Source</th></tr>
                   </thead>
@@ -177,7 +209,7 @@ export default function UseCasePage() {
           </Section>
         </div>
 
-        <div className="space-y-10">
+        <div className="min-w-0 space-y-10">
           <StartRun useCase={u} needsVision={needsVision} />
           <Section title="Past runs">
             {runs.data?.length === 0 && <p className="text-sm text-muted">No runs yet.</p>}

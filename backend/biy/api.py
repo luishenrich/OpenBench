@@ -102,7 +102,7 @@ async def delete_case(use_case_id: UUID, case_id: UUID, c: Caller = Depends(curr
 
 @router.post("/use-cases/{use_case_id}/cases/generate", response_model=list[Case], status_code=201)
 async def generate_cases(use_case_id: UUID, body: GenerateCasesIn, c: Caller = Depends(current_caller)):
-    raise Invalid("synthetic case generation is not available yet")
+    return await use_cases.generate_cases(c.workspace_id, use_case_id, body)
 
 
 @router.get("/use-cases/{use_case_id}/runs", response_model=list[RunBrief])

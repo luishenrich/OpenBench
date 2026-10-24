@@ -24,26 +24,28 @@ body { font-family: var(--font-sans); font-feature-settings: 'tnum' 1; -webkit-f
 :focus-visible { outline: 2px solid var(--color-signal); outline-offset: 2px; border-radius: 6px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
-/* Big display type: tight like the brand reference */
-.display { letter-spacing: -0.045em; line-height: 0.98; font-weight: 600; }
-.title { letter-spacing: -0.03em; font-weight: 600; }
+@layer components {
+  /* Big display type: tight like the brand reference */
+  .display { letter-spacing: -0.045em; line-height: 0.98; font-weight: 600; }
+  .title { letter-spacing: -0.03em; font-weight: 600; }
 
-/* Small mono badge, used only for eyebrow markers */
-.badge {
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  border: 1px solid var(--color-line); background: var(--color-panel);
-  border-radius: 6px; padding: 0.3rem 0.6rem;
-  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted);
-}
-.badge-dot { width: 7px; height: 7px; border-radius: 1.5px; background: currentColor; }
+  /* Small mono badge, used only for eyebrow markers */
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    border: 1px solid var(--color-line); background: var(--color-panel);
+    border-radius: 6px; padding: 0.3rem 0.6rem;
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted);
+  }
+  .badge-dot { width: 7px; height: 7px; border-radius: 1.5px; background: currentColor; }
 
-/* Faint measuring grid that fades out toward the edges */
-.grid-bg {
-  background-image:
-    linear-gradient(var(--color-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse 70% 70% at 50% 40%, black 20%, transparent 80%);
+  /* Faint measuring grid that fades out toward the edges */
+  .grid-bg {
+    background-image:
+      linear-gradient(var(--color-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 70% 70% at 50% 40%, black 20%, transparent 80%);
+  }
 }
 
 input[type='range'] { accent-color: var(--color-front); }

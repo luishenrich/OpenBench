@@ -13,7 +13,9 @@ from .api import install_error_handlers, router
 from .config import settings
 from .mcp import mcp
 
-mcp_app = mcp.http_app(path="/")
+# Stateless + JSON responses: what MCP 2026-07-28 clients expect, and no sticky sessions behind the proxy.
+mcp_app = mcp.http_app(path="/", stateless_http=True, json_response=True)
+
 app = FastAPI(title="BIY API", lifespan=mcp_app.lifespan, docs_url="/api/docs", openapi_url="/api/openapi.json")
 app.include_router(router)  # before the SPA catch-all below
 install_error_handlers(app)
@@ -56,6 +58,22 @@ def models(shortlist: bool | None = None, type: str | None = None, provider: str
 
 
 app.mount("/mcp", mcp_app)
+
+
+class _McpWithoutSlash:
+    """`/mcp` → `/mcp/` before routing. Otherwise the SPA catch-all below matches `/mcp` and a
+    POST gets 405, while users copy `https://<host>/mcp` into `claude mcp add`."""
+
+    def __init__(self, asgi_app):
+        self.app = asgi_app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["path"] == "/mcp":
+            scope = {**scope, "path": "/mcp/", "raw_path": b"/mcp/"}
+        await self.app(scope, receive, send)
+
+
+app.add_middleware(_McpWithoutSlash)
 
 # The built Vite app (frontend/dist), with SPA fallback to index.html.
 if (settings.static_dir / "index.html").exists():

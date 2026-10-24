@@ -68,14 +68,34 @@ def is_judge(metric_id: str) -> bool:
     return bool(m and m.method == "llm_judge") or metric_id in ("rubric_score", "pairwise_vs_baseline")
 
 
+# Computed by the backend itself, so runnable whatever the bank's runtime status says:
+# set-level metrics in biy.scoring.CORPUS and the run-level rates in biy.ranking.
+BACKEND_COMPUTED = {"classification_f1", "error_rate", "truncation_rate", "throttle_rate"}
+
+
+def runnable(metric_id: str) -> bool:
+    """Something will compute it: the metrics runtime (implemented / judge / runner_measured) or the backend."""
+    mid = canonical(metric_id)
+    if mid in BACKEND_COMPUTED or mid in OPERATIONAL:
+        return True
+    try:
+        from metric_bank.runtime import is_runnable  # metric-bank/src is on sys.path once the bank loaded
+        return bool(is_runnable(mid))
+    except ImportError:
+        return True
+
+
 def normalize_metrics(specs: list[MetricSpec] | None) -> list[MetricSpec] | None:
-    """Canonical ids; 422 for ids the bank doesn't know."""
+    """Canonical ids; 422 for ids the bank doesn't know or nothing computes yet."""
     if specs is None or not _by_id():
         return specs
     out = []
     for s in specs:
         if not info(s.metric_id):
             raise Invalid(f"unknown metric_id {s.metric_id!r}; see GET /api/metrics")
+        if not runnable(s.metric_id):
+            raise Invalid(f"metric {s.metric_id!r} is in the bank but not computed yet (planned); "
+                          "use the metrics biy_metrics_select returns")
         out.append(s.model_copy(update={"metric_id": canonical(s.metric_id)}))
     return out
 
@@ -89,6 +109,8 @@ def normalize_gates(gates: list[Gate] | None) -> list[Gate] | None:
         if mid not in OPERATIONAL and not mid.removesuffix("_p95").removesuffix("_p50") in OPERATIONAL:
             if not info(mid):
                 raise Invalid(f"unknown gate metric_id {mid!r}; see GET /api/metrics")
+            if not runnable(mid):
+                raise Invalid(f"gate metric {mid!r} is not computed yet (planned); drop this gate")
             mid = canonical(mid)
         out.append(g.model_copy(update={"metric_id": mid}))
     return out

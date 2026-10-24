@@ -4,6 +4,7 @@ import { api } from '@/lib/api'
 import { ms, pct, shortModel, usd } from '@/lib/format'
 import type { CandidateResult } from '@/types'
 import { Loading } from './ui'
+import { ModelIcon } from '@/components/ModelIcon'
 
 export default function ResultsViewer({ runId, candidates }: { runId: string; candidates: CandidateResult[] }) {
   const [candidate, setCandidate] = useState('')
@@ -30,7 +31,7 @@ export default function ResultsViewer({ runId, candidates }: { runId: string; ca
           return (
             <li key={r.id} className={`rounded-xl border bg-panel p-4 text-sm ${failed ? 'border-bad/40' : 'border-line'}`}>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                <span className="font-medium">{shortModel(r.candidate_key)}</span>
+                <span className="flex items-center gap-2 font-medium"><ModelIcon model={r.candidate_key} size={16} />{shortModel(r.candidate_key)}</span>
                 <span className="text-faint">case {r.case_id.slice(-4)}, repeat {r.repeat_idx + 1}</span>
                 <span className="text-muted">{ms(r.timing.e2e_ms)}</span>
                 <span className="text-muted">{usd(r.cost_usd)}</span>
