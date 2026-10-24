@@ -6,12 +6,30 @@ from OpenRouter's usage (BYOK: cost_details.upstream_inference_cost), see client
 
 from __future__ import annotations
 
+import re
+
 REFERENCES: dict[str, dict] = {
     "openai/gpt-6.1-sol": {"label": "GPT-6.1 Sol", "family": "openai",
                            "usd_per_1m": {"input": 2.0, "output": 10.0, "cached_input": None}},
     "openai/gpt-6-luna": {"label": "GPT-6 Luna", "family": "openai",
                           "usd_per_1m": {"input": 0.10, "output": 0.50, "cached_input": None}},
 }
+
+
+# Sampling knobs OpenAI's reasoning models reject. With require_parameters on, OpenRouter then finds no
+# endpoint at all (HTTP 404), so they are dropped before the call and reported per candidate.
+SAMPLING = {"temperature", "top_p", "top_k", "min_p", "presence_penalty", "frequency_penalty",
+            "repetition_penalty", "logit_bias", "logprobs", "top_logprobs"}
+_OPENAI_REASONING = re.compile(r"^openai/(gpt-[5-9]|o\d)")
+
+
+def unsupported_params(model: str) -> set[str]:
+    """Params a closed model (not in the catalogue) rejects."""
+    return set(SAMPLING) if _OPENAI_REASONING.match(model) else set()
+
+
+def is_reasoning(model: str) -> bool:
+    return model in REFERENCES or bool(_OPENAI_REASONING.match(model))
 
 
 def label(model: str) -> str:

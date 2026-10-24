@@ -26,9 +26,51 @@ PROVIDERS = {
 }
 
 DEFAULT_MAX_TOKENS = 4096  # reasoning models spend tokens before answering
+REASONING_HEADROOM = 2048  # added to a use case's own max_tokens for reasoning models
 TIMEOUT = httpx.Timeout(180.0, connect=15.0)
 RETRY_STATUS = {408, 429, 500, 502, 503, 504, 529}  # 529: Nebius "System is overloaded"
 MAX_ATTEMPTS = 4
+
+
+def prepare_params(provider: str, model: str, params: dict[str, Any] | None, *, tools: list[dict] | None = None,
+                   response_format: dict | None = None,
+                   openrouter_provider: str | None = None) -> tuple[dict[str, Any], list[str], str | None]:
+    """Use-case params as this model's endpoint takes them: (params to send, dropped names, pinned upstream).
+
+    - reasoning_effort: OpenRouter takes {"reasoning": {"effort"}}, Nebius / OpenAI take it as is;
+      "default" (or unset) sends nothing, the provider's own default.
+    - max_tokens: reasoning models get REASONING_HEADROOM on top of the use case's limit (else a short
+      limit is spent on thinking and the answer comes back empty), and never less than DEFAULT_MAX_TOKENS.
+    - Params the pinned endpoint (or, for closed models, sampling params the model) doesn't support are dropped (OpenRouter's require_parameters would
+      otherwise find no endpoint and answer 404). The ranking reports them per candidate.
+    """
+    from . import references
+
+    params = dict(params or {})
+    effort = params.pop("reasoning_effort", None)
+    if effort and effort != "default":
+        if provider == "openrouter":
+            params["reasoning"] = {**(params.get("reasoning") or {}), "effort": effort}
+        else:
+            params["reasoning_effort"] = effort
+    row = catalog.get_model(provider, model)
+    reasoning = bool((row.get("verified") or {}).get("reasoning")) if row else references.is_reasoning(model)
+    limit = params.pop("max_tokens", None)
+    params["max_tokens"] = (max(limit + REASONING_HEADROOM, DEFAULT_MAX_TOKENS) if reasoning else limit) \
+        if limit else DEFAULT_MAX_TOKENS
+
+    endpoint, unsupported = None, references.unsupported_params(model) if not row else set()
+    if provider == "openrouter":
+        needs = {"max_tokens"} | ({"tools"} if tools else set()) | (
+            {"response_format"} if response_format else set()) | ({"reasoning"} if "reasoning" in params else set())
+        endpoint = openrouter_provider or catalog.pick_openrouter_endpoint(model, needs)
+        supported = catalog.endpoint_parameters(model, endpoint) if row and endpoint else None
+        if supported is not None:
+            unsupported = set(params) - supported - {"max_tokens", "reasoning"}  # those two are in `needs`
+    dropped = sorted(k for k in params if k in unsupported)
+    for k in dropped:
+        del params[k]
+    return params, dropped, endpoint
 
 
 def _verify() -> Any:
@@ -186,24 +228,17 @@ class ProviderClient:
     ) -> CallResult:
         """Stream one chat completion. Never raises for provider errors: see CallResult.error.
 
-        params: temperature, max_tokens, reasoning_effort, … (passed through).
+        params: temperature, max_tokens, reasoning_effort, … (adapted per endpoint: see prepare_params).
         openrouter_provider: upstream to pin (e.g. "DeepInfra"). Defaults to one picked from
         the catalogue; calls always run with fallbacks off, so the price and speed we measure
         belong to a single endpoint.
         """
-        params = dict(params or {})
-        # reasoning_effort: OpenRouter takes {"reasoning": {"effort"}}, Nebius / OpenAI take it as is.
-        # "default" (or unset) sends nothing: the provider's own default.
-        effort = params.pop("reasoning_effort", None)
-        if effort and effort != "default":
-            if self.provider == "openrouter":
-                params["reasoning"] = {**(params.get("reasoning") or {}), "effort": effort}
-            else:
-                params["reasoning_effort"] = effort
+        params, _dropped, endpoint = prepare_params(self.provider, model, params, tools=tools,
+                                                    response_format=response_format,
+                                                    openrouter_provider=openrouter_provider)
         body: dict[str, Any] = {
             "model": model,
             "messages": messages,
-            "max_tokens": params.pop("max_tokens", DEFAULT_MAX_TOKENS),
             "stream": True,
             "stream_options": {"include_usage": True},
             **params,
@@ -213,11 +248,7 @@ class ProviderClient:
         if response_format:
             body["response_format"] = response_format
 
-        endpoint = None
         if self.provider == "openrouter":
-            needs = {"max_tokens"} | ({"tools"} if tools else set()) | (
-                {"response_format"} if response_format else set()) | ({"reasoning"} if "reasoning" in body else set())
-            endpoint = openrouter_provider or catalog.pick_openrouter_endpoint(model, needs)
             routing: dict[str, Any] = {"allow_fallbacks": False, "require_parameters": True}
             if endpoint:
                 routing["only"] = [endpoint]
