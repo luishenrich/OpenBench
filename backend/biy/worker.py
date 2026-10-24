@@ -115,7 +115,8 @@ async def execute_run(ctx, run_id: str) -> None:
         if cancelled.is_set():
             log.info("run %s cancelled", run_id)
             return
-        results = await db.fetch("select * from result where run_id = $1", rid)
+        from .services.runs import RANKING_RESULTS_SQL
+        results = await db.fetch(RANKING_RESULTS_SQL, rid)
         summary = ranking.build(results, snap, done=True)
         summary = {
             "leaderboard": [c.model_dump(mode="json") for c in summary["leaderboard"]],

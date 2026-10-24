@@ -110,12 +110,28 @@ def build(results: list[dict], snapshot: dict, done: bool) -> dict[str, Any]:
         tpss = [r["timing"]["tokens_per_s"] for r in ok if (r.get("timing") or {}).get("tokens_per_s")]
         costs = [r["cost_usd"] for r in ok if r.get("cost_usd") is not None]
         cost_per_call = sum(costs) / len(costs) if costs else 0.0
-        quality = scoring.aggregate(qualities) if qualities else Stat(mean=0, std=0, ci_low=0, ci_high=0, n=0)
+        quality = scoring.aggregate(qualities) if qualities else None
+        # set-level quality metrics (e.g. classification_f1): one value per candidate, bootstrap CI over cases
+        corpus = {m["metric_id"]: (st, m.get("weight", 1.0)) for m in metric_specs
+                  if scoring.in_quality(m["metric_id"]) and (st := scoring.corpus_stat(m["metric_id"], ok))}
+        for mid, (st, _) in corpus.items():
+            per_metric[mid] = [st.mean]
+        if corpus:
+            parts = [(st, w) for st, w in corpus.values()]
+            if quality:
+                w_case = sum(m.get("weight", 1.0) for m in metric_specs
+                             if m["metric_id"] in per_metric and m["metric_id"] not in corpus
+                             and scoring.in_quality(m["metric_id"]))
+                parts.append((quality, w_case))
+            wt = sum(w for _, w in parts) or 1.0
+            quality = Stat(**{f: round(sum(getattr(st, f) * w for st, w in parts) / wt, 6)
+                              for f in ("mean", "std", "ci_low", "ci_high")}, n=len(ok))
+        quality = quality or Stat(mean=0, std=0, ci_low=0, ci_high=0, n=0)
         success = quality.mean * (1 - (len(rs) - len(ok)) / len(rs))
         rows.append({
             "key": key, "ref": ref, "is_baseline": key == (baseline and candidate_key(baseline["provider"], baseline["model"])),
             "n": len(rs), "quality": quality,
-            "metrics": {mid: scoring.aggregate(v) for mid, v in per_metric.items()},
+            "metrics": {mid: corpus[mid][0] if mid in corpus else scoring.aggregate(v) for mid, v in per_metric.items()},
             "metric_means": {mid: sum(v) / len(v) for mid, v in per_metric.items()},
             "ttft": scoring.percentiles(ttfts) if ttfts else None,
             "e2e": scoring.percentiles(e2es) if e2es else scoring.percentiles([0.0]),

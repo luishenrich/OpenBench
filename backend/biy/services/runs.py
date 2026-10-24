@@ -59,6 +59,42 @@ def _validate(uc: UseCase, candidates: list[ModelRef], needs_vision: bool) -> No
             raise Invalid(f"{c.model} has no verified vision support, and this use case has image input")
 
 
+ROLE_ORDER = ("frontier", "value", "small", "specialist")
+
+
+async def auto_candidates(workspace_id: UUID, use_case_id: UUID, n: int = 6) -> list[ModelRef]:
+    """Pick n candidates from the shortlist that can do this use case, verified capabilities only.
+
+    Needs come from the use case: image input → vision, tools → tools, response schema →
+    json_schema. Round-robin over roles (frontier, value, small, …), best AA index first, so
+    the set spans quality and price instead of n near-identical frontier models.
+    """
+    uc = await get_use_case(workspace_id, use_case_id)
+    cases = await list_cases(workspace_id, use_case_id)
+    needs = {"text"}
+    if any(c.input.get("images") for c in cases):
+        needs.add("vision")
+    if uc.io_spec.tools:
+        needs.add("tools")
+    if uc.io_spec.response_schema:
+        needs.add("json_schema")
+    current = (uc.current_model.provider, uc.current_model.model) if uc.current_model else None
+    pool = [m for m in catalog.all_models()
+            if m.get("shortlist") and m.get("available") and not m.get("legacy") and m["type"] != "embedding"
+            and m.get("role") != "baseline" and (m["provider"], m["id"]) != current
+            and all((m.get("verified") or {}).get(k) for k in needs)]
+    by_role = {r: sorted((m for m in pool if m.get("role") == r), key=lambda m: -(m.get("aa_index") or 0))
+               for r in ROLE_ORDER}
+    picked: list[dict] = []
+    while len(picked) < n and any(by_role.values()):
+        for r in ROLE_ORDER:
+            if by_role[r] and len(picked) < n:
+                picked.append(by_role[r].pop(0))
+    if not picked:
+        raise Invalid(f"no shortlisted model has verified {sorted(needs)}; pick candidates from GET /api/models")
+    return [ModelRef(provider=m["provider"], model=m["id"]) for m in picked]
+
+
 def _baseline(uc: UseCase, req: RunIn) -> ModelRef | None:
     if not (req.include_baseline and uc.current_model):
         return None
@@ -149,6 +185,11 @@ _RESULT_COLS = ("id, candidate_key, is_baseline, case_id, repeat_idx, output, ti
                 "scores, judge")
 
 
+# What the ranking reads: result rows plus each case's reference (set-level metrics need it).
+RANKING_RESULTS_SQL = ("select r.*, c.reference from result r join test_case c on c.id = r.case_id "
+                       "where r.run_id = $1")
+
+
 async def get_run(workspace_id: UUID, run_id: UUID) -> Run:
     r = await db.fetchrow("select * from run where id = $1 and workspace_id = $2", run_id, workspace_id)
     if not r:
@@ -161,7 +202,7 @@ async def get_run(workspace_id: UUID, run_id: UUID) -> Run:
     if r["status"] == "done" and r["summary"]:
         summary = r["summary"]
     else:
-        results = await db.fetch(f"select {_RESULT_COLS} from result where run_id = $1", run_id)
+        results = await db.fetch(RANKING_RESULTS_SQL, run_id)
         summary = ranking.build(results, snap, done=False)
         summary = {k: (v.model_dump(mode="json") if hasattr(v, "model_dump") else
                        [x.model_dump(mode="json") for x in v] if isinstance(v, list) else v)

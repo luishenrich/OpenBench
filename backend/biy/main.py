@@ -13,7 +13,9 @@ from .api import install_error_handlers, router
 from .config import settings
 from .mcp import mcp
 
-mcp_app = mcp.http_app(path="/")
+# Stateless + JSON responses: what MCP 2026-07-28 clients expect, and no sticky sessions behind the proxy.
+mcp_app = mcp.http_app(path="/", stateless_http=True, json_response=True)
+
 app = FastAPI(title="BIY API", lifespan=mcp_app.lifespan, docs_url="/api/docs", openapi_url="/api/openapi.json")
 app.include_router(router)  # before the SPA catch-all below
 install_error_handlers(app)
