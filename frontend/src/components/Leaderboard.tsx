@@ -116,6 +116,11 @@ export default function Leaderboard({ rows, metrics, recommended, closest = null
           {!r.passed_gates && !ref && !unscoredRow && (running
             ? <div className="mt-1.5 text-xs text-faint">Below {r.failed_gates.map(gateText).join(', ')} so far</div>
             : <div className="mt-1.5 text-xs text-bad">Failed {r.failed_gates.map(gateText).join(', ')}</div>)}
+          {!running && !!r.unmeasured_gates?.length && (
+            <div className="mt-1.5 text-xs text-faint" title="No model produced a value for these metrics, so the gate was skipped">
+              Not evaluated (never measured): {r.unmeasured_gates.map(gateText).join(', ')}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">

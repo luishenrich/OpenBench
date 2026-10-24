@@ -97,7 +97,10 @@ export default function RunPage() {
 
         <RunFacts run={r} />
         {live && <p className="mt-3 text-sm text-faint">The leaderboard fills in as results arrive. The verdict comes when every call is scored.</p>}
-        {r.error && <div className="mt-4"><ErrorNote error={r.error} /></div>}
+        {/* a finished run can carry a notice (e.g. stopped at the confirmed cost): results are kept, so not an error */}
+        {r.error && (r.status === 'done'
+          ? <p className="mt-4 rounded-lg border border-line bg-panel px-4 py-3 text-sm text-muted">{r.error}</p>
+          : <div className="mt-4"><ErrorNote error={r.error} /></div>)}
       </div>
 
       {(note || (r.recommendation && verdict)) && (

@@ -189,6 +189,8 @@ export interface CandidateResult {
   scores: Scores
   passed_gates: boolean
   failed_gates: string[]
+  /** gates whose metric no candidate produced a value for: skipped, never failed */
+  unmeasured_gates?: string[]
   pareto: boolean
   rank: number | null
 }
