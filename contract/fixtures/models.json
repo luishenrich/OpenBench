@@ -1,0 +1,113 @@
+[
+  {
+    "id": "zai-org/GLM-5.3-Flash",
+    "provider": "nebius",
+    "name": "GLM-5.3-Flash",
+    "type": "vision",
+    "input_modalities": [
+      "text",
+      "image"
+    ],
+    "verified": {
+      "text": true,
+      "vision": true,
+      "tools": true,
+      "json_schema": true,
+      "reasoning": true
+    },
+    "context_length": 1024000,
+    "pricing_usd_per_1m": {
+      "input": 0.15,
+      "output": 0.5,
+      "cached_input": null
+    },
+    "shortlist": true,
+    "role": "frontier",
+    "aa_index": 42,
+    "license": null,
+    "legacy": false
+  },
+  {
+    "id": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "provider": "nebius",
+    "name": "DeepSeek-V4.1-Flash-1017",
+    "type": "vision",
+    "input_modalities": [
+      "text",
+      "image"
+    ],
+    "verified": {
+      "text": true,
+      "vision": true,
+      "tools": true,
+      "json_schema": true,
+      "reasoning": true
+    },
+    "context_length": 1048576,
+    "pricing_usd_per_1m": {
+      "input": 0.3,
+      "output": 1.2,
+      "cached_input": null
+    },
+    "shortlist": true,
+    "role": "frontier",
+    "aa_index": 45,
+    "license": null,
+    "legacy": false
+  },
+  {
+    "id": "openai/gpt-oss-120b",
+    "provider": "nebius",
+    "name": "gpt-oss-120b",
+    "type": "text",
+    "input_modalities": [
+      "text"
+    ],
+    "verified": {
+      "text": true,
+      "vision": false,
+      "tools": true,
+      "json_schema": true,
+      "reasoning": true
+    },
+    "context_length": 131072,
+    "pricing_usd_per_1m": {
+      "input": 0.15,
+      "output": 0.6,
+      "cached_input": null
+    },
+    "shortlist": true,
+    "role": "baseline",
+    "aa_index": 12,
+    "license": null,
+    "legacy": true
+  },
+  {
+    "id": "xiaomi/mimo-v2.6-pro",
+    "provider": "openrouter",
+    "name": "Xiaomi: MiMo-V2.6-Pro",
+    "type": "vision",
+    "input_modalities": [
+      "text",
+      "image"
+    ],
+    "verified": {
+      "text": true,
+      "vision": true,
+      "tools": true,
+      "json_schema": true,
+      "reasoning": true
+    },
+    "context_length": 1050000,
+    "pricing_usd_per_1m": {
+      "input": 0.435,
+      "output": 0.87,
+      "cached_input": null
+    },
+    "shortlist": true,
+    "role": "frontier",
+    "aa_index": 46,
+    "license": "mit",
+    "legacy": false
+  }
+]

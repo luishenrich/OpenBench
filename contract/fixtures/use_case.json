@@ -1,0 +1,104 @@
+{
+  "name": "Extract invoice fields",
+  "kind": "extraction",
+  "description": "Pulls vendor, number, date and total out of invoice text for bookkeeping.",
+  "source_refs": [
+    {
+      "repo": "example/app",
+      "path": "src/billing/extract.ts",
+      "line": 42,
+      "symbol": "extractInvoice"
+    }
+  ],
+  "current_model": {
+    "provider": "openrouter",
+    "model": "openai/gpt-4.1-mini",
+    "params": {}
+  },
+  "profile": {
+    "weights": {
+      "quality": 60,
+      "speed": 25,
+      "cost": 15
+    },
+    "targets": {
+      "e2e_ms_p95": 2000.0,
+      "e2e_ms_p95_max": 8000.0,
+      "cost_per_call_usd": 0.0005,
+      "cost_per_call_usd_max": 0.005
+    }
+  },
+  "gates": [
+    {
+      "metric_id": "json_schema_valid",
+      "op": ">=",
+      "value": 0.99
+    },
+    {
+      "metric_id": "error_rate",
+      "op": "<=",
+      "value": 0.02
+    }
+  ],
+  "metrics": [
+    {
+      "metric_id": "json_schema_valid",
+      "weight": 1.0,
+      "config": {}
+    },
+    {
+      "metric_id": "field_f1",
+      "weight": 3.0,
+      "config": {}
+    }
+  ],
+  "judge": null,
+  "io_spec": {
+    "system_prompt": "Extract the invoice fields. Answer with JSON only.",
+    "user_template": "Invoice:\n{{text}}",
+    "response_schema": {
+      "type": "object",
+      "properties": {
+        "vendor": {
+          "type": "string"
+        },
+        "invoice_number": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "total": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "vendor",
+        "invoice_number",
+        "date",
+        "total",
+        "currency"
+      ],
+      "additionalProperties": false
+    },
+    "tools": null,
+    "params": {
+      "temperature": 0
+    }
+  },
+  "id": "00000000-0000-0000-0000-0000000000b1",
+  "workspace_id": "00000000-0000-0000-0000-0000000000a1",
+  "case_count": 50,
+  "latest_run": {
+    "id": "00000000-0000-0000-0000-0000000000c1",
+    "status": "done",
+    "finished_at": "2026-10-24T12:09:00Z",
+    "recommendation_headline": "Switch to GLM-5.3-Flash: 98% of today's quality at 1/5 of the cost",
+    "est_monthly_savings_usd": 412.0
+  },
+  "created_by": "mcp",
+  "created_at": "2026-10-24T11:00:00Z"
+}

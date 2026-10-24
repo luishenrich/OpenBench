@@ -1,0 +1,436 @@
+{
+  "id": "00000000-0000-0000-0000-0000000000c1",
+  "use_case_id": "00000000-0000-0000-0000-0000000000b1",
+  "status": "done",
+  "progress": {
+    "done": 900,
+    "total": 900,
+    "errors": 2,
+    "judged": 0,
+    "judge_total": 0
+  },
+  "candidates": [
+    {
+      "provider": "nebius",
+      "model": "zai-org/GLM-5.3-Flash",
+      "params": {}
+    },
+    {
+      "provider": "nebius",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "params": {}
+    },
+    {
+      "provider": "openrouter",
+      "model": "xiaomi/mimo-v2.6-pro",
+      "params": {}
+    },
+    {
+      "provider": "nebius",
+      "model": "openai/gpt-oss-120b",
+      "params": {}
+    },
+    {
+      "provider": "nebius",
+      "model": "MiniMaxAI/MiniMax-M3.1-Flash",
+      "params": {}
+    }
+  ],
+  "repeats": 3,
+  "est_cost_usd": 0.41,
+  "actual_cost_usd": 0.37,
+  "created_at": "2026-10-24T12:00:00Z",
+  "started_at": "2026-10-24T12:00:03Z",
+  "finished_at": "2026-10-24T12:09:00Z",
+  "error": null,
+  "leaderboard": [
+    {
+      "candidate_key": "nebius:zai-org/GLM-5.3-Flash",
+      "provider": "nebius",
+      "model": "zai-org/GLM-5.3-Flash",
+      "is_baseline": false,
+      "n": 150,
+      "quality": {
+        "mean": 0.962,
+        "std": 0.031,
+        "ci_low": 0.952,
+        "ci_high": 0.972,
+        "n": 150
+      },
+      "metrics": {
+        "json_schema_valid": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci_low": 1.0,
+          "ci_high": 1.0,
+          "n": 150
+        },
+        "field_f1": {
+          "mean": 0.962,
+          "std": 0.031,
+          "ci_low": 0.942,
+          "ci_high": 0.982,
+          "n": 150
+        }
+      },
+      "ttft_ms": {
+        "p50": 410.0,
+        "p95": 738.0
+      },
+      "e2e_ms": {
+        "p50": 1650.0,
+        "p95": 2805.0
+      },
+      "tokens_per_s": 109.1,
+      "cost_per_call_usd": 9e-05,
+      "cost_per_success_usd": 9.4e-05,
+      "error_rate": 0.0,
+      "scores": {
+        "quality": 0.962,
+        "speed": 0.713,
+        "cost": 1.0,
+        "utility": 0.898
+      },
+      "passed_gates": true,
+      "failed_gates": [],
+      "pareto": true,
+      "rank": 1
+    },
+    {
+      "candidate_key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "provider": "nebius",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "is_baseline": false,
+      "n": 150,
+      "quality": {
+        "mean": 0.971,
+        "std": 0.027,
+        "ci_low": 0.962,
+        "ci_high": 0.98,
+        "n": 150
+      },
+      "metrics": {
+        "json_schema_valid": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci_low": 1.0,
+          "ci_high": 1.0,
+          "n": 150
+        },
+        "field_f1": {
+          "mean": 0.971,
+          "std": 0.027,
+          "ci_low": 0.951,
+          "ci_high": 0.991,
+          "n": 150
+        }
+      },
+      "ttft_ms": {
+        "p50": 260.0,
+        "p95": 468.0
+      },
+      "e2e_ms": {
+        "p50": 1420.0,
+        "p95": 2414.0
+      },
+      "tokens_per_s": 126.8,
+      "cost_per_call_usd": 0.00021,
+      "cost_per_success_usd": 0.000216,
+      "error_rate": 0.0,
+      "scores": {
+        "quality": 0.971,
+        "speed": 0.829,
+        "cost": 1.0,
+        "utility": 0.937
+      },
+      "passed_gates": true,
+      "failed_gates": [],
+      "pareto": true,
+      "rank": 2
+    },
+    {
+      "candidate_key": "openrouter:xiaomi/mimo-v2.6-pro",
+      "provider": "openrouter",
+      "model": "xiaomi/mimo-v2.6-pro",
+      "is_baseline": false,
+      "n": 150,
+      "quality": {
+        "mean": 0.975,
+        "std": 0.024,
+        "ci_low": 0.967,
+        "ci_high": 0.983,
+        "n": 150
+      },
+      "metrics": {
+        "json_schema_valid": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci_low": 1.0,
+          "ci_high": 1.0,
+          "n": 150
+        },
+        "field_f1": {
+          "mean": 0.975,
+          "std": 0.024,
+          "ci_low": 0.955,
+          "ci_high": 0.995,
+          "n": 150
+        }
+      },
+      "ttft_ms": {
+        "p50": 2600.0,
+        "p95": 4680.0
+      },
+      "e2e_ms": {
+        "p50": 5100.0,
+        "p95": 8670.0
+      },
+      "tokens_per_s": 35.3,
+      "cost_per_call_usd": 0.00031,
+      "cost_per_success_usd": 0.000318,
+      "error_rate": 0.0,
+      "scores": {
+        "quality": 0.975,
+        "speed": 0.231,
+        "cost": 1.0,
+        "utility": 0.683
+      },
+      "passed_gates": true,
+      "failed_gates": [],
+      "pareto": true,
+      "rank": 3
+    },
+    {
+      "candidate_key": "nebius:openai/gpt-oss-120b",
+      "provider": "nebius",
+      "model": "openai/gpt-oss-120b",
+      "is_baseline": false,
+      "n": 150,
+      "quality": {
+        "mean": 0.918,
+        "std": 0.048,
+        "ci_low": 0.903,
+        "ci_high": 0.933,
+        "n": 150
+      },
+      "metrics": {
+        "json_schema_valid": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci_low": 1.0,
+          "ci_high": 1.0,
+          "n": 150
+        },
+        "field_f1": {
+          "mean": 0.918,
+          "std": 0.048,
+          "ci_low": 0.898,
+          "ci_high": 0.938,
+          "n": 150
+        }
+      },
+      "ttft_ms": {
+        "p50": 290.0,
+        "p95": 522.0
+      },
+      "e2e_ms": {
+        "p50": 980.0,
+        "p95": 1666.0
+      },
+      "tokens_per_s": 183.7,
+      "cost_per_call_usd": 0.0001,
+      "cost_per_success_usd": 0.000109,
+      "error_rate": 0.0,
+      "scores": {
+        "quality": 0.918,
+        "speed": 1.0,
+        "cost": 1.0,
+        "utility": 0.95
+      },
+      "passed_gates": true,
+      "failed_gates": [],
+      "pareto": false,
+      "rank": 4
+    },
+    {
+      "candidate_key": "nebius:MiniMaxAI/MiniMax-M3.1-Flash",
+      "provider": "nebius",
+      "model": "MiniMaxAI/MiniMax-M3.1-Flash",
+      "is_baseline": false,
+      "n": 150,
+      "quality": {
+        "mean": 0.884,
+        "std": 0.061,
+        "ci_low": 0.864,
+        "ci_high": 0.904,
+        "n": 150
+      },
+      "metrics": {
+        "json_schema_valid": {
+          "mean": 0.97,
+          "std": 0.17,
+          "ci_low": 0.94,
+          "ci_high": 0.99,
+          "n": 150
+        },
+        "field_f1": {
+          "mean": 0.884,
+          "std": 0.061,
+          "ci_low": 0.864,
+          "ci_high": 0.904,
+          "n": 150
+        }
+      },
+      "ttft_ms": {
+        "p50": 330.0,
+        "p95": 594.0
+      },
+      "e2e_ms": {
+        "p50": 1900.0,
+        "p95": 3230.0
+      },
+      "tokens_per_s": 94.7,
+      "cost_per_call_usd": 0.00011,
+      "cost_per_success_usd": 0.000124,
+      "error_rate": 0.013,
+      "scores": {
+        "quality": 0.884,
+        "speed": 0.619,
+        "cost": 1.0,
+        "utility": 0.824
+      },
+      "passed_gates": false,
+      "failed_gates": [
+        "json_schema_valid >= 0.99"
+      ],
+      "pareto": false,
+      "rank": null
+    },
+    {
+      "candidate_key": "openrouter:openai/gpt-4.1-mini",
+      "provider": "openrouter",
+      "model": "openai/gpt-4.1-mini",
+      "is_baseline": true,
+      "n": 150,
+      "quality": {
+        "mean": 0.981,
+        "std": 0.022,
+        "ci_low": 0.974,
+        "ci_high": 0.988,
+        "n": 150
+      },
+      "metrics": {
+        "json_schema_valid": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci_low": 1.0,
+          "ci_high": 1.0,
+          "n": 150
+        },
+        "field_f1": {
+          "mean": 0.981,
+          "std": 0.022,
+          "ci_low": 0.961,
+          "ci_high": 1.0,
+          "n": 150
+        }
+      },
+      "ttft_ms": {
+        "p50": 520.0,
+        "p95": 936.0
+      },
+      "e2e_ms": {
+        "p50": 1750.0,
+        "p95": 2975.0
+      },
+      "tokens_per_s": 102.9,
+      "cost_per_call_usd": 0.00046,
+      "cost_per_success_usd": 0.000469,
+      "error_rate": 0.0,
+      "scores": {
+        "quality": 0.981,
+        "speed": 0.672,
+        "cost": 1.0,
+        "utility": 0.895
+      },
+      "passed_gates": true,
+      "failed_gates": [],
+      "pareto": false,
+      "rank": null
+    }
+  ],
+  "pareto_points": [
+    {
+      "candidate_key": "nebius:zai-org/GLM-5.3-Flash",
+      "label": "GLM-5.3-Flash",
+      "quality": 0.962,
+      "cost_per_success_usd": 9.4e-05,
+      "latency_ms": 2805.0,
+      "is_baseline": false,
+      "pareto": true
+    },
+    {
+      "candidate_key": "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "label": "DeepSeek-V4.1-Flash-1017",
+      "quality": 0.971,
+      "cost_per_success_usd": 0.000216,
+      "latency_ms": 2414.0,
+      "is_baseline": false,
+      "pareto": true
+    },
+    {
+      "candidate_key": "openrouter:xiaomi/mimo-v2.6-pro",
+      "label": "mimo-v2.6-pro",
+      "quality": 0.975,
+      "cost_per_success_usd": 0.000318,
+      "latency_ms": 8670.0,
+      "is_baseline": false,
+      "pareto": true
+    },
+    {
+      "candidate_key": "nebius:openai/gpt-oss-120b",
+      "label": "gpt-oss-120b",
+      "quality": 0.918,
+      "cost_per_success_usd": 0.000109,
+      "latency_ms": 1666.0,
+      "is_baseline": false,
+      "pareto": false
+    },
+    {
+      "candidate_key": "nebius:MiniMaxAI/MiniMax-M3.1-Flash",
+      "label": "MiniMax-M3.1-Flash",
+      "quality": 0.884,
+      "cost_per_success_usd": 0.000124,
+      "latency_ms": 3230.0,
+      "is_baseline": false,
+      "pareto": false
+    },
+    {
+      "candidate_key": "openrouter:openai/gpt-4.1-mini",
+      "label": "gpt-4.1-mini",
+      "quality": 0.981,
+      "cost_per_success_usd": 0.000469,
+      "latency_ms": 2975.0,
+      "is_baseline": true,
+      "pareto": false
+    }
+  ],
+  "recommendation": {
+    "candidate_key": "nebius:zai-org/GLM-5.3-Flash",
+    "provider": "nebius",
+    "model": "zai-org/GLM-5.3-Flash",
+    "headline": "Switch to GLM-5.3-Flash: 98% of today's quality at 1/5 of the cost",
+    "reasons": [
+      "Passes every gate (schema valid 100%, no errors)",
+      "Field F1 0.962 vs 0.981 for gpt-4.1-mini; CIs overlap with DeepSeek-V4.1-Flash, so the cheaper one wins",
+      "p95 latency 2.8 s vs 3.0 s today"
+    ],
+    "quality_vs_baseline_pct": 98.1,
+    "cost_multiple_vs_baseline": 0.2,
+    "latency_delta_ms": -170.0,
+    "statistical_tie_with": [
+      "nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017"
+    ],
+    "est_monthly_savings_usd": 412.0
+  }
+}
