@@ -113,7 +113,7 @@ export function LatestRun({ brief }: { brief: RunBrief | null }) {
     return (
       <Link
         to={`/runs/${brief.id}`} aria-label={`Open the full run: ${r.recommendation.headline}`}
-        className={`group flex flex-col rounded-2xl transition-transform duration-200 hover:-translate-y-0.5 ${CARD} hover:[&>*]:border-fg/30 ${focusRing} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
+        className={`group flex flex-col rounded-2xl transition-transform duration-200 hover:-translate-y-0.5 ${CARD} hover:[&>*]:border-fg/45 ${focusRing} focus-visible:ring-offset-2 focus-visible:ring-offset-bg`}
       >
         <VerdictCard
           compact
