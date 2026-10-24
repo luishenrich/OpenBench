@@ -14,7 +14,7 @@ const css = `
 
 export default function Landing() {
   return (
-    <div className="min-h-screen overflow-x-clip bg-bg">
+    <div className="min-h-screen overflow-x-clip bg-bg [&_dd]:text-pretty [&_h2]:text-balance [&_h3]:text-balance [&_li]:text-pretty [&_p]:text-pretty">
       <style>{css}</style>
       <Nav />
       <main>

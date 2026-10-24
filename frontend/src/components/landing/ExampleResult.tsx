@@ -1,14 +1,15 @@
+import { ModelIcon } from '@/components/ModelIcon'
 import { Container, SectionHead } from './shared'
 
 // Static copy of contract/fixtures/run_done.json (example data, not a live run).
-type Row = { name: string; q: number; lo: number; hi: number; cost: number; kind: 'pick' | 'front' | 'off' | 'failed' | 'today' }
+type Row = { id: string; name: string; q: number; lo: number; hi: number; cost: number; kind: 'pick' | 'front' | 'off' | 'failed' | 'today' }
 const rows: Row[] = [
-  { name: 'GLM-5.3-Flash', q: 0.962, lo: 0.952, hi: 0.972, cost: 0.09, kind: 'pick' },
-  { name: 'DeepSeek-V4.1-Flash', q: 0.971, lo: 0.962, hi: 0.98, cost: 0.21, kind: 'front' },
-  { name: 'MiMo-v2.6-pro', q: 0.975, lo: 0.967, hi: 0.983, cost: 0.31, kind: 'front' },
-  { name: 'gpt-oss-120b', q: 0.918, lo: 0.903, hi: 0.933, cost: 0.1, kind: 'off' },
-  { name: 'MiniMax-M3.1-Flash', q: 0.884, lo: 0.864, hi: 0.904, cost: 0.11, kind: 'failed' },
-  { name: 'gpt-4.1-mini', q: 0.981, lo: 0.974, hi: 0.988, cost: 0.46, kind: 'today' },
+  { id: 'nebius:zai-org/GLM-5.3-Flash', name: 'GLM-5.3-Flash', q: 0.962, lo: 0.952, hi: 0.972, cost: 0.09, kind: 'pick' },
+  { id: 'nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017', name: 'DeepSeek-V4.1-Flash', q: 0.971, lo: 0.962, hi: 0.98, cost: 0.21, kind: 'front' },
+  { id: 'openrouter:xiaomi/mimo-v2.6-pro', name: 'MiMo-v2.6-pro', q: 0.975, lo: 0.967, hi: 0.983, cost: 0.31, kind: 'front' },
+  { id: 'nebius:openai/gpt-oss-120b', name: 'gpt-oss-120b', q: 0.918, lo: 0.903, hi: 0.933, cost: 0.1, kind: 'off' },
+  { id: 'nebius:MiniMaxAI/MiniMax-M3.1-Flash', name: 'MiniMax-M3.1-Flash', q: 0.884, lo: 0.864, hi: 0.904, cost: 0.11, kind: 'failed' },
+  { id: 'openrouter:openai/gpt-4.1-mini', name: 'gpt-4.1-mini', q: 0.981, lo: 0.974, hi: 0.988, cost: 0.46, kind: 'today' },
 ]
 
 const figures = [
@@ -34,7 +35,7 @@ const yTicks = [0.88, 0.92, 0.96, 1.0]
 const xTicks = [0, 0.1, 0.2, 0.3, 0.4, 0.5]
 
 const labelPos: Record<string, { dx: number; dy: number; align: 'left' | 'right' | 'center' }> = {
-  'GLM-5.3-Flash': { dx: 0, dy: 16, align: 'center' },
+  'GLM-5.3-Flash': { dx: -6, dy: 16, align: 'left' },
   'DeepSeek-V4.1-Flash': { dx: 0, dy: -18, align: 'center' },
   'MiMo-v2.6-pro': { dx: 9, dy: 2, align: 'left' },
   'gpt-oss-120b': { dx: 10, dy: 0, align: 'left' },
@@ -101,12 +102,14 @@ function ParetoMini() {
           const shift = pos.align === 'center' ? '-50%' : pos.align === 'right' ? '-100%' : '0%'
           return (
             <span key={r.name} aria-hidden
-              className={`absolute font-mono text-[10.5px] leading-none whitespace-nowrap ${tone[r.kind]}`}
+              className={`absolute inline-flex items-center gap-1.5 font-mono text-[10.5px] leading-none whitespace-nowrap ${tone[r.kind]}`}
               style={{
                 left: `${(px(r.cost) / W) * 100}%`,
                 top: `${(py(r.q) / H) * 100}%`,
                 transform: `translate(calc(${shift} + ${pos.dx}px), calc(-50% + ${pos.dy}px))`,
               }}>
+              {/* icons only from sm up: on a phone the labels need every pixel */}
+              <span className="hidden sm:contents"><ModelIcon model={r.id} size={11} /></span>
               {r.kind === 'today' ? `${r.name}, today` : r.name}
             </span>
           )
@@ -124,7 +127,7 @@ function ParetoMini() {
 }
 
 // Phone: name and cost on one line, the interval full width under it. sm and up: one row of three columns.
-const track = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 sm:grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)_2.75rem]'
+const track = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 sm:grid-cols-[minmax(0,11rem)_minmax(0,1fr)_2.75rem]'
 
 function ForestMini() {
   const pick = rows[0]
@@ -136,13 +139,16 @@ function ForestMini() {
       </figcaption>
       <div className="relative mt-4">
         {/* the pick's interval as one band down the plot: any overlap with it is a statistical tie */}
-        <div aria-hidden className="pointer-events-none absolute -inset-y-1.5 left-0 right-0 sm:left-[calc(9.5rem+0.75rem)] sm:right-[calc(2.75rem+0.75rem)]">
+        <div aria-hidden className="pointer-events-none absolute -inset-y-1.5 left-0 right-0 sm:left-[calc(11rem+0.75rem)] sm:right-[calc(2.75rem+0.75rem)]">
           <span className="absolute inset-y-0 bg-front/[0.08]" style={{ left: `${qPct(pick.lo)}%`, width: `${qPct(pick.hi) - qPct(pick.lo)}%` }} />
         </div>
         <ul className="relative space-y-3 sm:space-y-3" aria-label="Quality with 95% confidence intervals per model">
           {rows.map((r) => (
             <li key={r.name} className={track}>
-              <span className={`order-1 truncate font-mono text-[11px] ${tone[r.kind]}`} title={r.name}>{r.name}</span>
+              <span className={`order-1 flex min-w-0 items-center gap-2 font-mono text-[11px] ${tone[r.kind]}`} title={r.name}>
+                <ModelIcon model={r.id} size={12} />
+                <span className="truncate">{r.name}</span>
+              </span>
               <span className={`order-2 text-right font-mono text-[11px] sm:order-3 ${r.kind === 'pick' ? 'text-front' : 'text-muted'}`}>{r.cost.toFixed(2)}</span>
               <span className="relative order-3 col-span-2 h-4 sm:order-2 sm:col-span-1 sm:h-5" aria-label={`${r.name}: ${r.q.toFixed(3)}, 95% CI ${r.lo.toFixed(3)} to ${r.hi.toFixed(3)}`}>
                 <span aria-hidden className="absolute top-1/2 h-px -translate-y-1/2"
@@ -170,12 +176,12 @@ export default function ExampleResult() {
         <SectionHead id="example-title" badge="Example · from our fixtures" tone="front" title="A recommendation you can defend."
           lede="Every pick comes with the numbers behind it: the front it sits on, the intervals it was compared with, and what you save." />
 
-        <div className="mt-14 overflow-hidden rounded-xl border border-line bg-panel">
+        <div className="mt-16 overflow-hidden rounded-xl border border-line bg-panel">
           <div className="border-b border-line p-6 sm:p-8">
             <p className="font-mono text-[11px] tracking-[0.08em] text-muted uppercase">Use case: extract invoice fields · 50 cases × 3 repeats</p>
-            <p className="title mt-3 max-w-3xl text-2xl leading-tight sm:text-[32px]">
+            <h3 className="title mt-3 max-w-3xl text-2xl leading-tight text-balance sm:text-[32px]">
               Switch to <span className="text-front">GLM-5.3-Flash</span>: 98% of today's quality at 1/5 of the cost
-            </p>
+            </h3>
             <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-4">
               {figures.map((f) => (
                 <div key={f.label} className="bg-panel px-4 py-4">
