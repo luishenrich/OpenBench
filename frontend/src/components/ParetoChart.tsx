@@ -22,6 +22,39 @@ function logTicks(lo: number, hi: number): number[] {
   return out
 }
 
+// Quality axis fitted to the data (references included): spread + 20% padding each side, at least 4 points
+// visible, clamped to [0, 100%], rounded to a 1/2/5 step with at most ~6 ticks. Close scores (54–56%) get the
+// whole height instead of a line along the bottom.
+export function qualityAxis(values: number[], minSpan = 0.04) {
+  const lo0 = Math.min(...values), hi0 = Math.max(...values)
+  const spread = hi0 - lo0
+  const pad = Math.max(spread * 0.2, (minSpan - spread) / 2)
+  let lo = Math.max(0, lo0 - pad), hi = Math.min(1, hi0 + pad)
+  // clamped at 0 or 100%: keep the minimum span by growing the other side
+  if (hi - lo < minSpan - 1e-9) { if (lo === 0) hi = Math.min(1, minSpan); else if (hi === 1) lo = Math.max(0, 1 - minSpan) }
+  const step = [0.005, 0.01, 0.02, 0.05, 0.1, 0.2].find((s) => (hi - lo) / s <= 6) ?? 0.25
+  const tLo = Math.max(0, Math.floor(lo / step + 1e-9) * step)
+  const tHi = Math.min(1, Math.ceil(hi / step - 1e-9) * step)
+  const ticks: number[] = []
+  for (let t = tLo; t <= tHi + 1e-9; t += step) ticks.push(+t.toFixed(4))
+  return { lo: tLo, hi: tHi, ticks, step, decimals: step < 0.01 ? 1 : 0 }
+}
+
+// The axis does not start at 0: break marks on the axis and a quiet caption, so a zoomed axis isn't misread.
+function AxisBreak({ from, decimals }: { from: number; decimals: number }) {
+  const area = usePlotArea()
+  if (!area) return null
+  const x = area.x, y = area.y + area.height - 7
+  return (
+    <g pointerEvents="none">
+      <rect x={x - 4} y={y - 2} width={8} height={5} fill="#141417" />
+      <line x1={x - 5} y1={y + 1} x2={x + 5} y2={y - 3} stroke={MUTED} strokeWidth={1} />
+      <line x1={x - 5} y1={y + 5} x2={x + 5} y2={y + 1} stroke={MUTED} strokeWidth={1} />
+      <text x={4} y={area.y + area.height + 50} fontSize={11} fill={FAINT}>Quality axis starts at {pct(from, decimals)}, not 0</text>
+    </g>
+  )
+}
+
 type Box = { x0: number; y0: number; x1: number; y1: number }
 const overlap = (a: Box, b: Box) => Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) * Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0))
 
@@ -162,13 +195,11 @@ export default function ParetoChart({ points, recommended, efforts = {} }: {
   const xLo = Math.min(...xs) / 1.6
   const xHi = Math.max(...xs) * 1.6
   const ys = data.map((d) => d.y)
-  // when quality barely separates the models (all 100%, say), open the axis up so the points sit in a band with
-  // room for their labels above and below, instead of squeezed onto the top edge
-  const flat = Math.max(...ys) - Math.min(...ys) < 0.02
-  const yLo = Math.max(0, Math.floor((Math.min(...ys) - (flat ? 0.06 : 0.02)) * 20) / 20)
-  const yTicks = Array.from({ length: Math.round((1 - yLo) * 20) + 1 }, (_, i) => +(yLo + i * 0.05).toFixed(2))
-  // headroom above 100%: labels of top points stay on the plot
-  const yHi = 1 + (1 - yLo) * (flat ? 0.35 : 0.05)
+  const qa = qualityAxis(ys)
+  const yLo = qa.lo
+  const yTicks = qa.ticks
+  // headroom over the top point (also past 100%, without a tick) so its label stays on the plot
+  const yHi = Math.max(qa.hi, Math.max(...ys) + (qa.hi - qa.lo) * 0.12)
 
   return (
     <div className="h-[360px] w-full">
@@ -181,7 +212,7 @@ export default function ParetoChart({ points, recommended, efforts = {} }: {
             label={{ value: 'Cost per successful call, log scale (cheaper is left)', position: 'bottom', offset: 10, fontSize: 12, fill: MUTED }}
           />
           <YAxis
-            type="number" dataKey="y" domain={[yLo, yHi]} allowDataOverflow ticks={yTicks} tickFormatter={(v) => pct(v, 0)}
+            type="number" dataKey="y" domain={[yLo, yHi]} allowDataOverflow ticks={yTicks} tickFormatter={(v) => pct(v, qa.decimals)}
             tick={{ fontSize: 12, fill: MUTED }} stroke="#3a3a40" width={44}
           />
           <Tooltip
@@ -202,6 +233,7 @@ export default function ParetoChart({ points, recommended, efforts = {} }: {
             line={{ stroke: FRONT, strokeWidth: 1.25, strokeOpacity: 0.85 }} lineType="joint" lineJointType="stepAfter" />
           <Scatter data={others} shape={Dot} isAnimationActive={false} />
           <PointLabels data={data} front={front} />
+          {yLo > 0 && <AxisBreak from={yLo} decimals={qa.decimals} />}
         </ScatterChart>
       </ResponsiveContainer>
     </div>
