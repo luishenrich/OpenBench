@@ -1,6 +1,7 @@
 import { ms, num, pct, usd } from '@/lib/format'
 import type { CandidateResult, MetricInfo } from '@/types'
 import { Tag } from './ui'
+import { LiveDot } from '@/components/usecases/live'
 import { ProviderIcon } from '@/components/ModelIcon'
 import { ModelName, isReference, isToday, notScored, prettyModel, reasoningNote, rowEffort } from './run/ModelName'
 
@@ -26,7 +27,7 @@ function Lane({ r, x, baseX, refXs, recommended, running }: {
   r: CandidateResult; x: (v: number) => number; baseX: number | null; refXs: number[]; recommended: boolean; running: boolean
 }) {
   // references are grey whatever their gates say: they are measured, never judged as candidates
-  const color = recommended ? 'var(--color-front)' : isToday(r) ? 'var(--color-fg)' : isReference(r) ? 'var(--color-faint)' : r.passed_gates ? 'var(--color-muted)' : 'var(--color-bad)'
+  const color = recommended ? 'var(--color-front)' : isToday(r) ? 'var(--color-fg)' : isReference(r) ? 'var(--color-faint)' : r.passed_gates || running ? 'var(--color-muted)' : 'var(--color-bad)'
   return (
     <div className="relative h-9">
       {refXs.map((rx, i) => <div key={i} className="absolute top-0 bottom-0 border-l border-dotted border-line-strong" style={{ left: `${rx}%` }} />)}
@@ -55,9 +56,11 @@ export default function Leaderboard({ rows, metrics, recommended, closest = null
   const base = sorted.find(isToday)
   const refs = sorted.filter((r) => isReference(r) && !isToday(r)).sort((a, b) => b.quality.mean - a.quality.mean)
   const cands = sorted.filter((r) => !isReference(r))
-  const passed = cands.filter((r) => r.passed_gates && !notScored(r))
-  const failed = cands.filter((r) => !r.passed_gates && !notScored(r))
-  const unscored = cands.filter(notScored)
+  // While the run is live nothing is final: unjudged rows aren't "not scored", failed gates are provisional.
+  // Every candidate stays in one list, in order; the groups only appear once the run is done.
+  const passed = running ? cands : cands.filter((r) => r.passed_gates && !notScored(r))
+  const failed = running ? [] : cands.filter((r) => !r.passed_gates && !notScored(r))
+  const unscored = running ? [] : cands.filter(notScored)
   const scoredRows = sorted.filter((r) => !notScored(r))
   const { x, ticks } = axis(scoredRows.length ? scoredRows : sorted)
   const baseX = base ? x(base.quality.mean) : null
@@ -74,7 +77,7 @@ export default function Leaderboard({ rows, metrics, recommended, closest = null
     const ref = isReference(r)
     const today = isToday(r)
     const unscoredRow = notScored(r)
-    const failedIds = ref ? new Set<string>() : new Set(r.failed_gates.map((g) => g.split(' ')[0]))
+    const failedIds = ref || running ? new Set<string>() : new Set(r.failed_gates.map((g) => g.split(' ')[0]))
     const note = reasoningNote(r)
     return (
       <div key={r.candidate_key} className={`grid ${COLS} items-center gap-4 border-t border-line px-4 py-3 ${isRec ? 'bg-front/[0.06]' : ''} ${ref ? 'text-muted' : ''}`}>
@@ -85,11 +88,16 @@ export default function Leaderboard({ rows, metrics, recommended, closest = null
             {today ? <Tag>today</Tag> : ref && <Tag>reference</Tag>}
             {isRec && <Tag tone="front">pick</Tag>}
             {r.candidate_key === closest && <Tag>closest challenger</Tag>}
-            {r.pareto && !isRec && !ref && <Tag tone="signal">Pareto</Tag>}
+            {r.pareto && !isRec && !ref && !(running && unscoredRow) && <Tag tone="signal">Pareto</Tag>}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs text-faint">
             <ProviderIcon provider={r.provider} size={11} />via {r.provider}, n = {r.n}
             {note && <span>· {note}</span>}
+            {!!r.dropped_params?.length && (
+              <span title="This model does not accept these settings, so it ran at the provider's default">
+                · {r.dropped_params.join(', ')} not supported, ran at provider default
+              </span>
+            )}
 
           </div>
           {Object.keys(r.metrics).length > 0 && (
@@ -105,11 +113,15 @@ export default function Leaderboard({ rows, metrics, recommended, closest = null
             </div>
           )}
           {ref && !r.passed_gates && <div className="mt-1.5 text-xs text-faint">Below {r.failed_gates.map(gateText).join(', ')} (for information)</div>}
-          {!r.passed_gates && !ref && <div className="mt-1.5 text-xs text-bad">Failed {r.failed_gates.map(gateText).join(', ')}</div>}
+          {!r.passed_gates && !ref && !unscoredRow && (running
+            ? <div className="mt-1.5 text-xs text-faint">Below {r.failed_gates.map(gateText).join(', ')} so far</div>
+            : <div className="mt-1.5 text-xs text-bad">Failed {r.failed_gates.map(gateText).join(', ')}</div>)}
         </div>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            {unscoredRow
+            {unscoredRow && running
+              ? <p className="flex items-center gap-2 text-xs text-muted"><LiveDot small />Not scored yet</p>
+              : unscoredRow
               ? <p className="text-xs text-faint">Quality not scored: every juror abstained on this model's family.</p>
               : <Lane r={r} x={x} baseX={baseX} refXs={refXs} recommended={isRec} running={running} />}
           </div>
@@ -137,7 +149,7 @@ export default function Leaderboard({ rows, metrics, recommended, closest = null
           <div className="flex items-end gap-3">
             <div className="relative h-8 min-w-0 flex-1">
               <span className="absolute top-0 left-0">Quality, 95% CI</span>
-              {ticks.map((t) => (
+              {scoredRows.length > 0 && ticks.map((t) => (
                 <span key={t} className="absolute bottom-0 -translate-x-1/2 text-[10.5px]" style={{ left: `${x(t)}%` }}>{num(t * 100, 0)}</span>
               ))}
             </div>

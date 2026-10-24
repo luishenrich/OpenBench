@@ -3,29 +3,21 @@ import { Link, useParams } from 'react-router-dom'
 import Leaderboard from '@/components/Leaderboard'
 import ParetoChart from '@/components/ParetoChart'
 import ResultsViewer from '@/components/ResultsViewer'
-import { Badge, Button, ErrorNote, Loading, Panel, Section, StatusPill } from '@/components/ui'
+import { Badge, Button, ErrorNote, Panel, Section, StatusPill } from '@/components/ui'
+import RunSkeleton from '@/components/run/RunSkeleton'
+import { Line, Skeleton } from '@/components/Skeleton'
 import VerdictCard from '@/components/VerdictCard'
 import { api } from '@/lib/api'
-import { ago, effortOf, pct, usd } from '@/lib/format'
+import { ago, effortOf } from '@/lib/format'
 import { runVerdict } from '@/lib/verdict'
 import type { Run } from '@/types'
 import { EffortChip, isReference, juryNames, prettyModel, rowEffort } from '@/components/run/ModelName'
 import { hasJudgeMetric } from '@/components/usecase/readiness'
+import RunFacts, { runPhase } from '@/components/run/RunFacts'
+import { LiveDot } from '@/components/usecases/live'
+import QualityNote, { qualityNote } from '@/components/run/QualityNote'
 
 const TERMINAL = new Set(['done', 'failed', 'cancelled'])
-
-// 40 ticks, filled as calls complete: the progress bar reads like a ruler.
-function ProgressRuler({ frac }: { frac: number }) {
-  const n = 40
-  const filled = Math.round(frac * n)
-  return (
-    <div className="flex h-6 items-end gap-[3px]" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(frac * 100)}>
-      {Array.from({ length: n }, (_, i) => (
-        <span key={i} className={`flex-1 rounded-[1px] transition-colors duration-500 ${i < filled ? 'bg-front' : 'bg-line'} ${i % 10 === 0 ? 'h-6' : 'h-4'}`} />
-      ))}
-    </div>
-  )
-}
 
 export default function RunPage() {
   const { id = '' } = useParams()
@@ -44,12 +36,10 @@ export default function RunPage() {
     onSuccess: (r: Run) => qc.setQueryData(['run', id], r),
   })
 
-  if (run.isLoading) return <Loading label="Loading run" />
+  if (run.isLoading) return <RunSkeleton />
   if (run.error) return <ErrorNote error={run.error} />
   const r = run.data!
   const live = !TERMINAL.has(r.status)
-  const p = r.progress
-  const frac = p.total ? p.done / p.total : 0
   const verdict = runVerdict(r)
   const reference = r.leaderboard.find((c) => c.candidate_key === r.recommendation?.reference_key)
   const refRows = r.leaderboard.filter(isReference)
@@ -63,19 +53,25 @@ export default function RunPage() {
   // On "keep", the recommendation names the closest challenger, not a pick: nothing is highlighted as the choice.
   const pickKey = verdict === 'keep' ? null : r.recommendation?.candidate_key ?? null
   const closestKey = verdict === 'keep' ? r.recommendation?.candidate_key ?? null : null
+  const note = !live ? qualityNote(r, uc.data, metrics.data ?? []) : null
+  // Points the chart can draw: a cost per success, and (while live) a quality the jury has actually scored.
+  const scored = new Set(r.leaderboard.filter((c) => c.quality.n > 0).map((c) => c.candidate_key))
+  const points = r.pareto_points.filter((pt) => pt.cost_per_success_usd != null && pt.cost_per_success_usd > 0 && (!live || scored.has(pt.candidate_key)))
 
   return (
     <div className="space-y-14">
       <div>
         {uc.data && <Link to={`/use-cases/${uc.data.id}`} className="rounded-md border border-line bg-panel px-2.5 py-1 text-xs text-muted hover:text-fg">{uc.data.name}</Link>}
+        {uc.isLoading && <Skeleton className="h-[26px] w-[136px] rounded-md" />}
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <Badge tone={live ? 'signal' : r.status === 'done' ? 'win' : 'bad'}>Benchmark run</Badge>
           <StatusPill status={r.status} />
           {live && <Button variant="danger" className="ml-auto" onClick={() => cancel.mutate()} disabled={cancel.isPending}>Cancel run</Button>}
         </div>
         {uc.data && <h1 className="display mt-3 text-3xl text-balance sm:text-4xl">{uc.data.name}</h1>}
+        {uc.isLoading && <Line lh="mt-3 h-[30px] sm:h-10" bar="h-[60%]" className="w-[340px] max-w-full" />}
         <p className="mt-3 text-muted">
-          {r.candidates.length} open-weight {r.candidates.length === 1 ? 'candidate' : 'candidates'}, {r.repeats} repeats per case, {live ? `estimated ${usd(r.est_cost_usd)}` : `${usd(r.actual_cost_usd)} spent`}
+          {r.candidates.length} open-weight {r.candidates.length === 1 ? 'candidate' : 'candidates'}, {r.repeats} repeats per case
           {r.finished_at && `, finished ${ago(r.finished_at)}`}
         </p>
         {(refs.length > 0 || jury) && (
@@ -93,39 +89,40 @@ export default function RunPage() {
                 <dt className="text-xs text-faint">Judged by</dt>
                 <dd className="mt-1 text-muted">
                   {jury}
-                  {r.judge_agreement != null && <span className="ml-2 text-faint">· jurors agree on {pct(r.judge_agreement, 0)}</span>}
                 </dd>
               </div>
             )}
           </dl>
         )}
 
-        {live && (
-          <div className="mt-8">
-            <div className="flex items-baseline justify-between gap-4">
-              <span className="display text-5xl">{Math.round(frac * 100)}%</span>
-              <span className="text-sm text-muted">{p.done.toLocaleString()} of {p.total.toLocaleString()} calls{p.errors > 0 && <span className="text-bad">, {p.errors} {p.errors === 1 ? 'error' : 'errors'}</span>}</span>
-            </div>
-            <div className="mt-3"><ProgressRuler frac={frac} /></div>
-            <p className="mt-3 text-sm text-faint">
-              {p.judge_total > 0 && `${p.judged} of ${p.judge_total} judged. `}The leaderboard fills in as results arrive. The verdict comes when every call is scored.
-            </p>
-          </div>
-        )}
+        <RunFacts run={r} />
+        {live && <p className="mt-3 text-sm text-faint">The leaderboard fills in as results arrive. The verdict comes when every call is scored.</p>}
         {r.error && <div className="mt-4"><ErrorNote error={r.error} /></div>}
       </div>
 
-      {r.recommendation && verdict && (
+      {(note || (r.recommendation && verdict)) && (
+        <div className="space-y-4">
+          {note && <QualityNote text={note} />}
+          {r.recommendation && verdict && (
         <VerdictCard
           rec={r.recommendation} verdict={verdict} reference={reference} judgedBy={jury}
           pick={r.leaderboard.find((c) => c.candidate_key === r.recommendation!.candidate_key)}
         />
+          )}
+        </div>
       )}
 
-      {r.pareto_points.length > 0 && (
+      {(points.length > 0 || live) && (
         <Section title="Quality against cost" aside="Coral staircase: the Pareto front of open-weight candidates. Grey dashed rings: closed references.">
           <Panel className="p-4">
-            <ParetoChart points={r.pareto_points} recommended={pickKey} efforts={efforts} />
+            {points.length > 0
+              ? <ParetoChart points={points} recommended={pickKey} efforts={efforts} />
+              : (
+                <div className="flex h-[180px] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line text-center">
+                  <p className="flex items-center gap-2 text-sm text-muted"><LiveDot small />Points appear once answers are scored · {runPhase(r).text.charAt(0).toLowerCase() + runPhase(r).text.slice(1)}</p>
+                  <p className="text-xs text-faint">Quality comes from the metrics and the jury, so a model has no point until its answers are scored.</p>
+                </div>
+              )}
           </Panel>
         </Section>
       )}
@@ -139,8 +136,8 @@ export default function RunPage() {
       </Section>
 
       {r.leaderboard.length > 0 && (
-        <Section title="Outputs per case">
-          <ResultsViewer runId={r.id} candidates={r.leaderboard} />
+        <Section title="Outputs per case" aside="One case at a time: every model and repeat. Click a tile for the full answer.">
+          <ResultsViewer runId={r.id} useCaseId={r.use_case_id} candidates={r.leaderboard} pickKey={pickKey} repeats={r.repeats} metricSpecs={uc.data?.metrics} />
         </Section>
       )}
     </div>

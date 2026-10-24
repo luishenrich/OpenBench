@@ -18,17 +18,35 @@ from contract.schemas import IOSpec, JudgeConfig
 from . import db, ranking, scoring
 from .config import settings
 from .providers import CallResult, ProviderClient, build_messages, response_format
-from .providers.client import strip_think
+from .providers.client import SKIPPED, strip_think
 from .providers.references import family
 
 log = logging.getLogger("biy.worker")
 
 CANCEL_POLL_S = 3.0
+BUDGET_SLACK = 1.2  # a run stops starting calls once it has spent 1.2 × the cost the user confirmed
 
 
-def _client(provider: str, clients: dict[str, ProviderClient]) -> ProviderClient:
+class Budget:
+    """Spend against the confirmed cost. Calls already in flight finish, so the overshoot is small."""
+
+    def __init__(self, rid: UUID, confirmed: float | None, spent: float) -> None:
+        self.rid, self.limit, self.spent = rid, confirmed * BUDGET_SLACK if confirmed else None, spent
+        self.confirmed = confirmed
+
+    @property
+    def over(self) -> bool:
+        return self.limit is not None and self.spent >= self.limit
+
+    async def charge(self, cost: float | None) -> None:
+        if cost:
+            self.spent += cost
+            await db.execute("update run set actual_cost_usd = actual_cost_usd + $2 where id = $1", self.rid, cost)
+
+
+def _client(provider: str, clients: dict[str, ProviderClient], limit: int | None = None) -> ProviderClient:
     if provider not in clients:
-        limit = getattr(settings, f"{provider}_concurrency", 8)
+        limit = limit or getattr(settings, f"{provider}_concurrency", 8)
         clients[provider] = ProviderClient(provider, concurrency=limit)
     return clients[provider]
 
@@ -75,6 +93,8 @@ async def execute_run(ctx, run_id: str) -> None:
 
     clients: dict[str, ProviderClient] = {}
     cancelled = asyncio.Event()
+    budget = Budget(rid, snap.get("confirmed_cost_usd") or (snap.get("estimate") or {}).get("total_usd"),
+                    float(run["actual_cost_usd"] or 0))
 
     async def watch_cancel() -> None:
         while not cancelled.is_set():
@@ -83,18 +103,21 @@ async def execute_run(ctx, run_id: str) -> None:
                 cancelled.set()
 
     async def one(ref: dict, case: dict, rep: int) -> None:
-        if cancelled.is_set():
+        if cancelled.is_set() or budget.over:
             return
         key = ranking.key_of(ref)
         try:
             res = await _client(ref["provider"], clients).chat(
                 ref["model"], build_messages(io, case["input"]),
                 params={**(io.get("params") or {}), **(ref.get("params") or {})},
-                tools=io.get("tools"), response_format=response_format(io.get("response_schema")))
+                tools=io.get("tools"), response_format=response_format(io.get("response_schema")),
+                stop=lambda: budget.over)
         except Exception as e:  # missing key, bad request shape, …
             res = CallResult(provider=ref["provider"], model=ref["model"], error=f"{type(e).__name__}: {e}")
         # Score the answer without <think> blocks or surrounding whitespace (reasoning models often
         # start with "\n\n"); the raw text is still what gets stored.
+        if res.error == SKIPPED:
+            return  # over budget: no row, so it isn't counted as a model error
         out = scoring.OutputView(text=strip_think(res.text), json=res.json, tool_calls=res.tool_calls)
         scores = _score_all(metric_specs, scoring.CaseView(case["input"], case["reference"], io_spec), out) \
             if res.ok else {}
@@ -105,8 +128,7 @@ async def execute_run(ctx, run_id: str) -> None:
                on conflict (run_id, candidate_key, case_id, repeat_idx) do nothing""",
             rid, key, key in reference_keys, case["id"], rep, res.output(), res.timing(), res.usage or {},
             res.cost_usd, res.error, scores)
-        if res.cost_usd:
-            await db.execute("update run set actual_cost_usd = actual_cost_usd + $2 where id = $1", rid, res.cost_usd)
+        await budget.charge(res.cost_usd)
 
     watcher = asyncio.create_task(watch_cancel())
     try:
@@ -115,7 +137,7 @@ async def execute_run(ctx, run_id: str) -> None:
         log.info("run %s: %d calls (%d already done)", run_id, len(jobs), len(done))
         await asyncio.gather(*jobs)
         if not cancelled.is_set():
-            await _judge_pass(rid, snap, io_spec, cases, clients, cancelled)
+            await _judge_pass(rid, snap, io_spec, cases, budget, cancelled)
         if cancelled.is_set():
             log.info("run %s cancelled", run_id)
             return
@@ -130,8 +152,10 @@ async def execute_run(ctx, run_id: str) -> None:
             "recommendation": summary["recommendation"].model_dump(mode="json") if summary["recommendation"] else None,
             "judge_total": sum(1 for r in results if r.get("judge") is not None),
         }
-        await db.execute("update run set status = 'done', summary = $2, finished_at = now() where id = $1",
-                         rid, summary)
+        stopped = (f"Stopped at ${budget.spent:.4f}, over the confirmed ${budget.confirmed:.4f} (+20%): "
+                   "results and scores so far are kept") if budget.over else None
+        await db.execute("""update run set status = 'done', summary = $2, error = $3, finished_at = now()
+                            where id = $1""", rid, summary, stopped)
         log.info("run %s done", run_id)
     except Exception as e:
         log.exception("run %s failed", run_id)
@@ -160,7 +184,7 @@ def _jury_pairwise(winners: list[str]) -> tuple[float, str, bool | None]:
 
 
 async def _judge_pass(rid: UUID, snap: dict, io_spec: IOSpec, cases: list[dict],
-                      clients: dict[str, ProviderClient], cancelled: asyncio.Event) -> None:
+                      budget: Budget, cancelled: asyncio.Event) -> None:
     """Judge metrics with the run's jury (contract JudgeConfig).
 
     Rubric: every output (candidates and references), score = mean of the jurors.
@@ -186,22 +210,22 @@ async def _judge_pass(rid: UUID, snap: dict, io_spec: IOSpec, cases: list[dict],
 
     def juror_call(j):
         async def call_llm(messages: list[dict]) -> str:
-            res = await _client(j.provider, clients).chat(j.model, messages, params=dict(j.params))
+            res = await _client(j.provider, judge_clients, settings.judge_concurrency).chat(
+                j.model, messages, params=dict(j.params), stop=lambda: budget.over)
             if not res.ok:
                 raise RuntimeError(res.error)
-            if res.cost_usd:
-                await db.execute("update run set actual_cost_usd = actual_cost_usd + $2 where id = $1",
-                                 rid, res.cost_usd)
+            await budget.charge(res.cost_usd)
             return res.text
         return call_llm
 
+    judge_clients: dict[str, ProviderClient] = {}  # the jury's own connections, closed below
     jurors = [(j, ranking.candidate_key(j.provider, j.model, j.params), juror_call(j)) for j in judge_cfg.judges]
 
     def view(o: dict | None) -> scoring.OutputView | None:
         return scoring.OutputView(strip_think(o.get("text") or ""), o.get("json"), o.get("tool_calls")) if o else None
 
     async def one(r: dict) -> None:
-        if cancelled.is_set():
+        if cancelled.is_set() or budget.over:  # over budget: keep what's judged, leave the rest unscored
             return
         model = (by_key.get(r["candidate_key"]) or {}).get("model", r["candidate_key"].split(":", 1)[-1])
         case = case_by_id[r["case_id"]]
@@ -215,19 +239,20 @@ async def _judge_pass(rid: UUID, snap: dict, io_spec: IOSpec, cases: list[dict],
                 continue
             own = {family(model)} | ({family(by_key[pair_key]["model"])} if pairwise and pair_key in by_key else set())
             cfg = {**(m.get("config") or {}), "mode": judge_cfg.mode, "rubric": judge_cfg.rubric}
-            votes, abstained = [], []
-            for j, jkey, call in jurors:
-                if family(j.model) in own:
-                    abstained.append(jkey)
-                    continue
+            abstained = [jkey for j, jkey, _ in jurors if family(j.model) in own]
+
+            async def vote(j, jkey, call) -> dict | None:
                 try:
                     jr = await scoring.judge(m["metric_id"], cv, view(r["output"]), opponent, cfg, call)
                 except Exception as e:
-                    log.warning("juror %s failed on result %s: %s", jkey, r["id"], e)
-                    continue
-                votes.append({"key": jkey, "reasoning_effort": j.params.get("reasoning_effort"),
-                              "score": float(jr.score), "reasoning": jr.reasoning,
-                              "winner": getattr(jr, "winner", None)})
+                    if SKIPPED not in str(e):
+                        log.warning("juror %s failed on result %s: %s", jkey, r["id"], e)
+                    return None
+                return {"key": jkey, "reasoning_effort": j.params.get("reasoning_effort"),
+                        "score": float(jr.score), "reasoning": jr.reasoning, "winner": getattr(jr, "winner", None)}
+
+            # jurors in parallel: a result waits for the slowest juror, not for all three in a row
+            votes = [v for v in await asyncio.gather(*(vote(*jr) for jr in jurors if jr[1] not in abstained)) if v]
             if not votes:
                 judge_info = {"mode": m["metric_id"], "score": None, "abstained": abstained, "jurors": [],
                               "agreement": None}
@@ -241,10 +266,16 @@ async def _judge_pass(rid: UUID, snap: dict, io_spec: IOSpec, cases: list[dict],
                           "abstained": abstained, "jurors": votes,
                           # one string for readers of the single-judge shape (dashboard, agreement kit)
                           "reasoning": "  |  ".join(f"{v['key'].split(':', 1)[1]}: {v['reasoning']}" for v in votes)}
+        if budget.over and not (judge_info or {}).get("jurors"):
+            return  # no juror got to it before the budget ran out: leave it unjudged, not "no votes"
         await db.execute("update result set scores = $2, judge = $3 where id = $1", r["id"], scores,
                          judge_info or {"mode": "skipped"})
 
-    await asyncio.gather(*(one(r) for r in rows))
+    try:
+        await asyncio.gather(*(one(r) for r in rows))
+    finally:
+        for c in judge_clients.values():
+            await c.aclose()
 
 
 class WorkerSettings:

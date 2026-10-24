@@ -1,9 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Button, Loading, Tag } from '@/components/ui'
+import { Loading, Tag } from '@/components/ui'
 import { Checkbox, ConfirmDialog, Icon, RowMenu, focusRing, toast } from '@/components/usecases/kit'
 import { api, ApiError } from '@/lib/api'
 import type { Case, CaseIn, UseCase } from '@/types'
+import { isAgentSettingUp } from '@/components/usecases/group'
+import { LiveDot, useNow } from '@/components/usecases/live'
+import AddCaseMenu from './AddCaseMenu'
 import CaseDrawer from './CaseDrawer'
 
 const PAGE = 25
@@ -51,6 +54,9 @@ export default function CasesTable({ uc, cases, loading }: { uc: UseCase; cases:
   const [drawer, setDrawer] = useState<{ mode: 'add' | 'edit' | 'duplicate'; c: Case | null } | null>(null)
   const [confirm, setConfirm] = useState<Case[] | null>(null)
   const [deleting, setDeleting] = useState(false)
+  // re-evaluated every few seconds, so the guard lifts on its own when the agent's 5-minute window ends
+  const now = useNow(5_000)
+  const agentBusy = isAgentSettingUp(uc, now)
   const refresh = () => {
     for (const key of [['cases', uc.id], ['use-case', uc.id], ['use-cases']]) qc.invalidateQueries({ queryKey: key })
   }
@@ -116,13 +122,22 @@ export default function CasesTable({ uc, cases, loading }: { uc: UseCase; cases:
             <button type="button" onClick={() => setSel(new Set())} className={`rounded-md px-2 py-1 text-muted hover:bg-raised hover:text-fg ${focusRing}`}>Clear</button>
           </span>
         )}
-        <Button className="ml-auto" onClick={() => setDrawer({ mode: 'add', c: null })}><Icon name="plus" className="size-3.5" />Add case</Button>
+        <div className="ml-auto flex items-center gap-3">
+          {agentBusy && (
+            <span role="status" className="inline-flex items-center gap-2 text-xs text-muted">
+              <LiveDot small />Your agent is still adding cases
+            </span>
+          )}
+          <AddCaseMenu uc={uc} agentBusy={agentBusy} onManual={() => setDrawer({ mode: 'add', c: null })} />
+        </div>
       </div>
 
       {loading && <Loading />}
       {!loading && all.length === 0 && (
         <p className="rounded-xl border border-dashed border-line-strong px-5 py-8 text-sm text-muted">
-          No cases yet. Add one here, use Action required above, or ask your agent to pull them from the repo's tests and fixtures.
+          {agentBusy
+            ? 'No cases yet. Your agent is adding them now; they show up here as they arrive.'
+            : "No cases yet. Add one here, or ask your agent to pull them from the repo's tests and fixtures."}
         </p>
       )}
       {all.length > 0 && (
@@ -190,7 +205,7 @@ export default function CasesTable({ uc, cases, loading }: { uc: UseCase; cases:
 
       {drawer && (
         <CaseDrawer
-          key={`${drawer.mode}-${drawer.c?.id ?? 'new'}`} uc={uc} initial={drawer.c} mode={drawer.mode}
+          key={`${drawer.mode}-${drawer.c?.id ?? 'new'}`} uc={uc} initial={drawer.c} mode={drawer.mode} agentBusy={agentBusy}
           onClose={() => setDrawer(null)} onSave={onSave}
         />
       )}

@@ -8,6 +8,7 @@ import { ModelIcon, ProviderIcon } from './ModelIcon'
 import { EffortChip, prettyModel } from './run/ModelName'
 import { LiveDot } from '@/components/usecases/live'
 import { Badge, Button, ErrorNote, Panel } from './ui'
+import { LoadingRegion, Skeleton } from '@/components/Skeleton'
 
 const EFFORTS = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh'] as const
 const DEFAULT_EFFORT = 'medium'
@@ -160,7 +161,19 @@ export default function StartRun({ useCase, needsVision, blocked = null }: { use
         ) : (
           <fieldset className="mt-1 max-h-72 space-y-0.5 overflow-y-auto pr-1">
             <legend className="sr-only">Candidate models</legend>
-            {models.isLoading && <p className="text-sm text-muted">Loading models…</p>}
+            {models.isLoading && (
+              <LoadingRegion label="Loading models">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-start gap-3 px-2 py-1.5" aria-hidden>
+                    <Skeleton className="mt-[3px] size-3.5 rounded-[3px]" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2"><Skeleton className="size-3.5 rounded-full" /><Skeleton className="h-2.5" style={{ width: `${55 - i * 7}%` }} /></div>
+                      <Skeleton className="mt-2 h-2 w-[70%]" />
+                    </div>
+                  </div>
+                ))}
+              </LoadingRegion>
+            )}
             {eligible.map((m) => {
               const key = keyOf(m)
               const on = picked.has(key)

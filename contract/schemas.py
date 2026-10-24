@@ -39,15 +39,16 @@ class JudgeModel(BaseModel):
 
 def _default_jury() -> list[JudgeModel]:
     """Three families, so every output keeps ≥ 2 votes after a juror abstains on its own family.
-    GLM stays at the provider's default effort: on Nebius, setting any effort nearly turns its reasoning off."""
+    MiniMax-M3.1-Flash replaced GLM-5.3, which reasoned ~1.7k tokens per call at its default and made
+    most of a run's jury cost; MiniMax takes effort "low" and is ~9× cheaper per token."""
     return [JudgeModel(provider="openrouter", model="openai/gpt-6-luna", params={"reasoning_effort": "low"}),
             JudgeModel(provider="nebius", model="deepseek-ai/DeepSeek-V4.1-Flash-1017",
                        params={"reasoning_effort": "low"}),
-            JudgeModel(provider="nebius", model="zai-org/GLM-5.3")]
+            JudgeModel(provider="nebius", model="MiniMaxAI/MiniMax-M3.1-Flash", params={"reasoning_effort": "low"})]
 
 
 class JudgeConfig(BaseModel):
-    """A jury of judges from three model families (Verga et al. 2024): Luna, DeepSeek, GLM.
+    """A jury of judges from three model families (Verga et al. 2024): Luna, DeepSeek, MiniMax.
 
     Rubric: mean of the judges' scores. Pairwise: both orders × every judge; a win counts only if
     all non-abstaining judges agree in both orders, else a tie (0.5). A judge abstains on outputs
@@ -397,6 +398,7 @@ class CandidateResult(BaseModel):
     reference_label: str | None = None  # "GPT-6.1 Sol", "today" (the use case's current model)
     reasoning_effort: str | None = None  # pinned effort; "default" = the provider's own default
     avg_reasoning_tokens: float | None = None  # per call (usage.completion_tokens_details.reasoning_tokens)
+    dropped_params: list[str] = []  # use-case params this endpoint rejects, e.g. ["temperature"]: ran at its default
     n: int
     quality: Stat
     metrics: dict[str, Stat]
@@ -409,6 +411,7 @@ class CandidateResult(BaseModel):
     scores: Scores
     passed_gates: bool
     failed_gates: list[str]
+    unmeasured_gates: list[str] = []  # gates on a metric no candidate has a value for: not evaluated, not failed
     pareto: bool
     rank: int | None  # null if disqualified, and always null for references
 

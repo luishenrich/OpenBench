@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ErrorNote, Loading } from '@/components/ui'
+import { useSearchParams } from 'react-router-dom'
+import { ErrorNote } from '@/components/ui'
+import { ListSkeleton, ToolbarSkeleton } from '@/components/usecases/ListSkeleton'
 import { ProjectList, type ListOps } from '@/components/usecases/ProjectList'
 import { LiveDot, ScanBanner, WaitingForAgent, useFreshIds, useNow } from '@/components/usecases/live'
-import { savingsOf } from '@/components/usecases/group'
+import { projectOf, savingsOf } from '@/components/usecases/group'
 import { ConfirmDialog, Icon, Toaster, focusRing } from '@/components/usecases/kit'
 import { usePins, useDeleteUseCases, useRename } from '@/components/usecases/ops'
-import { Toolbar, applyView, isFiltering, useListView } from '@/components/usecases/Toolbar'
+import { Toolbar, ViewControls, applyView, isFiltering, useListView } from '@/components/usecases/Toolbar'
 import { api } from '@/lib/api'
 import { usd } from '@/lib/format'
 import type { UseCase } from '@/types'
@@ -20,9 +21,15 @@ export default function UseCases() {
   const me = useQuery({ queryKey: ['me'], queryFn: api.me })
   const fresh = useFreshIds(q.data?.map((u) => u.id))
   const fallbackName = me.data?.workspace.name || 'Your project'
-  const all = q.data ?? []
+  const everything = q.data ?? []
+  // ?project=<name> (from the sidebar) narrows the page to one project; everything below works on that scope
+  const [params, setParams] = useSearchParams()
+  const project = params.get('project')
+  const all = project ? everything.filter((u) => projectOf(u, fallbackName) === project) : everything
   const done = all.filter((u) => u.latest_run?.status === 'done').length
   const savings = savingsOf(all)
+  const clearProject = () => setParams((p) => { p.delete('project'); return p })
+  const [owner, repo] = project?.includes('/') ? [project.slice(0, project.lastIndexOf('/') + 1), project.slice(project.lastIndexOf('/') + 1)] : ['', project ?? '']
 
   const [view, update] = useListView()
   // re-evaluates "setting up" without new data, so a use case flips once the agent's 5-minute window passes
@@ -53,35 +60,48 @@ export default function UseCases() {
   const allPinned = selectedItems.length > 0 && selectedItems.every(pins.isPinned)
 
   return (
-    // full width now that connecting lives on /connections; capped so rows don't stretch into emptiness
-    <div className="mx-auto max-w-6xl pb-20">
-      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-        <div>
-          <h1 className="display text-4xl sm:text-5xl">Use cases</h1>
-          <p className="mt-3 max-w-lg text-muted">Every place your product calls an LLM, the model it uses today, and what the benchmark says.</p>
-        </div>
-        {all.length > 0 && (
-          <Link to="/connections" className={`rounded-md border border-line bg-panel px-3 py-1.5 text-sm text-muted transition-colors hover:border-line-strong hover:text-fg ${focusRing}`}>
-            Connect another repo
-          </Link>
+    <div className="pb-20">
+      <header className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <h1 className="display min-w-0 truncate text-3xl">
+          {project ? <>{owner && <span className="text-faint">{owner}</span>}{repo}</> : 'Use cases'}
+        </h1>
+        {project && (
+          <button
+            type="button" onClick={clearProject}
+            className={`inline-flex items-center gap-1.5 rounded-full border border-line bg-panel py-1 pr-3 pl-2 text-xs text-muted transition-colors hover:border-line-strong hover:text-fg ${focusRing}`}
+          >
+            <Icon name="x" className="size-3" />All projects
+          </button>
         )}
-      </div>
-      {all.length > 0 && (
-        <p className="mt-5 flex flex-wrap items-center gap-x-2 text-sm text-faint" role="status">
-          <LiveDot className="mr-0.5" />
-          <span>{all.length} found, {done} benchmarked{savings > 0 && <>, <span className="text-win">~{usd(savings)}/month</span> to save</>}</span>
-          <span aria-hidden>·</span>
-          <span>updates live while your agent works</span>
-        </p>
-      )}
+        {all.length > 0 && (
+          <p className="flex items-center gap-x-2 text-sm text-faint" role="status" title="Updates live while your agent works">
+            <LiveDot small className="mr-0.5" />
+            <span className="tabular-nums">
+              {all.length} found<span aria-hidden> · </span>{done} benchmarked
+              {savings > 0 && <><span aria-hidden> · </span><span className="text-win">~{usd(savings)}/month</span> to save</>}
+            </span>
+          </p>
+        )}
+        {all.length > 0 && <ViewControls view={view} update={update} className="ml-auto" />}
+      </header>
 
-      {all.length > 0 && <div className="mt-4"><ScanBanner list={all} fallbackName={fallbackName} /></div>}
-      {all.length > 0 && <div className="mt-7"><Toolbar all={all} view={view} update={update} now={now} /></div>}
+      {q.isLoading && <ToolbarSkeleton />}
+      {all.length > 0 && <div className="mt-5"><ScanBanner list={all} fallbackName={fallbackName} /></div>}
+      {all.length > 0 && <div className="mt-5"><Toolbar all={all} view={view} update={update} now={now} controls={false} /></div>}
 
       <div className="mt-6">
-        {q.isLoading && <Loading />}
+        {q.isLoading && <ListSkeleton />}
         {q.error && !q.data && <ErrorNote error={q.error} />}
         {q.data?.length === 0 && <WaitingForAgent />}
+        {project && everything.length > 0 && all.length === 0 && (
+          <div className="rounded-xl border border-dashed border-line-strong px-6 py-12 text-center">
+            <p className="title">No use cases in “{project}”</p>
+            <p className="mt-1 text-sm text-muted">The project may have been renamed, or its use cases deleted.</p>
+            <button type="button" onClick={clearProject} className={`mt-4 rounded-md border border-line bg-panel px-3 py-1.5 text-sm text-fg hover:border-line-strong ${focusRing}`}>
+              Show all projects
+            </button>
+          </div>
+        )}
         {all.length > 0 && shown.length === 0 && (
           <div className="rounded-xl border border-dashed border-line-strong px-6 py-12 text-center">
             <p className="title">No use cases match</p>
@@ -95,12 +115,13 @@ export default function UseCases() {
           <ProjectList
             useCases={shown} all={all} fallbackName={fallbackName} fresh={fresh}
             sort={view.sort} flat={view.group === 'none'} filtering={isFiltering(view)} ops={ops}
+            single={!!project}
           />
         )}
       </div>
 
       {selected.size > 0 && (
-        <div className="fixed inset-x-0 bottom-5 z-30 flex justify-center px-4" role="region" aria-label="Bulk actions">
+        <div className="fixed inset-x-0 bottom-5 z-30 flex justify-center px-4 lg:left-60" role="region" aria-label="Bulk actions">
           <div className="flex items-center gap-1 rounded-xl border border-line-strong bg-raised py-1.5 pr-1.5 pl-4 text-sm shadow-2xl shadow-black/50">
             <span className="mr-2 tabular-nums text-fg">{selected.size} selected</span>
             <button type="button" onClick={() => ops.setPinned([...selected], !allPinned)} className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-muted hover:bg-line hover:text-fg ${focusRing}`}>

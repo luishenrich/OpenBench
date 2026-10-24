@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 import type { Me, WorkspacePatch } from '@/types'
 import { ApiError, api } from '@/lib/api'
-import { Button, ErrorNote, Loading } from '@/components/ui'
+import { Button, ErrorNote } from '@/components/ui'
+import SettingsSkeleton from '@/components/settings/SettingsSkeleton'
 import Weights from '@/components/Weights'
 import { SettingsSection, inputCls } from '@/components/settings/controls'
 import { withDefaults, type FullWorkspace } from '@/components/settings/defaults'
@@ -43,7 +44,7 @@ export default function Settings() {
     return () => clearTimeout(t)
   }, [saved])
 
-  if (me.isLoading) return <Loading />
+  if (me.isLoading) return <SettingsSkeleton />
   if (me.error || !base) return <ErrorNote error={me.error ?? 'No workspace'} />
 
   const w = draft ?? base
@@ -66,7 +67,7 @@ export default function Settings() {
       </header>
 
       <div className="mt-10">
-        <SettingsSection title="Workspace name" help="Shown in the top bar and on shared reports.">
+        <SettingsSection title="Workspace name" help="Shown in the sidebar and on shared reports.">
           <input
             aria-label="Workspace name"
             value={w.name}
@@ -117,7 +118,7 @@ export default function Settings() {
       </div>
 
       {saved && !dirty && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-5 z-30 flex justify-center px-4">
+        <div className="pointer-events-none fixed inset-x-0 bottom-5 z-30 flex justify-center px-4 lg:left-60">
           <p role="status" className="flex items-center gap-2 rounded-xl border border-line-strong bg-raised/95 px-4 py-3 text-sm text-fg shadow-2xl shadow-black/60 backdrop-blur">
             <span aria-hidden className="size-1.5 rounded-[1px] bg-win" />
             Saved. Use cases that inherit these settings use them on their next run.
@@ -126,7 +127,7 @@ export default function Settings() {
       )}
 
       {dirty && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-5 z-30 flex justify-center px-4">
+        <div className="pointer-events-none fixed inset-x-0 bottom-5 z-30 flex justify-center px-4 lg:left-60">
           <div
             role="region"
             aria-label="Unsaved changes"

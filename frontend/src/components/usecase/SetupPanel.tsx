@@ -31,6 +31,7 @@ function StepItem({ step, index }: { step: Step; index: number }) {
 }
 
 /** Setup checklist, with the "Action required" card on top when the user has to supply something.
+ *  Once everything is in place it folds to a single "Setup complete" line.
  *  While the coding agent is still setting the use case up, a calm "your agent is setting this up" panel
  *  replaces the card: missing pieces are on their way, not the user's job. */
 export default function SetupPanel({ uc, cases, now }: { uc: UseCase; cases?: Case[]; now: number }) {
@@ -39,6 +40,10 @@ export default function SetupPanel({ uc, cases, now }: { uc: UseCase; cases?: Ca
   const missingPrompt = r.steps.find((s) => s.key === 'prompt')!.status === 'block'
   const [touched, setTouched] = useState(false) // keep the card (and its upload list) after the gap is filled
   const showCard = !r.settingUp && (missingCases || missingPrompt || touched)
+  // everything in place: one calm line instead of five green ticks; the checklist stays one click away
+  const complete = r.ready && !r.settingUp && !showCard
+  const notes = r.steps.filter((s) => s.status === 'warn').map((s) => s.detail)
+  const [showSteps, setShowSteps] = useState(false)
 
   return (
     <section aria-label="Setup" className="space-y-3">
@@ -49,9 +54,25 @@ export default function SetupPanel({ uc, cases, now }: { uc: UseCase; cases?: Ca
           onAdded={() => setTouched(true)}
         />
       )}
-      <ol className="grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-5">
-        {r.steps.map((s, i) => <StepItem key={s.key} step={s} index={i} />)}
-      </ol>
+      {complete ? (
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-xl border border-line bg-panel px-4 py-3">
+          <span className="flex min-w-0 items-center gap-2.5 text-sm">
+            <span className={`grid size-5 shrink-0 place-items-center rounded-full ${ICON.ok.cls}`} aria-hidden>
+              <svg viewBox="0 0 16 16" className="size-3.5"><path d={ICON.ok.path} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </span>
+            <span className="font-medium text-fg">Setup complete</span>
+            <span className="truncate text-muted">{notes.length ? notes.join(' · ') : 'Ready to benchmark'}</span>
+          </span>
+          <button type="button" aria-expanded={showSteps} onClick={() => setShowSteps(!showSteps)} className="rounded-md px-2 py-1 text-xs text-muted hover:bg-raised hover:text-fg">
+            {showSteps ? 'Hide checklist' : 'Show checklist'}
+          </button>
+        </div>
+      ) : null}
+      {(!complete || showSteps) && (
+        <ol className="grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-5">
+          {r.steps.map((s, i) => <StepItem key={s.key} step={s} index={i} />)}
+        </ol>
+      )}
     </section>
   )
 }

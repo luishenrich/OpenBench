@@ -175,6 +175,8 @@ export interface CandidateResult {
   reference_label?: string | null // "GPT-6.1 Sol", "GPT-6 Luna", "today"
   reasoning_effort?: string | null // pinned effort; "default" = the provider's own default
   avg_reasoning_tokens?: number | null
+  /** params this model's endpoint doesn't support, dropped before the call (e.g. ["temperature"]) */
+  dropped_params?: string[]
   n: number
   quality: Stat
   metrics: Record<string, Stat>

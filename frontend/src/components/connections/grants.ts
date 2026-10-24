@@ -2,6 +2,7 @@
 // Supabase Auth is the OAuth 2.1 server; listing and revoking go through supabase.auth.oauth.
 // Fixture mode keeps two fake grants in memory so the section can be screenshotted.
 import type { OAuthGrant } from '@supabase/supabase-js'
+import { slowFor } from '@/lib/fixtures'
 import { FIXTURES } from '@/lib/mode'
 import { supabase } from '@/lib/supabase'
 
@@ -51,7 +52,7 @@ function oauthApi() {
 
 export async function listGrants(): Promise<OAuthGrant[]> {
   if (FIXTURES) {
-    await wait(300)
+    await wait(300 + slowFor('grants'))
     return [...fake]
   }
   const { data, error } = await oauthApi().listGrants()

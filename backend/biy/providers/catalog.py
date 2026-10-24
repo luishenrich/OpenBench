@@ -41,6 +41,14 @@ def price_per_1m(provider: str, model: str, endpoint: str | None = None) -> dict
     return (m.get("pricing") or {}).get("usd_per_1m")
 
 
+def endpoint_parameters(model: str, endpoint: str) -> set[str] | None:
+    """supported_parameters of one OpenRouter upstream, or None when unknown."""
+    for e in (get_model("openrouter", model) or {}).get("endpoints") or []:
+        if e.get("provider") == endpoint and e.get("supported_parameters") is not None:
+            return set(e["supported_parameters"])
+    return None
+
+
 def pick_openrouter_endpoint(model: str, needs: set[str]) -> str | None:
     """Upstream provider to pin on OpenRouter for this model.
 

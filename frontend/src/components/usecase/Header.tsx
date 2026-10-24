@@ -56,29 +56,29 @@ export default function UseCaseHeader({ uc }: { uc: UseCase }) {
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center gap-2">
+      <div className="mt-5 flex flex-wrap items-center gap-2">
         <Badge tone="front">{uc.kind}</Badge>
         {uc.created_by === 'mcp' && <Badge tone="signal">Found by agent</Badge>}
       </div>
       {editing ? (
         <div className="mt-3">
           <RenameInput
-            value={uc.name} className="display py-1 text-3xl sm:text-4xl xl:text-5xl"
+            value={uc.name} className="display py-1 text-3xl sm:text-4xl"
             onDone={(name) => { setEditing(false); if (name) rename.mutate({ id: uc.id, name }) }}
           />
           <p className="mt-1.5 text-xs text-faint">Enter saves, Esc cancels.</p>
         </div>
       ) : (
-        <div className="group/title mt-3 flex items-start gap-2">
+        <div className="group/title mt-2.5 flex items-start gap-2">
           <h1
-            className="display line-clamp-2 min-w-0 text-3xl text-pretty sm:text-4xl xl:text-5xl" title={`${uc.name} (double-click to rename)`}
+            className="display line-clamp-2 min-w-0 text-3xl text-pretty sm:text-4xl" title={`${uc.name} (double-click to rename)`}
             onDoubleClick={() => setEditing(true)}
           >
             {uc.name}
           </h1>
           <button
             type="button" aria-label="Rename use case" onClick={() => setEditing(true)}
-            className={`mt-1 grid size-8 shrink-0 place-items-center rounded-md text-faint opacity-60 transition hover:bg-raised hover:text-fg group-hover/title:opacity-100 focus-visible:opacity-100 sm:mt-2 ${focusRing}`}
+            className={`mt-0.5 grid size-8 shrink-0 place-items-center rounded-md text-faint opacity-60 transition hover:bg-raised hover:text-fg group-hover/title:opacity-100 focus-visible:opacity-100 ${focusRing}`}
           >
             <Icon name="pencil" />
           </button>

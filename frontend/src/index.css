@@ -49,3 +49,15 @@ body { font-family: var(--font-sans); font-feature-settings: 'tnum' 1; -webkit-f
 }
 
 input[type='range'] { accent-color: var(--color-front); }
+
+/* Loading skeletons (components/Skeleton.tsx). A soft highlight sweeps across a raised block; with reduced
+   motion the global rule above stops it and the block rests on plain raised, which still reads as a skeleton. */
+.skeleton {
+  background-color: var(--color-raised);
+  background-image: linear-gradient(90deg, transparent 0%, transparent 38%, rgb(255 255 255 / 0.045) 50%, transparent 62%, transparent 100%);
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  background-repeat: no-repeat;
+  animation: skeleton-sweep 1.8s ease-in-out infinite;
+}
+@keyframes skeleton-sweep { from { background-position: 100% 0; } to { background-position: 0% 0; } }
