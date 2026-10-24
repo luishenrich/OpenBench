@@ -10,6 +10,7 @@ If the task is a chat with no template variables, input may be {"messages": [{"r
 
 - Produce exactly {{n}} cases, all different from each other and from the seeds.
 - Every case needs a reference. A case with no expected output is useless here.
+- Keep each reference under {{max_chars}} characters. A short gold answer is enough. Do not write a full report.
 - When a JSON schema is given, reference must validate against it. Invent values that fit the types. Include a boundary case (empty string, zero, a long value) only when the schema allows it.
 - When no schema is given, reference is the ideal answer as a string, or the gold label for a classification.
 - Fill every {{placeholder}} in the user template with a vars key of the same name.

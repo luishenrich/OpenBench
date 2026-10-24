@@ -17,6 +17,14 @@ import jsonschema
 STRATEGIES = ("auto", "schema_first", "persona_grid")
 _ARRAY = re.compile(r"\[.*\]", re.DOTALL)
 _PLACEHOLDER = re.compile(r"\{\{\s*([a-zA-Z_][\w]*)\s*\}\}")
+_FENCE = re.compile(r"^```(?:json)?\s*|\s*```$", re.IGNORECASE)
+_TRAILING_COMMA = re.compile(r",\s*([\]}])")
+# Long prose blows the completion window. Ask for a few short cases per call.
+_SHORT_BATCH = 8
+_LONG_BATCH = 2
+_MAX_ROUNDS = 8
+_MAX_REFERENCE_CHARS = 800
+_LONG_PROMPT_CHARS = 4000
 
 _NOTES = {
     "schema_first": (
@@ -93,22 +101,58 @@ async def _call(call_llm, messages: list[dict]) -> str:
     return result
 
 
+def _loads_lenient(body: str) -> Any | None:
+    cleaned = _TRAILING_COMMA.sub(r"\1", body.strip())
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        return None
+
+
+def _extract_objects(text: str) -> list:
+    """Complete JSON objects from a truncated array. A cut-off tail is ignored."""
+    decoder = json.JSONDecoder()
+    found: list = []
+    index = 0
+    while index < len(text):
+        start = text.find("{", index)
+        if start < 0:
+            break
+        try:
+            obj, end = decoder.raw_decode(text, start)
+        except json.JSONDecodeError:
+            index = start + 1
+            continue
+        if isinstance(obj, dict):
+            found.append(obj)
+        index = max(end, start + 1)
+    return found
+
+
+def _as_case_list(parsed: Any) -> list | None:
+    if isinstance(parsed, list):
+        return parsed
+    if isinstance(parsed, dict) and isinstance(parsed.get("cases"), list):
+        return parsed["cases"]
+    if isinstance(parsed, dict) and "input" in parsed:
+        return [parsed]
+    return None
+
+
 def _parse_array(text: str) -> list:
+    """A JSON array of cases. Truncated or fenced text still yields the complete objects."""
     body = text.strip()
     if body.startswith("```"):
-        body = re.sub(r"^```(?:json)?\s*|\s*```$", "", body, flags=re.IGNORECASE).strip()
-    try:
-        parsed = json.loads(body)
-    except json.JSONDecodeError:
+        body = _FENCE.sub("", body).strip()
+    parsed = _loads_lenient(body)
+    cases = _as_case_list(parsed)
+    if cases is None:
         match = _ARRAY.search(body)
-        if not match:
-            raise ValueError("case generator did not return a JSON array")
-        parsed = json.loads(match.group(0))
-    if isinstance(parsed, dict) and isinstance(parsed.get("cases"), list):
-        parsed = parsed["cases"]
-    if not isinstance(parsed, list):
-        raise ValueError("case generator JSON was not an array")
-    return parsed
+        if match:
+            cases = _as_case_list(_loads_lenient(match.group(0)))
+    if cases is None:
+        cases = _extract_objects(body)
+    return cases
 
 
 def _normalize_input(raw: Any, template: str | None) -> dict | None:
@@ -135,6 +179,13 @@ def _tags(raw: Any, strategy: str) -> list[str]:
     return tags
 
 
+def _cap_reference(raw: Any) -> Any:
+    """Long-form gold answers are capped so one case cannot fill the next completion."""
+    if isinstance(raw, str) and len(raw) > _MAX_REFERENCE_CHARS:
+        return raw[:_MAX_REFERENCE_CHARS].rstrip()
+    return raw
+
+
 def _reference(raw: Any, schema: dict | None) -> Any | None:
     if raw is None:
         return None
@@ -150,7 +201,7 @@ def _reference(raw: Any, schema: dict | None) -> Any | None:
             jsonschema.Draft202012Validator(schema).validate(raw)
         except jsonschema.ValidationError:
             return None
-    return raw
+    return _cap_reference(raw)
 
 
 def _accept(item: Any, schema: dict | None, template: str | None, seen: set[str], strategy: str) -> dict | None:
@@ -174,11 +225,22 @@ def _accept(item: Any, schema: dict | None, template: str | None, seen: set[str]
     }
 
 
+def _long_form(use_case: dict, io_spec: dict) -> bool:
+    kind = str(use_case.get("kind") or "")
+    prompt = f"{io_spec.get('system_prompt') or ''}{io_spec.get('user_template') or ''}"
+    return kind in {"generation", "summarization"} or len(prompt) > _LONG_PROMPT_CHARS
+
+
+def _batch_size(use_case: dict, io_spec: dict) -> int:
+    return _LONG_BATCH if _long_form(use_case, io_spec) else _SHORT_BATCH
+
+
 def _messages(use_case: dict, io_spec: dict, seeds: list[dict], n: int, strategy: str, avoid: list[dict]) -> list[dict]:
     body = _fill(
         load_case_prompt(),
         {
             "n": str(n),
+            "max_chars": str(_MAX_REFERENCE_CHARS),
             "strategy": strategy,
             "strategy_notes": _NOTES.get(strategy, _NOTES["schema_first"]),
             "use_case": _dump({key: use_case.get(key) for key in ("name", "kind", "description")}),
@@ -205,11 +267,14 @@ async def generate_case_inputs(
     call_llm,
     strategy: str = "auto",
 ) -> list[dict]:
-    """Return up to n CaseIn dicts. Fewer if the model cannot fill the quota with valid unique cases.
+    """Return up to n CaseIn dicts. Fewer, or none, if the model cannot fill the quota.
 
-    call_llm(messages) -> str may be sync or async, same as judge(). Seeds are existing cases
-    ({input, reference, tags}). References are required. When io_spec has a response_schema,
-    a reference that does not validate is dropped. Duplicate inputs, including seeds, are dropped.
+    A truncated or invalid completion is not a failure: complete cases already in that text are
+    kept, and the next batch asks only for the shortfall. Long-form kinds are requested two at
+    a time, and each string reference is capped. call_llm(messages) -> str may be sync or async,
+    same as judge(). Seeds are existing cases ({input, reference, tags}). References are required.
+    When io_spec has a response_schema, a reference that does not validate is dropped. Duplicate
+    inputs, including seeds, are dropped.
     """
     if not isinstance(n, int) or isinstance(n, bool) or n < 0:
         raise ValueError("n must be a non-negative int")
@@ -224,11 +289,14 @@ async def generate_case_inputs(
     seen = {_canon(item["input"]) for item in seed_rows if isinstance(item.get("input"), dict)}
     accepted: list[dict] = []
     avoid: list[dict] = []
-    for _ in range(2):
-        need = n - len(accepted)
-        if need <= 0:
-            break
+    batch_size = _batch_size(use_case, io_spec)
+    stalls = 0
+    rounds = 0
+    while len(accepted) < n and rounds < _MAX_ROUNDS and stalls < 2:
+        rounds += 1
+        need = min(n - len(accepted), batch_size)
         text = await _call(call_llm, _messages(use_case, io_spec, seed_rows, need, resolved, avoid))
+        before = len(accepted)
         for item in _parse_array(text):
             case = _accept(item, schema, template, seen, resolved)
             if case is None:
@@ -237,6 +305,8 @@ async def generate_case_inputs(
             avoid.append({"input": case["input"], "reference": case["reference"]})
             if len(accepted) >= n:
                 break
-    if not accepted:
-        raise ValueError("generate_case_inputs produced no cases with a valid reference")
+        if len(accepted) == before:
+            stalls += 1
+        else:
+            stalls = 0
     return accepted[:n]
