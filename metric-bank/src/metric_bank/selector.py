@@ -13,6 +13,7 @@ from pathlib import Path
 
 from metric_bank.build import build_bank
 from metric_bank.policy import ALWAYS_ON, CAPS, SPEED_BY_KIND
+from metric_bank.runtime import is_runnable
 
 JUDGES = ("rubric_score", "g_eval", "pairwise_vs_baseline", "length_controlled_win_rate")
 EXAMPLES_PATH = Path(__file__).resolve().parents[2] / "selection" / "examples.json"
@@ -33,10 +34,9 @@ EXAMPLES: list[dict] = [
         "phi_or_customer_data": True,
         "waiting": True,
         "teaching_points": [
-            "End-to-end latency is the speed metric. Time to first token does not matter, because the caller cannot use a partial object.",
-            "JSON schema validity is both a quality term and a gate at 0.99. Raw JSON parse is not a second gate.",
-            "Dollar fields are scored with numeric tolerance and should be left out of the exact field-accuracy denominator so they are not counted twice.",
-            "PHI leakage is a gate on a confirmed set. It is not averaged into quality.",
+            "End-to-end latency is the speed metric the runner records. Time to first token does not matter, because the caller cannot use a partial object.",
+            "Field accuracy and JSON schema validity are implemented, so they are the default quality terms. Schema validity is also a gate at 0.99. Numeric tolerance is planned; pass include_planned to add it.",
+            "PHI leakage is planned, so the default card does not gate on it. It is not a quality term when it is included.",
         ],
     },
     {
@@ -59,10 +59,9 @@ EXAMPLES: list[dict] = [
         "regulated_advice": True,
         "waiting": True,
         "teaching_points": [
-            "The catalogue's default rubric is not selected. Answer relevancy, brand fit, and faithfulness already name the constructs.",
-            "Faithfulness is a quality term, not a gate. The knowledge base is optional context, not the legal record.",
-            "Harmful compliance, over-refusal, and the advice boundary are the three risk gates. A finance bot that refuses every question looks safe and is useless.",
-            "Time to first token ranks speed. Time to first answer token is reported beside it when reasoning models are in the set, and it is not a second ranking axis.",
+            "Faithfulness, brand fit, and answer relevancy name the constructs, but they are planned. The default quality slot is rubric_score until those scores exist.",
+            "Harmful compliance, over-refusal, and the advice boundary are the research risk gates. They are planned, so the default card does not include them. Pass include_planned to restore them.",
+            "Time to first token ranks speed, because the runner records it. Time to first answer token is planned and is not on the default card.",
         ],
     },
     {
@@ -81,9 +80,9 @@ EXAMPLES: list[dict] = [
         "monthly_volume": True,
         "waiting": False,
         "teaching_points": [
-            "Batch does not rank on time to first token or end-to-end latency. The speed weight in the product profile is zero.",
-            "Competitor names and the length window are deterministic. Brand fit is the only judged quality metric.",
-            "Cost per successful case is the cost used for ranking. Monthly cost is reported because a volume was entered. It is not a second cost axis.",
+            "Batch does not rank on latency. The speed weight in the product profile is zero.",
+            "Brand fit, banned strings, and the length window are planned. The default quality metric is rubric_score.",
+            "Cost per successful case is runner-measured and stays on the card. Monthly cost is planned, so a known volume does not add it unless include_planned is set.",
         ],
     },
     {
@@ -103,10 +102,9 @@ EXAMPLES: list[dict] = [
         "code_can_merge": True,
         "waiting": True,
         "teaching_points": [
-            "Tool-call match, tool choice, tests, and task success are the quality average. A trajectory is not exact-matched, because more than one path is legal.",
-            "Argument-schema validity is the catalogue's tool-argument gate, under a more precise id than json_valid. It does not also enter the quality average.",
-            "pass^k is reported for reliability and is not averaged into quality, so a flaky success is not double-counted with task success.",
-            "The speed metric is task wall time, not time to first token.",
+            "Tool-call match, tool choice, tests, and task success are planned. The default quality metric is rubric_score. Pass include_planned to restore them.",
+            "Argument-schema validity and pass^k are planned, so they are not on the default card.",
+            "Task wall time is planned. The runner records end-to-end latency, so that is the ranking speed metric until task time is measured.",
         ],
     },
     {
@@ -126,10 +124,9 @@ EXAMPLES: list[dict] = [
         "hard_grounding": True,
         "waiting": True,
         "teaching_points": [
-            "Five quality metrics fill the cap: faithfulness, citation precision, citation recall, unknown abstention, and context recall.",
-            "Answer relevancy is the first metric that did not fit. It is the alternate to add if citations are later dropped.",
-            "Faithfulness at or above 0.9 is the grounding gate. Hallucination rate is the same construct in gate form and is not added beside it.",
-            "Context recall is included because retrieval is being judged. It would be omitted if the context were frozen by the client.",
+            "The research card is faithfulness, citations, abstention, and context recall. Those rows are planned, so the default quality metric is rubric_score.",
+            "Pass include_planned to restore that card. Answer relevancy is the first metric that does not fit its cap.",
+            "Hallucination rate stays off. It is the gate form of grounding, and it is not implemented.",
         ],
     },
 ]
@@ -205,7 +202,23 @@ def _quality_candidates(brief: dict) -> list[str]:
     return vision + chosen
 
 
-def _finalize_quality(candidates: list[str], by_id: dict, brief: dict) -> tuple[list[str], list[str], list[str]]:
+def _runnable_quality_fallback(brief: dict) -> str:
+    """An implemented quality metric for this kind, or the rubric judge."""
+    kind = brief["kind"]
+    if kind == "classification":
+        return "classification_accuracy"
+    if kind == "extraction":
+        if brief.get("ocr"):
+            return "word_accuracy" if brief.get("word_errors") else "character_accuracy"
+        if brief.get("layout_boxes"):
+            return "bbox_f1"
+        return "field_accuracy"
+    return "rubric_score"
+
+
+def _finalize_quality(
+    candidates: list[str], by_id: dict, brief: dict, include_planned: bool
+) -> tuple[list[str], list[str], list[str]]:
     notes: list[str] = []
     kept: list[str] = []
     seen_groups: set[str] = set()
@@ -244,13 +257,17 @@ def _finalize_quality(candidates: list[str], by_id: dict, brief: dict) -> tuple[
             notes.append("At most one generic judge is selected. Dropped " + ", ".join(dropped) + ".")
         kept = [preferred]
 
-    if not kept and brief.get("open_ended_without_spec", False):
+    if not kept and include_planned and brief.get("open_ended_without_spec", False):
         kept = ["rubric_score"]
         notes.append("No named metric applied, so rubric_score is the fallback judge.")
-    elif not kept and brief["kind"] in {"chat", "generation", "batch", "summarization", "other"}:
+    elif not kept and include_planned and brief["kind"] in {"chat", "generation", "batch", "summarization", "other"}:
         fallback = "g_eval" if brief["kind"] == "summarization" else "rubric_score"
         kept = [fallback]
         notes.append(f"No named metric applied, so {fallback} is the fallback judge.")
+    elif not kept and not include_planned:
+        fallback = _runnable_quality_fallback(brief)
+        kept = [fallback]
+        notes.append(f"No runnable quality metric remained, so {fallback} fills the quality slot.")
 
     business_kept = 0
     capped: list[str] = []
@@ -340,25 +357,62 @@ def _task_gates(brief: dict, quality: list[str]) -> list[dict]:
     return gates
 
 
+def _split_runnable(ids: list[str], include_planned: bool) -> tuple[list[str], list[str]]:
+    if include_planned:
+        return list(ids), []
+    kept = [metric_id for metric_id in ids if is_runnable(metric_id)]
+    dropped = [metric_id for metric_id in ids if not is_runnable(metric_id)]
+    return kept, dropped
+
+
+def _note_dropped(notes: list[str], dropped: list[str], role: str) -> None:
+    if not dropped:
+        return
+    notes.append(
+        "Planned "
+        + role
+        + " left off the scorecard: "
+        + ", ".join(dropped)
+        + ". Pass include_planned to opt in."
+    )
+
+
 def select(brief: dict, bank: dict | None = None) -> dict:
-    """Turn a client brief into a scorecard. See EXAMPLES for the five worked clients."""
+    """Turn a client brief into a scorecard. See EXAMPLES for the five worked clients.
+
+    Planned metrics stay in the bank and are omitted unless brief['include_planned']
+    is true. Quality is never left empty: the fallback is an implemented metric
+    for the kind, or rubric_score.
+    """
     bank = bank or build_bank()
     by_id = {item["id"]: item for item in bank["metrics"]}
     enriched = dict(brief)
     enriched["_double_count_groups"] = bank["selection_policy"]["double_count_groups"]
     if enriched["kind"] not in SPEED_BY_KIND:
         raise ValueError(f"unknown kind {enriched['kind']}")
+    include_planned = bool(enriched.get("include_planned"))
 
-    quality, alternates, notes = _finalize_quality(_quality_candidates(enriched), by_id, enriched)
+    candidates = _quality_candidates(enriched)
+    if not include_planned:
+        dropped_quality = [metric_id for metric_id in candidates if not is_runnable(metric_id)]
+        candidates = [metric_id for metric_id in candidates if is_runnable(metric_id)]
+    else:
+        dropped_quality = []
+    quality, alternates, notes = _finalize_quality(candidates, by_id, enriched, include_planned)
+    _note_dropped(notes, dropped_quality, "quality metrics")
     risk, risk_notes = _risk_gates(enriched)
     notes.extend(risk_notes)
+    if not include_planned:
+        dropped_risk = [item["id"] for item in risk if not is_runnable(item["id"])]
+        risk = [item for item in risk if is_runnable(item["id"])]
+        _note_dropped(notes, dropped_risk, "risk gates")
     if "faithfulness" in quality and not (
         enriched["kind"] in {"rag", "summarization"} or enriched.get("hard_grounding")
     ):
         notes.append("Faithfulness is in the quality average and is not a gate, because grounding is not a hard product requirement.")
     if "hallucination" not in {item["id"] for item in risk} and (
         enriched["kind"] in {"rag", "summarization"} or enriched.get("hard_grounding")
-    ):
+    ) and (include_planned or "faithfulness" in quality):
         notes.append("Hallucination rate was not added. Faithfulness is already the grounding measurement.")
 
     waiting = enriched.get("waiting", enriched["kind"] != "batch")
@@ -366,7 +420,15 @@ def select(brief: dict, bank: dict | None = None) -> dict:
     also_speed: list[str] = []
     if ranking == "ttft_ms" and enriched.get("reasoning_models"):
         also_speed.append("ttfat_ms")
+    if not include_planned and ranking is not None and not is_runnable(ranking):
+        notes.append(
+            f"{ranking} is planned, so the ranking speed metric is e2e_ms, which the runner records."
+        )
+        ranking = "e2e_ms"
+    also_speed, dropped_speed = _split_runnable(also_speed, include_planned)
+    if "ttfat_ms" in also_speed:
         notes.append("ttfat_ms is reported for reasoning models and is not the ranking speed metric.")
+    _note_dropped(notes, dropped_speed, "speed metrics")
     if ranking is None:
         notes.append("No speed metric is ranked. The caller is not waiting on the response.")
 
@@ -379,10 +441,22 @@ def select(brief: dict, bank: dict | None = None) -> dict:
     if enriched.get("layout_boxes"):
         also_report.append("bbox_iou")
         notes.append("bbox_iou is reported beside bbox_f1 and does not take a quality slot.")
+    also_report, dropped_report = _split_runnable(also_report, include_planned)
+    _note_dropped(notes, dropped_report, "reported metrics")
     reliability: list[str] = []
     if enriched["kind"] == "agent":
         reliability.append("pass_hat_k")
+    reliability, dropped_reliability = _split_runnable(reliability, include_planned)
+    if "pass_hat_k" in reliability:
         notes.append("pass_hat_k is reported for agent reliability and does not enter Q.")
+    _note_dropped(notes, dropped_reliability, "reliability metrics")
+    always_on, dropped_always = _split_runnable(list(ALWAYS_ON), include_planned)
+    _note_dropped(notes, dropped_always, "always-on metrics")
+    task_gates = _task_gates(enriched, quality)
+    if not include_planned:
+        dropped_task = [item["id"] for item in task_gates if not is_runnable(item["id"])]
+        task_gates = [item for item in task_gates if is_runnable(item["id"])]
+        _note_dropped(notes, dropped_task, "task gates")
 
     return {
         "example_id": enriched.get("id") or "brief",
@@ -391,12 +465,12 @@ def select(brief: dict, bank: dict | None = None) -> dict:
         "industry": enriched.get("industry") or "general",
         "narrative": enriched.get("narrative") or "",
         "teaching_points": list(enriched.get("teaching_points") or []),
-        "always_on": list(ALWAYS_ON),
+        "always_on": always_on,
         "speed": {"ranking": ranking, "also_report": also_speed},
         "quality": quality,
         "quality_alternates": alternates,
         "risk_gates": risk,
-        "task_gates": _task_gates(enriched, quality),
+        "task_gates": task_gates,
         "reliability_extra": reliability,
         "also_report": also_report,
         "judging": [metric_id for metric_id in quality if metric_id in JUDGES],

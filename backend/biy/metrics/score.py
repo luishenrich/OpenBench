@@ -5,6 +5,28 @@ from __future__ import annotations
 import json
 from typing import Any
 
+
+class UnimplementedMetricError(ValueError):
+    """score() was asked for a bank id it does not compute.
+
+    None means the metric does not apply (for example, no reference or no schema).
+    An id outside SCORERS is a caller error, including planned rows, judges, and
+    metrics the runner measures itself.
+    """
+
+    def __init__(self, metric_id: str, runtime_status: str):
+        self.metric_id = metric_id
+        self.runtime_status = runtime_status
+        hint = {
+            "planned": "It is on the roadmap. The selector omits it unless include_planned is set.",
+            "judge": "Call judge() for rubric_score and pairwise_vs_baseline.",
+            "runner_measured": "The runner records this from stream timing, usage, or cost.",
+            "implemented": "The bank marks it implemented, but score() has no function for it.",
+        }.get(runtime_status, "It is not a deterministic score().")
+        super().__init__(
+            f"score() cannot compute {metric_id!r} (runtime_status={runtime_status}). {hint}"
+        )
+
 import jsonschema
 
 from metric_bank.illustrative import (

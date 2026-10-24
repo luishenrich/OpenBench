@@ -23,7 +23,7 @@ Open it from the `metric-bank` directory, or from `notebooks/`. The first cell f
 """,
     """## Overview
 
-Counts come from `data/metric-bank.json` when that file is present, and the next cell checks it still matches the builder.
+Counts come from `data/metric-bank.json` when that file is present, and the next cell checks it still matches the builder. `runtime_status` is implemented, judge, runner_measured, or planned. Default scorecards use the first three. `include_planned` opts into the roadmap.
 """,
     """## Category breakdown
 """,
@@ -71,6 +71,7 @@ metrics = bank["metrics"]
 print(f"{len(metrics)} metrics, {len(bank['categories'])} categories, {len(bank['priors'])} priors")
 print("Priorities:", dict(Counter(m["selector_priority"] for m in metrics)))
 print("Catalogue matches:", sum(m["catalog_match"] for m in metrics))
+print("Runtime:", dict(Counter(m["runtime_status"] for m in metrics)))
 print(bank["design_notes"])
 ''',
     r'''

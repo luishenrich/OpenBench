@@ -4,6 +4,8 @@ import asyncio
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "backend"))
 sys.path.insert(0, str(ROOT))
@@ -13,12 +15,15 @@ from biy.metrics import (  # noqa: E402
     METRICS,
     CaseView,
     OutputView,
+    UnimplementedMetricError,
     aggregate,
     judge,
     percentiles,
     score,
 )
 from biy.metrics.judge import load_prompt  # noqa: E402
+from biy.metrics.score import SCORERS  # noqa: E402
+from metric_bank.runtime import IMPLEMENTED, JUDGE, RUNNER_MEASURED  # noqa: E402
 
 
 def _case(reference, schema=None):
@@ -27,6 +32,30 @@ def _case(reference, schema=None):
 
 def _out(text=None, payload=None):
     return OutputView(text=text, json=payload, tool_calls=None)
+
+
+def test_runtime_status_matches_score_dispatch():
+    implemented = {metric_id for metric_id, info in METRICS.items() if info is not None}
+    assert set(SCORERS) <= implemented
+    assert set(SCORERS) == set(IMPLEMENTED)
+    assert JUDGE == {"rubric_score", "pairwise_vs_baseline"}
+    assert RUNNER_MEASURED.isdisjoint(SCORERS)
+    for metric_id in SCORERS:
+        assert METRICS[metric_id].id == metric_id
+
+
+def test_unimplemented_ids_fail_loudly():
+    case = _case("hello")
+    output = _out(text="hello")
+    with pytest.raises(UnimplementedMetricError, match="runtime_status=planned"):
+        score("faithfulness", case, output, {})
+    with pytest.raises(UnimplementedMetricError, match="runtime_status=judge"):
+        score("rubric_score", case, output, {})
+    with pytest.raises(UnimplementedMetricError, match="runtime_status=runner_measured"):
+        score("ttft_ms", case, output, {})
+    with pytest.raises(KeyError):
+        score("not_a_metric", case, output, {})
+    assert score("exact_match", _case(None), output, {}) is None
 
 
 def test_registry_uses_bank_direction_and_aliases():

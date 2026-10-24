@@ -55,7 +55,7 @@ def build() -> str:
     )
     index_table = rows(
         [
-            [metric["category"], metric["id"], metric["name"], metric["selector_priority"], metric["utility_axis"], metric["layer"]]
+            [metric["category"], metric["id"], metric["name"], metric["selector_priority"], metric["utility_axis"], metric["runtime_status"], metric["layer"]]
             for metric in metrics
         ]
     )
@@ -75,7 +75,8 @@ def build() -> str:
         quality = ", ".join(card["quality"])
         alternate = ", ".join(card["quality_alternates"]) or "—"
         risk = ", ".join(f"{item['id']} {item['threshold']}" for item in card["risk_gates"]) or "—"
-        task = ", ".join(f"{item['id']} {item['threshold']}" for item in card["task_gates"])
+        task = ", ".join(f"{item['id']} {item['threshold']}" for item in card["task_gates"]) or "—"
+        always = ", ".join(card["always_on"]) or "—"
         extra = ", ".join(card["reliability_extra"] + card["also_report"]) or "—"
         points = "".join(f"<li>{esc(point)}</li>" for point in card["teaching_points"])
         cards.append(
@@ -85,6 +86,7 @@ def build() -> str:
               <p class="meta">{esc(card['kind'])} · {esc(card['industry'])}</p>
               <p>{esc(card['narrative'])}</p>
               <table>
+                <tr><th>Always on</th><td>{esc(always)}</td></tr>
                 <tr><th>Quality</th><td>{esc(quality)}</td></tr>
                 <tr><th>First left out</th><td>{esc(alternate)}</td></tr>
                 <tr><th>Speed</th><td>{esc(speed)}</td></tr>
@@ -195,7 +197,7 @@ def build() -> str:
   <p>{count} metrics sit in {category_count} categories ({priority_bits}). Core rows are the ones a selector should consider first when the brief matches. The avoid-as-primary rows exist so BLEU, ROUGE-L, BERTScore, summary fluency, and embedding cosine can be refused as the quality score. The remaining rows are supporting measurements or diagnostics.</p>
   <p>A row earned a place when three things were true. A client can compute it on their own cases. Two teams would otherwise implement it under different names. And the number can change a ship decision: quality, a hard gate, speed, cost, or a business outcome. A public exam fails the first test. An alias fails the second. A vanity score fails the third.</p>
   <p>The existing product catalogue, in <span class="mono">docs/metrics-catalog.md</span>, already fixed forty ids. Every one of those ids is in this bank with the same spelling, so a later <span class="mono">biy_metrics_list</span> can serve this file without a rename. This folder does not edit that catalogue. The bank is the superset.</p>
-  <p>A client scorecard is not the bank. It is the six always-on operational metrics, one speed metric chosen from the kind, one to five quality metrics, and zero to five risk gates. The reference selector in <span class="mono">src/metric_bank/selector.py</span> applies that budget. The five clients further down are its output.</p>
+  <p>A client scorecard is not the bank. It is a few operational metrics, one speed metric chosen from the kind, one to five quality metrics, and zero to five risk gates. The reference selector in <span class="mono">src/metric_bank/selector.py</span> applies that budget, and by default it keeps only rows the runtime can compute. Planned rows stay in the bank. A brief sets include_planned to opt in. The five clients further down are the default cards.</p>
 
   <h2 id="studied">What was studied, and what was left out</h2>
   <p>HELM is the argument for the shape of the bank. Liang and colleagues scored accuracy together with calibration, robustness, fairness, toxicity, and efficiency, and they warned against a win rate that depends on who else was in the set. That is why quality here is an absolute 0–1 mean, not a rank against the other candidates, and why speed and cost stay on their own axes.</p>
@@ -213,6 +215,7 @@ def build() -> str:
     <li><span class="mono">quality_transform</span> is identity for those quality rows and not_a_quality_input otherwise. Nothing in this bank asks the runner to subtract a risk rate from 1 and then average it.</li>
     <li><span class="mono">group_role</span> separates a primary measurement from its alternate, its gate form, a diagnostic, and a judging method. Hallucination rate is the gate form of grounding. Faithfulness is the primary.</li>
     <li><span class="mono">selector_priority</span> is core, supporting, diagnostic, or avoid_as_primary.</li>
+    <li><span class="mono">runtime_status</span> is implemented, judge, runner_measured, or planned. The default selector proposes the first three. score() computes implemented ids only and raises on the others.</li>
     <li>Inputs are a closed vocabulary: references, labels, retrieved context, human raters, an LLM judge, logs, prices, a schema, a tool trace, and the rest of the list in the schema. If the client cannot supply the input, the metric is not eligible.</li>
   </ul>
   <p>The schema is <span class="mono">schema/metric-bank.schema.json</span> (JSON Schema draft 2020-12, additional properties forbidden). <span class="mono">validate.py</span> checks the data file against that schema, against <span class="mono">build_bank()</span>, and against the catalogue ids.</p>
@@ -236,19 +239,19 @@ def build() -> str:
   <h3>Full index</h3>
   <p class="muted">Sorted by category, then id. Priority and axis are what the selector filters on. The description, formula, and limitations stay in the JSON, where an LLM can read the whole row.</p>
   <table>
-    <thead><tr><th>Category</th><th>Id</th><th>Name</th><th>Priority</th><th>Axis</th><th>Layer</th></tr></thead>
+    <thead><tr><th>Category</th><th>Id</th><th>Name</th><th>Priority</th><th>Axis</th><th>Runtime</th><th>Layer</th></tr></thead>
     <tbody>{index_table}</tbody>
   </table>
 
   <h2 id="scorecard">Five scorecards</h2>
-  <p>The same six operational metrics are on every card: error rate, truncation rate, throttle rate, cost per case, cost per success, and output tokens per case. Throttle rate is recorded so a 429 is never called latency. Cost per success is the cost used for ranking. What changes is quality, speed, and gates.</p>
+  <p>The default card keeps the operational metrics the runner records: cost per case, cost per success, and output tokens per case, plus time to first token or end-to-end latency when someone is waiting. Error rate, truncation, and throttle stay planned. Cost per success is the cost used for ranking. If a kind has no implemented quality metric, the quality slot is rubric_score.</p>
   <p>Selection rules, the signal table, and a prompt for the app's model are in <span class="mono">selection/GUIDE.md</span>. The cards below are the reference selector, not a hand-edited illustration, so they stay aligned with the guide and the tests.</p>
   {''.join(cards)}
 
   <h2 id="scoring">How this lines up with BIY scoring</h2>
   <p>The product ranks in three steps: gates, then the Pareto front, then utility. Gates disqualify. A schema failure, an error rate above the kind's ceiling, a confirmed privacy leak, or a latency ceiling the client named are gates. A preference is not.</p>
   <p>Quality Q is the weighted mean of the scorecard's quality metrics. Each one is already on 0–1, higher better. Q is not rescaled against the other candidates in the run. A model that scores 0.9 is a 0.9 even if every candidate is excellent.</p>
-  <p>Speed S and cost C use the log target from the architecture. At or under the target the score is 1. At or over the maximum it is 0. Between them it is 1 minus log(x / target) divided by log(max / target). Speed uses the one metric for the kind: time to first token for chat, end-to-end for a sync extraction, task wall time for an agent, and nothing for a batch. Cost uses dollars per successful case. Utility is the weighted geometric mean of Q, S, and C. A zero on a weighted axis sinks the candidate.</p>
+  <p>Speed S and cost C use the log target from the architecture. At or under the target the score is 1. At or over the maximum it is 0. Between them it is 1 minus log(x / target) divided by log(max / target). Speed uses a metric the runner records: time to first token for chat, end-to-end for a sync call, and nothing for a batch. Agent task wall time is planned, so the default agent card ranks on end-to-end latency. Cost uses dollars per successful case. Utility is the weighted geometric mean of Q, S, and C. A zero on a weighted axis sinks the candidate.</p>
   <p>The judge, when one is used, is pinned, from a different family than the candidates, and pairwise runs are judged in both orders. The bank's judging category is an instrument. Rubric score, G-Eval, and pairwise against a baseline compete for a single slot. They do not stack on top of a named metric for the same construct.</p>
   <p>Illustrative formulas — token F1, classification F1, faithfulness from claim verdicts, the cost identity, expected calibration error, unbiased pass@k and pass^k, ROUGE-L, and the log target — live in <span class="mono">src/metric_bank/illustrative.py</span> and are exercised in the notebook. They do not call a model.</p>
 

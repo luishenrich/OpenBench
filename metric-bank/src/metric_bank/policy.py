@@ -58,6 +58,12 @@ def selection_policy() -> dict:
             "Select at most one of rubric_score and g_eval. Add pairwise_vs_baseline only "
             "when a baseline completion exists."
         ),
+        "runnable_rule": (
+            "By default propose only rows whose runtime_status is implemented, judge, "
+            "or runner_measured. Planned rows stay in the bank and return when the brief "
+            "sets include_planned. If that filter would leave quality empty, use an "
+            "implemented metric for the kind, or rubric_score."
+        ),
         "double_count_groups": [
             "grounding",
             "generic_judge",

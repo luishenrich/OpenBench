@@ -1,23 +1,49 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
-  --color-paper: #f3f5f8;
-  --color-surface: #ffffff;
-  --color-ink: #141b2d;
-  --color-muted: #5a6478;
-  --color-faint: #8a94a6;
-  --color-rule: #d9dfe7;
-  --color-accent: #2b4acb;
-  --color-accent-soft: #e6eafb;
-  --color-win: #0f8a5f;
-  --color-win-soft: #e2f4ec;
-  --color-bad: #b93a0b;
-  --color-bad-soft: #fbe9e1;
+  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --color-bg: #09090b;
+  --color-panel: #121214;
+  --color-raised: #1a1a1d;
+  --color-line: #26262a;
+  --color-line-strong: #3a3a40;
+  --color-fg: #ededef;
+  --color-muted: #9a9aa3;
+  --color-faint: #62626b;
+  --color-front: #ff6b3d;
+  --color-signal: #3e7bfa;
+  --color-win: #3dd68c;
+  --color-bad: #f2555a;
+  --color-tile: #15132b;
 }
 
-html { background: var(--color-paper); color: var(--color-ink); }
+html { background: var(--color-bg); color: var(--color-fg); color-scheme: dark; }
 body { font-family: var(--font-sans); font-feature-settings: 'tnum' 1; -webkit-font-smoothing: antialiased; }
-:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 4px; }
-input[type='range'] { accent-color: var(--color-accent); }
+::selection { background: color-mix(in oklab, var(--color-front) 40%, transparent); }
+:focus-visible { outline: 2px solid var(--color-signal); outline-offset: 2px; border-radius: 6px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* Big display type: tight like the brand reference */
+.display { letter-spacing: -0.045em; line-height: 0.98; font-weight: 600; }
+.title { letter-spacing: -0.03em; font-weight: 600; }
+
+/* Small mono badge, used only for eyebrow markers */
+.badge {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  border: 1px solid var(--color-line); background: var(--color-panel);
+  border-radius: 6px; padding: 0.3rem 0.6rem;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted);
+}
+.badge-dot { width: 7px; height: 7px; border-radius: 1.5px; background: currentColor; }
+
+/* Faint measuring grid that fades out toward the edges */
+.grid-bg {
+  background-image:
+    linear-gradient(var(--color-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 40%, black 20%, transparent 80%);
+}
+
+input[type='range'] { accent-color: var(--color-front); }

@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from metric_bank.build import build_bank, validate_records  # noqa: E402
 from metric_bank.policy import ALWAYS_ON, SPEED_BY_KIND  # noqa: E402
+from metric_bank.runtime import is_runnable  # noqa: E402
 from metric_bank.schema_doc import SCHEMA_PATH, schema_document  # noqa: E402
 from metric_bank.selector import EXAMPLES, select  # noqa: E402
 from metric_bank.spec import CATALOG_IDS  # noqa: E402
@@ -83,7 +84,26 @@ def check_selector(bank: dict) -> list[str]:
         speed = card["speed"]["ranking"]
         if speed is not None and by_id[speed]["utility_axis"] != "speed":
             errors.append(f"{example['id']}: {speed} is not a speed metric")
+        proposed = _proposed(card)
+        planned = [metric_id for metric_id in proposed if not is_runnable(metric_id)]
+        if planned:
+            errors.append(f"{example['id']}: default scorecard includes planned metrics {planned}")
     return errors
+
+
+def _proposed(card: dict) -> list[str]:
+    ids = list(card["always_on"])
+    ids.extend(card["quality"])
+    ids.extend(card["quality_alternates"])
+    ids.extend(card["also_report"])
+    ids.extend(card["reliability_extra"])
+    ids.extend(card["speed"]["also_report"])
+    if card["speed"]["ranking"]:
+        ids.append(card["speed"]["ranking"])
+    ids.extend(item["id"] for item in card["risk_gates"])
+    ids.extend(item["id"] for item in card["task_gates"])
+    ids.extend(card["judging"])
+    return ids
 
 
 def check_artifacts(bank: dict) -> list[str]:

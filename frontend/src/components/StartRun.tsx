@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { api, ApiError } from '@/lib/api'
 import { usd } from '@/lib/format'
 import type { Estimate, ModelRef, UseCase } from '@/types'
-import { Button, ErrorNote, Panel } from './ui'
+import { Badge, Button, ErrorNote, Panel } from './ui'
 
 export default function StartRun({ useCase, needsVision }: { useCase: UseCase; needsVision: boolean }) {
   const navigate = useNavigate()
@@ -47,7 +47,8 @@ export default function StartRun({ useCase, needsVision }: { useCase: UseCase; n
 
   return (
     <Panel className="p-5">
-      <h2 className="font-semibold">Benchmark models</h2>
+      <Badge tone="signal">New run</Badge>
+      <h2 className="title mt-4 text-lg">Benchmark models</h2>
       <p className="mt-1 text-sm text-muted">
         {useCase.case_count} cases × {repeats} repeats per model{needsVision ? '. Image input, so only models that passed our vision check.' : '.'}
       </p>
@@ -58,11 +59,11 @@ export default function StartRun({ useCase, needsVision }: { useCase: UseCase; n
         {eligible.map((m) => {
           const key = `${m.provider}:${m.id}`
           return (
-            <label key={key} className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 hover:bg-paper">
-              <input type="checkbox" checked={selected.has(key)} onChange={() => toggle(key)} className="accent-accent" />
+            <label key={key} className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 hover:bg-raised">
+              <input type="checkbox" checked={selected.has(key)} onChange={() => toggle(key)} className="accent-[var(--color-front)]" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium">{m.name}</span>
-                <span className="block text-xs text-muted">
+                <span className="block text-xs text-faint">
                   {m.provider}, ${m.pricing_usd_per_1m.input ?? '?'} in / ${m.pricing_usd_per_1m.output ?? '?'} out per 1M tokens{m.aa_index ? `, AA index ${m.aa_index}` : ''}
                 </span>
               </span>
@@ -71,27 +72,27 @@ export default function StartRun({ useCase, needsVision }: { useCase: UseCase; n
         })}
       </fieldset>
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-rule pt-4 text-sm">
+      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line pt-4 text-sm">
         <label className="flex items-center gap-2">
           Repeats
           <select value={repeats} onChange={(e) => { setRepeats(Number(e.target.value)); setEstimate(null) }}
-            className="rounded border border-rule bg-surface px-2 py-1">
+            className="rounded-md border border-line bg-bg px-2 py-1">
             {[1, 3, 5].map((n) => <option key={n}>{n}</option>)}
           </select>
         </label>
         {useCase.current_model && (
           <label className="flex items-center gap-2">
-            <input type="checkbox" checked={baseline} onChange={(e) => { setBaseline(e.target.checked); setEstimate(null) }} className="accent-accent" />
+            <input type="checkbox" checked={baseline} onChange={(e) => { setBaseline(e.target.checked); setEstimate(null) }} className="accent-[var(--color-front)]" />
             Include today's model
           </label>
         )}
       </div>
 
       {estimate && (
-        <div className="mt-4 rounded-md bg-paper p-3 text-sm">
+        <div className="mt-4 rounded-lg border border-line bg-bg p-3 text-sm">
           <div className="flex justify-between"><span>{estimate.calls.toLocaleString()} calls</span><span>{usd(estimate.est_cost_usd)}</span></div>
           {estimate.judge_cost_usd > 0 && <div className="flex justify-between text-muted"><span>Judge</span><span>{usd(estimate.judge_cost_usd)}</span></div>}
-          <div className="mt-1 flex justify-between border-t border-rule pt-1 font-semibold"><span>Estimated total</span><span>{usd(estimate.total_usd)}</span></div>
+          <div className="mt-1 flex justify-between border-t border-line pt-1 font-semibold"><span>Estimated total</span><span>{usd(estimate.total_usd)}</span></div>
         </div>
       )}
       {(estimateM.error || startM.error) && <div className="mt-3"><ErrorNote error={estimateM.error ?? startM.error} /></div>}
